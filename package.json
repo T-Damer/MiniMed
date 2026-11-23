@@ -142,6 +142,7 @@
     "native:add:ios": "bun run --filter @localmed/app cap:add:ios",
     "native:sync": "bun run --filter @localmed/app cap:sync",
     "native:sync:android": "bun run --filter @localmed/app cap:sync:android",
+    "release:android:local": "bash scripts/android-release-local.sh",
     "native:sync:ios": "bun run --filter @localmed/app cap:sync:ios",
     "icons:generate": "uv run --with pillow python3 scripts/generate-app-icons.py",
     "icons:install": "python3 scripts/install-app-icon-pack.py",
