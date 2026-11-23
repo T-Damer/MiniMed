@@ -34,6 +34,8 @@ function listenForTouches(): void {
 }
 
 const startedAt = Date.now();
+// Arm interaction tracking on load so taps during the first QUIET_START_MS prevent a silent reload.
+listenForTouches();
 
 export function browserQuietPage(): QuietPage {
   listenForTouches();

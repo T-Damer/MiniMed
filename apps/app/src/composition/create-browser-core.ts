@@ -638,13 +638,14 @@ export async function readInstalledModuleDocument(
   module: ContentModuleCatalogEntry,
   documentId: string,
   headerOnly = false,
+  projection?: 'medication-catalog',
 ): Promise<MedicalDocument | undefined> {
   return withInstalledReaderCore(module, async (core, store) => {
     let document: MedicalDocument;
     if (headerOnly) {
       const initialized = await core.initialize();
       if (!initialized.ok) return undefined;
-      const record = await store.getDocument(documentId);
+      const record = await store.getDocument(documentId, projection);
       if (!record) return undefined;
       document = toMedicalDocument(record, []);
     } else {

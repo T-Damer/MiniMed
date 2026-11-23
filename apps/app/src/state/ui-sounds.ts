@@ -40,6 +40,11 @@ export const WARM_UP_CUES: readonly CueName[] = [
   'open',
   'close',
   'swipe',
+  'toggle-on',
+  'toggle-off',
+  'start',
+  'delete',
+  'check',
 ];
 
 export class UiSoundController {
@@ -84,6 +89,11 @@ export class UiSoundController {
       void this.player.preload([cue]).then(() => whenIdle(next));
     };
     next();
+  }
+
+  /** True once the AudioContext has been unlocked or pre-warmed (plays without blocking the tap). */
+  isReady(): boolean {
+    return this.unlocked || this.warmedUp;
   }
 
   unlock(): void {

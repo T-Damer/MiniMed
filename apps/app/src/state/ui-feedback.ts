@@ -188,6 +188,10 @@ export function installUiFeedback(root: Document = document): () => void {
   }, SOUND_WARM_UP_DELAY_MS);
 
   const unlock = (): void => {
+    if (typeof uiSounds.isReady === 'function' && !uiSounds.isReady()) {
+      window.setTimeout(() => uiSounds.unlock(), 0);
+      return;
+    }
     uiSounds.unlock();
   };
 
@@ -207,7 +211,13 @@ export function installUiFeedback(root: Document = document): () => void {
     if (!(event.target instanceof Element)) return;
     const feedback = feedbackForClick(event.target);
     if (!feedback) return;
-    uiSounds.play(feedback.cue);
+    // Opening the WebView AudioContext synchronously on an early tap blocks the frame ~190 ms on
+    // Android; defer only the cold first play past this click's paint, keeping warmed taps instant.
+    if (typeof uiSounds.isReady === 'function' && !uiSounds.isReady()) {
+      window.setTimeout(() => uiSounds.play(feedback.cue), 0);
+    } else {
+      uiSounds.play(feedback.cue);
+    }
     hapticFeedback(feedback.haptic);
   };
 

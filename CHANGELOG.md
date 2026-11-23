@@ -4,9 +4,15 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.127] - 2026-11-23
+
 - Rank lexical matches in SQLite and fetch excerpts only for the combined top hits across installed packs.
-- Share repeated medication catalog data and keep one-off search strings out of the shared name cache.
-- Trim medication catalog records in the storage workers and reuse normalized keys for repeated package positions.
+- Share repeated medication catalog data, trim catalog records in storage workers, and reuse normalized keys for repeated package positions.
+- Page ICD-11 browsing, cache early search answers in IndexedDB, open «Травник» directly from its pack, and refine inline term previews, image zoom controls, and A4 standalone table printing.
+- Parse the bundled module catalog shell from compact raw JSON without runtime Zod evaluation on cold startup.
+- Coalesce `ScrollIndicator` layout measurements off slice-mounting frames and avoid read-after-write layout thrashing during scrolling.
+- Overlap companion SQLite initialization with projected ЕСКЛП substance reads and materialize registration lookups in the direct installed substance reader.
+- Avoid forced layout probes in `PageHero` on unrelated root style changes, arm the ECG trace rest timer on fast (<500 ms) boots, defer cold WebView `AudioContext` creation off the first tap while warming up common UI cues, and track early user taps before silent web auto-updates.
 
 ## [0.6.126] - 2026-11-21
 

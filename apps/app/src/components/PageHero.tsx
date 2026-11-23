@@ -54,7 +54,8 @@ function EcgTrace(): JSX.Element {
     let onScreen = true;
     let resting = false;
     let restTimer: ReturnType<typeof setTimeout> | undefined;
-    let lastWake = 0;
+    // Start before zero so a fast boot (< WAKE_THROTTLE_MS) still arms the idle rest timer.
+    let lastWake = Number.NEGATIVE_INFINITY;
     const apply = (): void => {
       element.classList.toggle('page-hero__ecg--paused', !onScreen || resting);
     };
@@ -232,10 +233,20 @@ function measureEmblem(header: HTMLElement, row: HTMLElement): void {
 const insetWatchers = new Set<() => void>();
 let insetWidth = 0;
 let insetSafeTop = 0;
+let insetSafeTopRaw = '';
 let stopInsetWatch: (() => void) | undefined;
+
+function rawSafeTop(): string {
+  return document.documentElement.style.getPropertyValue('--safe-top').trim();
+}
 
 function checkInsets(): void {
   const width = window.innerWidth;
+  const raw = rawSafeTop();
+  // Unrelated style writes on `<html>` (bottom nav inset, keyboard, motion rate) must not probe
+  // layout when neither the viewport width nor `--safe-top` changed.
+  if (width === insetWidth && raw === insetSafeTopRaw) return;
+  insetSafeTopRaw = raw;
   const safeTop = measureSafeTop();
   if (width === insetWidth && safeTop === insetSafeTop) return;
   insetWidth = width;
@@ -253,6 +264,7 @@ function checkInsets(): void {
 export function watchInsets(measure: () => void): () => void {
   if (insetWatchers.size === 0) {
     insetWidth = window.innerWidth;
+    insetSafeTopRaw = rawSafeTop();
     insetSafeTop = measureSafeTop();
     const observer = new MutationObserver(checkInsets);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
@@ -360,15 +372,20 @@ export function useHeroBleed(header: () => HTMLElement | undefined, enabled: () 
   });
 }
 
+const PIXEL_LENGTH = /^-?\d+(?:\.\d+)?px$/u;
+
 /** The status bar's height in CSS pixels (`--safe-top`). */
 function measureSafeTop(): number {
+  const computed = getComputedStyle(document.documentElement).getPropertyValue('--safe-top').trim();
+  if (computed === '' || computed === '0') return 0;
+  if (PIXEL_LENGTH.test(computed)) return Number.parseFloat(computed);
   return measureLength('var(--safe-top, 0px)');
 }
 
 /** Where the pinned row sticks (`--page-hero-pin` in PageHero.css): under the status bar, and a
  * little below the screen edge where there is none (a phone browser), so its buttons are not cut. */
 function measurePinTop(): number {
-  return measureLength('max(var(--safe-top, 0px), 0.5rem)');
+  return Math.max(measureSafeTop(), remToPx(0.5));
 }
 
 function measureLength(css: string): number {

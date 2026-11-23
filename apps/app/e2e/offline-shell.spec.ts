@@ -150,6 +150,9 @@ test.describe('a new build is offered, never forced', () => {
       await page.setViewportSize({ width: 375, height: 812 });
       await mountBuiltApp(page, { origin: proxy.origin });
       const firstCache = await waitForShellCache(page);
+      // Touch the page so the session is active and `applyWhenQuiet` waits for «Обновить сейчас»
+      // instead of silently applying the update during the initial `QUIET_START_MS` window.
+      await page.getByTestId('search-input').click();
       const loadedAt = await page.evaluate(() => performance.timeOrigin);
 
       // The same files under a new build id: byte-different sw.js, so a new worker installs.

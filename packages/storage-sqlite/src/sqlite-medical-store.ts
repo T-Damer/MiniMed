@@ -1362,7 +1362,7 @@ export class SqliteMedicalStore implements MedicalStore {
     return queryRows(
       this.database,
       `
-      WITH registrations AS (SELECT value FROM json_each(?))
+      WITH registrations AS MATERIALIZED (SELECT value FROM json_each(?))
       SELECT d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status, d.specialty_json,
         json_extract(d.metadata_json, ${NAVIGATION_METADATA_PATHS}) AS metadata_fields,
         dv.id AS version_id, dv.version_label, dv.effective_from, dv.effective_to,

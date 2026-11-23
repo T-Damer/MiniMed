@@ -97,3 +97,62 @@ export function deriveModuleCatalogShell(catalog: ContentModuleCatalog): ModuleC
     ),
   };
 }
+
+const SECTION_COUNT_KEYS: readonly CatalogDocumentSectionId[] = [
+  'conditions',
+  'icd11',
+  'guidelines',
+  'medications',
+  'legal',
+];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
+function isNonNegativeInt(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0;
+}
+
+/**
+ * Trusted boundary for the bundled `catalog.shell.json` read on cold startup. Full schema
+ * validation of `coreModule` and the 260+ `ToolCatalogEntry` items runs at build time and in
+ * `bundled-catalog-parse.test.ts`; here we verify the structural invariants without pulling Zod
+ * onto the boot-reveal critical path.
+ */
+export function parseTrustedModuleCatalogShell(raw: unknown): ModuleCatalogShell {
+  if (!isRecord(raw)) throw new Error('Bundled module catalog shell must be an object.');
+  if (!isNonEmptyString(raw['catalogVersion']) || !isNonEmptyString(raw['publishedAt'])) {
+    throw new Error('Bundled module catalog shell metadata is incomplete.');
+  }
+  const core = raw['coreModule'];
+  if (
+    !isRecord(core) ||
+    !isNonEmptyString(core['id']) ||
+    !isNonEmptyString(core['version']) ||
+    !isRecord(core['sizes'])
+  ) {
+    throw new Error('Bundled core catalog entry is invalid.');
+  }
+  const counts = raw['sectionDocumentCounts'];
+  if (!isRecord(counts) || !SECTION_COUNT_KEYS.every((key) => isNonNegativeInt(counts[key]))) {
+    throw new Error('Bundled section document counts are invalid.');
+  }
+  const tools = raw['tools'];
+  if (!Array.isArray(tools)) throw new Error('Bundled tool catalog shell must contain an array.');
+  for (const entry of tools) {
+    if (
+      !isRecord(entry) ||
+      !isNonEmptyString(entry['moduleId']) ||
+      !isRecord(entry['tool']) ||
+      !isNonEmptyString(entry['tool']['id'])
+    ) {
+      throw new Error('Bundled tool catalog shell entry is invalid.');
+    }
+  }
+  return raw as unknown as ModuleCatalogShell;
+}

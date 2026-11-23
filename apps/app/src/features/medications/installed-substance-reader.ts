@@ -27,9 +27,42 @@ import {
 } from '@/features/modules/module-runtime-service';
 import { readInstalledDataVersion } from '@/state/search-data-version';
 
+function nonEmptyString(value: unknown): string | null {
+  return typeof value === 'string' ? value.trim() || null : null;
+}
+
+/**
+ * Extracts unique registration numbers directly from the ЕСКЛП `smnnNodes` trade list so the
+ * companion instruction query can run without parsing every `klpPositions` packaging row twice.
+ */
+export function extractEsklpRegistrationNumbers(source: MedicalDocument): readonly string[] {
+  if (!isEsklpSubstanceDocument(source)) return [];
+  const nodes = source.metadata['smnnNodes'];
+  if (!Array.isArray(nodes)) return [];
+  const registrations = new Set<string>();
+  for (const node of nodes) {
+    if (typeof node !== 'object' || node === null || Array.isArray(node)) continue;
+    const record = node as Readonly<Record<string, unknown>>;
+    if (!nonEmptyString(record['smnnCode'])) continue;
+    const nodeDosageForm = nonEmptyString(record['dosageForm']);
+    const tradeNames = record['tradeNames'];
+    if (!Array.isArray(tradeNames)) continue;
+    for (const trade of tradeNames) {
+      if (typeof trade !== 'object' || trade === null || Array.isArray(trade)) continue;
+      const tradeRecord = trade as Readonly<Record<string, unknown>>;
+      const tradeName = nonEmptyString(tradeRecord['tradeName']);
+      const registrationNumber = nonEmptyString(tradeRecord['registrationNumber']);
+      const dosageForm = nonEmptyString(tradeRecord['dosageForm']) ?? nodeDosageForm;
+      if (tradeName && registrationNumber && dosageForm) registrations.add(registrationNumber);
+    }
+  }
+  return [...registrations];
+}
+
 export function selectSubstanceInstruction(
   source: MedicalDocument,
   documents: readonly Pick<MedicalDocumentSummary, 'id' | 'sourceType' | 'metadata'>[],
+  readability: ReadonlyMap<string, number> = instructionReadabilityIndex(documents),
 ): MedicationProduct | null {
   return representativeInstructionProduct(
     parseEsklpMedicationProducts(
@@ -40,7 +73,7 @@ export function selectSubstanceInstruction(
     typeof source.metadata['standardizedInn'] === 'string'
       ? source.metadata['standardizedInn']
       : source.title,
-    instructionReadabilityIndex(documents),
+    readability,
   );
 }
 
@@ -135,23 +168,28 @@ async function readSubstance(id: string): Promise<InstalledSubstanceRead | undef
 
   performance.measure('minimed:reader:substance-locate', { start: startedAt });
   const sourceStartedAt = performance.now();
-  const sourceRead = readInstalledModuleDocument(substanceModule, id, true).finally(() => {
+  // Project away unused ЕСКЛП fields in the worker before structured-cloning the substance header.
+  const sourceRead = readInstalledModuleDocument(
+    substanceModule,
+    id,
+    true,
+    'medication-catalog',
+  ).finally(() => {
     performance.measure('minimed:reader:substance-pack', { start: sourceStartedAt });
   });
   const instructionRead = withInstalledReaderCore(companion, async (core, store) => {
-    const source = await sourceRead;
-    if (!source || !isEsklpSubstanceDocument(source)) return undefined;
+    // Open and initialize the companion instruction index while the substance header is being read.
+    const initPromise = core.initialize();
+    const [source, initialized] = await Promise.all([sourceRead, initPromise]);
+    if (!source || !initialized.ok || !isEsklpSubstanceDocument(source)) return undefined;
     const listingsStartedAt = performance.now();
-    const registrations = [
-      ...new Set(parseEsklpMedicationProducts(source).map((product) => product.registrationNumber)),
-    ];
-    const initialized = await core.initialize();
-    if (!initialized.ok) return undefined;
+    const registrations = extractEsklpRegistrationNumbers(source);
     const listed = await (store.listInstructionDocuments?.(registrations) ??
       store.listNavigationDocuments?.() ??
       store.listDocuments());
     performance.measure('minimed:reader:instruction-lookup', { start: listingsStartedAt });
-    const product = selectSubstanceInstruction(source, listed);
+    const readability = instructionReadabilityIndex(listed);
+    const product = selectSubstanceInstruction(source, listed, readability);
     const target = product?.instructionDocumentId;
     // A whole, native-text ГРЛС instruction for the matched registration can lead the card.
     // Scan, leaflet and fallback selections use the full set's usual ranking.
@@ -160,7 +198,7 @@ async function readSubstance(id: string): Promise<InstalledSubstanceRead | undef
       !target ||
       product.instructionFallback ||
       (product.instructionSourceClass ?? 'grls') !== 'grls' ||
-      instructionReadabilityIndex(listed).get(target) !== 0
+      readability.get(target) !== 0
     )
       return undefined;
     const textStartedAt = performance.now();

@@ -1,5 +1,11 @@
 import { createSignal, type JSX, onCleanup, onMount } from 'solid-js';
 
+import {
+  computeScrollIndicatorThumb,
+  SCROLL_INDICATOR_RESIZE_MS,
+  type ScrollIndicatorGeometry,
+} from '@/components/scroll-indicator-layout';
+
 import './ScrollIndicator.css';
 
 let overlayScrollbars: boolean | undefined;
@@ -37,39 +43,101 @@ export function ScrollIndicator(props: {
   const [shown, setShown] = createSignal(false);
   let track: HTMLDivElement | undefined;
   let thumb: HTMLDivElement | undefined;
-  let frame = 0;
+  let scrollFrame = 0;
+  let resizeTimer: number | undefined;
+  let geometry: ScrollIndicatorGeometry | undefined;
+  let geometryDirty = true;
+  let initialized = false;
+  let lastShown = false;
+  let lastTrackTop = Number.NaN;
+  let lastTrackLeft = Number.NaN;
+  let lastTrackHeight = Number.NaN;
+  let lastThumbSize = Number.NaN;
+  let lastThumbTop = Number.NaN;
 
   const scroller = (): HTMLElement | undefined =>
     props.target
       ? props.target()
       : ((document.scrollingElement as HTMLElement | null) ?? undefined);
 
-  const draw = (): void => {
-    frame = 0;
-    const element = scroller();
-    if (!element) return;
+  const measureGeometry = (element: HTMLElement): ScrollIndicatorGeometry => {
     const visible = props.target ? element.clientHeight : window.innerHeight;
     const total = element.scrollHeight;
-    const overflow = total - visible > 1;
-    setShown(overflow);
-    if (!overflow || !track || !thumb) return;
+    if (total - visible <= 1) return { visible, total, room: 0 };
     if (props.target && props.fixed) {
       const box = element.getBoundingClientRect();
-      track.style.top = `${box.top + 6}px`;
-      track.style.left = `${box.right - 7}px`;
-      track.style.height = `${Math.max(0, box.height - 12)}px`;
-    } else if (props.target) {
-      track.style.top = `${element.offsetTop}px`;
-      track.style.height = `${element.clientHeight}px`;
+      const trackHeight = Math.max(0, box.height - 12);
+      return {
+        visible,
+        total,
+        room: trackHeight,
+        trackTop: box.top + 6,
+        trackLeft: box.right - 7,
+        trackHeight,
+      };
     }
-    const room = track.clientHeight;
-    const size = Math.max(24, (room * visible) / total);
-    const top = ((room - size) * element.scrollTop) / (total - visible);
-    thumb.style.height = `${size}px`;
-    thumb.style.transform = `translateY(${top}px)`;
+    if (props.target) {
+      return {
+        visible,
+        total,
+        room: visible,
+        trackTop: element.offsetTop,
+        trackHeight: visible,
+      };
+    }
+    return { visible, total, room: track?.clientHeight ?? 0 };
   };
-  const schedule = (): void => {
-    if (!frame) frame = requestAnimationFrame(draw);
+
+  const applyDraw = (): void => {
+    const element = scroller();
+    if (!element) return;
+    // Read phase first: never read layout after mutating styles or classes.
+    const scrollTop = element.scrollTop;
+    const scrolledPastKnown =
+      geometry !== undefined &&
+      geometry.total > geometry.visible &&
+      scrollTop + geometry.visible > geometry.total + 1;
+    if (geometryDirty || !geometry || scrolledPastKnown) {
+      geometry = measureGeometry(element);
+      geometryDirty = false;
+    }
+    const next = computeScrollIndicatorThumb(geometry, scrollTop);
+
+    // Write phase: mutate only changed properties so steady scrolling touches only `transform`.
+    if (next.shown !== lastShown) {
+      lastShown = next.shown;
+      setShown(next.shown);
+    }
+    if (!next.shown || !track || !thumb) return;
+    if (geometry.trackTop !== undefined && geometry.trackTop !== lastTrackTop) {
+      lastTrackTop = geometry.trackTop;
+      track.style.top = `${geometry.trackTop}px`;
+    }
+    if (geometry.trackLeft !== undefined && geometry.trackLeft !== lastTrackLeft) {
+      lastTrackLeft = geometry.trackLeft;
+      track.style.left = `${geometry.trackLeft}px`;
+    }
+    if (geometry.trackHeight !== undefined && geometry.trackHeight !== lastTrackHeight) {
+      lastTrackHeight = geometry.trackHeight;
+      track.style.height = `${geometry.trackHeight}px`;
+    }
+    if (Number.isNaN(lastThumbSize) || Math.abs(next.size - lastThumbSize) > 0.25) {
+      lastThumbSize = next.size;
+      thumb.style.height = `${next.size}px`;
+    }
+    if (Number.isNaN(lastThumbTop) || Math.abs(next.top - lastThumbTop) > 0.25) {
+      lastThumbTop = next.top;
+      thumb.style.transform = `translateY(${next.top}px)`;
+    }
+  };
+
+  const scheduleScroll = (): void => {
+    if (!scrollFrame) {
+      scrollFrame = requestAnimationFrame(() => {
+        scrollFrame = 0;
+        applyDraw();
+      });
+    }
   };
 
   onMount(() => {
@@ -80,20 +148,46 @@ export function ScrollIndicator(props: {
     // One scrollbar: the native overlay bar hides while this thumb stands in for it.
     const host = props.target ? element : document.documentElement;
     host.classList.add('scroll-indicator-host');
-    source.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', schedule);
-    const observer = new ResizeObserver(schedule);
+    let observedContent: Element | null = props.target ? element.firstElementChild : null;
+
+    const flushGeometry = (): void => {
+      resizeTimer = undefined;
+      initialized = true;
+      if (props.target) {
+        const nextContent = element.firstElementChild;
+        if (nextContent !== observedContent) {
+          if (observedContent) observer.unobserve(observedContent);
+          observedContent = nextContent;
+          if (observedContent) observer.observe(observedContent);
+        }
+      }
+      applyDraw();
+    };
+    const scheduleGeometry = (delayMs: number): void => {
+      geometryDirty = true;
+      if (resizeTimer !== undefined) return;
+      resizeTimer = window.setTimeout(flushGeometry, delayMs);
+    };
+    const onWindowResize = (): void => {
+      scheduleGeometry(0);
+    };
+
+    source.addEventListener('scroll', scheduleScroll, { passive: true });
+    window.addEventListener('resize', onWindowResize);
+    const observer = new ResizeObserver(() => {
+      scheduleGeometry(initialized ? SCROLL_INDICATOR_RESIZE_MS : 0);
+    });
     observer.observe(props.target ? element : document.body);
     // Content that grows inside a fixed-height area changes only the scroll height.
-    const content = props.target ? element.firstElementChild : undefined;
-    if (content) observer.observe(content);
-    schedule();
+    if (observedContent) observer.observe(observedContent);
+    scheduleGeometry(0);
     onCleanup(() => {
-      source.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
+      source.removeEventListener('scroll', scheduleScroll);
+      window.removeEventListener('resize', onWindowResize);
       observer.disconnect();
       host.classList.remove('scroll-indicator-host');
-      if (frame) cancelAnimationFrame(frame);
+      if (scrollFrame) cancelAnimationFrame(scrollFrame);
+      if (resizeTimer !== undefined) window.clearTimeout(resizeTimer);
     });
   });
 

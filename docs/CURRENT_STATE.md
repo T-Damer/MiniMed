@@ -1,7 +1,7 @@
 # Current state
 
-> Updated: 21 November 2026
-> Released version: `0.6.126` (public prerelease toward `1.0`)
+> Updated: 23 November 2026
+> Released version: `0.6.127` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -60,7 +60,40 @@ The clinical delta release adds 27 individually downloadable official editions t
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
 
-## Offline search and medication memory — local candidate, 2026-11-21
+## Release 0.6.127 — 2026-11-23
+
+Includes the 2026-11-21 offline search/medication memory and paged ICD-11/reader/herbal changes
+below, plus startup, scroll-indicator, installed-substance-reader, and Android WebView interaction
+fixes:
+
+- Bundled `catalog.shell.json` is stored compactly (1.6 MB → 1.1 MB) and parsed from `?raw` via
+  `JSON.parse` + `parseTrustedModuleCatalogShell` (schema-validated at build time and in unit
+  tests), removing runtime Zod from cold startup (4× CPU Chromium medians of 5 runs: `bootRevealMs`
+  442 → 395 ms, `searchReadyMs` 710 → 652 ms, `blockingMsBeforeReveal` 28 → 16 ms).
+- `ScrollIndicator` separates DOM reads from writes, removes the forced `track.clientHeight` read
+  in target/fixed modes (`OverlayDialog`, `SheetPopover`), caches geometry during steady scroll so
+  scroll ticks update only `transform`, and coalesces `ResizeObserver` bursts onto a 120 ms
+  post-layout timer.
+- `installed-substance-reader` reads the ЕСКЛП substance header with the `'medication-catalog'`
+  projection, starts `core.initialize()` on the companion instruction SQLite pack in parallel with
+  reading the substance record, extracts registration numbers directly from `smnnNodes[].tradeNames`,
+  and computes instruction readability once; `SqliteMedicalStore.listInstructionDocuments`
+  materializes the `registrations` CTE.
+- `PageHero` arms the ECG trace rest timer when boot completes under 500 ms (`lastWake = -Infinity`)
+  and skips the `measureLength` DOM probe when `--safe-top` is already a pixel length or unchanged.
+- `ui-feedback` / `ui-sounds` pre-warm `toggle-on`, `toggle-off`, `start`, `delete`, and `check`
+  cues in idle slots and defer cold `AudioContext` unlock/play off the first tap; `auto-update`
+  arms touch tracking on module load so early user interaction suppresses silent `QUIET_START_MS`
+  reloads.
+
+On the Android 16 120 Hz emulator (`minimed_spike_120hz`, `scripts/perf-log-android.ts`), before vs.
+after the Android WebView fixes: total long frames dropped 27 → 16, total blocking 584 → 177 ms,
+`search` screen blocking 86 → 0 ms (missed scroll refreshes 55% → 10%, worst frame 183 → 83 ms),
+`ui-feedback` blocking 160 → 3 ms (worst `#document.onclick` 191 ms eliminated), `PageHero`
+`MutationCallback` layout 12 → 0 ms, and recording blocking 83 → 0 ms/min. Physical Android phone
+RAM and empty-snapshot «Рисперидон» timings remain unmeasured on this build.
+
+## Offline search and medication memory — included in 0.6.127, 2026-11-21
 
 Multi-pack lexical retrieval ranks chunk IDs in the installed SQLite files and fetches excerpts
 only for the merged candidate window. Search replies carry the fields used for ranking and
@@ -83,7 +116,7 @@ A fresh-tab repeat without allocation profiling peaked at 580 MiB and settled in
 process RAM and WebView renderer memory remain unmeasured. Publication is pending the physical
 Android check.
 
-## Paged ICD-11, search history and reader tools — local candidate, 2026-11-21
+## Paged ICD-11, search history and reader tools — included in 0.6.127, 2026-11-21
 
 The ICD-11 section scrolls through its full installed classification, with the catalog count and
 separate chapter shortcuts. Its title-only SQLite reads use 40 rows per request and keep up to
