@@ -194,7 +194,13 @@ function* medicationSpellingMatcherSteps(
   // stem), not length — the whole point is to catch names the length/mask-windowed loop above
   // misses (e.g. more than 3 edits away in length or letter content).
   const byLookup = new Map<string, Name[]>();
+  sinceStep = 0;
   for (const name of names.values()) {
+    sinceStep += 1;
+    if (sinceStep >= ALIASES_PER_STEP) {
+      sinceStep = 0;
+      yield undefined;
+    }
     const bucket = lengths.get(name.normalized.length) ?? [];
     bucket.push(name);
     lengths.set(name.normalized.length, bucket);

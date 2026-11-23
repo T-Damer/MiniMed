@@ -37,13 +37,14 @@ import {
 } from './plugin';
 
 interface NativeDatabaseSession {
+  readonly databaseName: string;
   readonly key: string;
   readonly health: NativeDatabaseHealth;
   references: number;
 }
 
 interface NativePluginState {
-  session: NativeDatabaseSession | undefined;
+  readonly sessions: Map<string, NativeDatabaseSession>;
   tail: Promise<void>;
 }
 
@@ -52,7 +53,7 @@ const nativePluginStates = new WeakMap<LocalMedDatabasePlugin, NativePluginState
 function nativePluginState(plugin: LocalMedDatabasePlugin): NativePluginState {
   const existing = nativePluginStates.get(plugin);
   if (existing) return existing;
-  const state: NativePluginState = { session: undefined, tail: Promise.resolve() };
+  const state: NativePluginState = { sessions: new Map(), tail: Promise.resolve() };
   nativePluginStates.set(plugin, state);
   return state;
 }
@@ -82,23 +83,33 @@ function nativeDatabaseKey(options: OpenPackOptions): string {
 async function acquireNativeDatabase(
   plugin: LocalMedDatabasePlugin,
   options: OpenPackOptions,
+  mode: 'pack' | 'module-file' = 'pack',
 ): Promise<NativeDatabaseSession> {
   const key = nativeDatabaseKey(options);
   return withNativePluginLock(plugin, async (state) => {
-    if (state.session) {
-      if (state.session.key !== key) {
+    const existing = state.sessions.get(options.databaseName);
+    if (existing) {
+      if (existing.key !== key) {
         throw new Error('A different packaged native SQLite database is already open.');
       }
-      state.session.references += 1;
-      return state.session;
+      existing.references += 1;
+      return existing;
     }
 
+    const health =
+      mode === 'module-file' && plugin.openModuleFile
+        ? await plugin.openModuleFile({
+            databaseName: options.databaseName,
+            expectedSha256: options.expectedSha256,
+          })
+        : await plugin.openPack(options);
     const session: NativeDatabaseSession = {
+      databaseName: options.databaseName,
       key,
-      health: await plugin.openPack(options),
+      health,
       references: 1,
     };
-    state.session = session;
+    state.sessions.set(options.databaseName, session);
     return session;
   });
 }
@@ -108,11 +119,13 @@ async function releaseNativeDatabase(
   session: NativeDatabaseSession,
 ): Promise<void> {
   await withNativePluginLock(plugin, async (state) => {
-    if (state.session !== session) return;
+    if (state.sessions.get(session.databaseName) !== session) return;
     session.references -= 1;
     if (session.references > 0) return;
-    state.session = undefined;
-    await plugin.close();
+    state.sessions.delete(session.databaseName);
+    await plugin.close(
+      session.databaseName === 'core.db' ? undefined : { databaseName: session.databaseName },
+    );
   });
 }
 
@@ -406,6 +419,8 @@ function appendMetadataFilterClauses(
 
 export interface CapacitorMedicalStoreOptions extends OpenPackOptions {
   readonly plugin?: LocalMedDatabasePlugin;
+  /** `'pack'` opens a bundled asset pack (default); `'module-file'` opens an installed module DB. */
+  readonly mode?: 'pack' | 'module-file';
 }
 
 /**
@@ -439,11 +454,15 @@ export class CapacitorMedicalStore implements MedicalStore {
     }
     if (this.closing) await this.closing;
     if (!this.initialized) {
-      this.opening ??= acquireNativeDatabase(this.plugin, {
-        assetPath: this.options.assetPath,
-        databaseName: this.options.databaseName,
-        expectedSha256: this.options.expectedSha256,
-      });
+      this.opening ??= acquireNativeDatabase(
+        this.plugin,
+        {
+          assetPath: this.options.assetPath,
+          databaseName: this.options.databaseName,
+          expectedSha256: this.options.expectedSha256,
+        },
+        this.options.mode ?? 'pack',
+      );
       const opening = this.opening;
       try {
         this.nativeSession = await opening;
@@ -950,6 +969,9 @@ export class CapacitorMedicalStore implements MedicalStore {
     const result = await this.plugin.query({
       sql,
       ...(args.length > 0 ? { argsJson: JSON.stringify(args) } : {}),
+      ...(this.options.databaseName !== 'core.db'
+        ? { databaseName: this.options.databaseName }
+        : {}),
     });
     return [...result.rows];
   }

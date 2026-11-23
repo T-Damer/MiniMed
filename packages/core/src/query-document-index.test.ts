@@ -32,12 +32,15 @@ describe('QueryDocumentIndex', () => {
     const always = (): Promise<void> => Promise.resolve();
     await QueryDocumentIndex.prepare(documents, always);
     const whole = new QueryDocumentIndex(documents).nameVocabulary(['Ибупрофен']);
-    const sliced = await new QueryDocumentIndex(documents).nameVocabularySliced(
-      ['Ибупрофен'],
-      always,
-    );
+    const slicedIndex = await QueryDocumentIndex.createSliced(documents, always);
+    await slicedIndex.warmUpSliced(always);
+    const sliced = await slicedIndex.nameVocabularySliced(['Ибупрофен'], always);
     expect(sliced.words).toEqual(whole.words);
     expect([...sliced.weights]).toEqual([...whole.weights]);
+    expect([...slicedIndex.exactTitleIds('Амоксициллин')]).toEqual(['b']);
+    expect([...slicedIndex.exactShortTitleIds('Пневмония')]).toEqual(['a']);
+    expect([...slicedIndex.exactNavigationAliasIds('J18')]).toEqual(['a']);
+    expect(slicedIndex.hasNameWordPrefix('пневм')).toBe(true);
   });
 
   it('separates strict titles/navigation aliases from broad declared aliases', () => {

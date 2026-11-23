@@ -1,12 +1,15 @@
 import { err, ok, type Result } from '@localmed/contracts';
 
 import { type AskAiConfig, isAskAiAvailable } from '@/features/ask-ai/ask-ai-config';
+import type { AskAiContextBlock } from '@/features/ask-ai/ask-ai-context';
 
 export interface AskAiExcerptRequest {
   /** Verbatim text selected by the user; never the whole document or patient records. */
   readonly excerpt: string;
   readonly documentTitle?: string | undefined;
   readonly sectionTitle?: string | undefined;
+  /** Bounded file/section/retrieved context blocks attached explicitly by the user. */
+  readonly contextBlocks?: readonly AskAiContextBlock[] | undefined;
   readonly question: string;
 }
 
@@ -25,14 +28,24 @@ export type AskAiFailure =
   | { readonly kind: 'bad-response' };
 
 const SYSTEM_PROMPT =
-  'Ты медицинский справочный ассистент для врача. Отвечай кратко, по делу и на русском языке, опираясь на переданный фрагмент медицинского источника. Не выдумывай отсутствующие в источнике цифры дозировок; если нужны уточнения из полной инструкции, явно укажи это.';
+  'Ты медицинский справочный ассистент для врача (система поддержки решений на основе локальных источников MiniMed). Отвечай кратко, по делу и на русском языке, строго опираясь на переданный фрагмент и приложенный контекст документа/файлов. Ссылайся на документ и раздел при ответе. Не выдумывай отсутствующие в источнике цифры дозировок; если данных в приложенном контексте не хватает, прямо укажи это.';
 
-function buildUserPrompt(request: AskAiExcerptRequest): string {
+export function buildAskAiUserPrompt(request: AskAiExcerptRequest): string {
   const contextParts: string[] = [];
   if (request.documentTitle) contextParts.push(`Документ: ${request.documentTitle}`);
   if (request.sectionTitle) contextParts.push(`Раздел: ${request.sectionTitle}`);
   const header = contextParts.length > 0 ? `${contextParts.join('\n')}\n\n` : '';
-  return `${header}Выделенный фрагмент:\n«${request.excerpt.trim()}»\n\nВопрос врача: ${request.question.trim()}`;
+  const blocks = request.contextBlocks ?? [];
+  const contextText =
+    blocks.length > 0
+      ? `\n\nКонтекст из открытых файлов MiniMed:\n${blocks
+          .map((block, index) => {
+            const label = [block.title, block.section].filter(Boolean).join(' — ');
+            return `[${index + 1}${label ? ` · ${label}` : ''}]\n${block.text}`;
+          })
+          .join('\n\n')}`
+      : '';
+  return `${header}Выделенный фрагмент:\n«${request.excerpt.trim()}»${contextText}\n\nВопрос врача: ${request.question.trim()}`;
 }
 
 function mapHttpStatus(status: number): AskAiFailure {
@@ -58,7 +71,7 @@ export async function askAiAboutExcerpt(
     return err({ kind: 'not-configured' });
   }
 
-  const userPrompt = buildUserPrompt(request);
+  const userPrompt = buildAskAiUserPrompt(request);
 
   try {
     if (config.provider === 'openai') {
@@ -91,13 +104,16 @@ export async function askAiAboutExcerpt(
       const modelUri = config.model.startsWith('gpt://')
         ? config.model
         : `gpt://${config.yandexFolderId}/${config.model}`;
+      const authHeader = config.apiKey.startsWith('t1.')
+        ? `Bearer ${config.apiKey}`
+        : `Api-Key ${config.apiKey}`;
       const response = await fetchFn(
         'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Api-Key ${config.apiKey}`,
+            Authorization: authHeader,
             'x-folder-id': config.yandexFolderId,
           },
           body: JSON.stringify({
@@ -129,6 +145,21 @@ export async function askAiAboutExcerpt(
       ...(cause instanceof Error ? { detail: cause.message } : {}),
     });
   }
+}
+
+/** Verifies credentials with a minimal 1-word round-trip so the user gets immediate feedback. */
+export async function testAskAiConnection(
+  config: AskAiConfig,
+  fetchFn: typeof fetch = globalThis.fetch,
+): Promise<Result<AskAiAnswer, AskAiFailure>> {
+  return askAiAboutExcerpt(
+    {
+      excerpt: 'Проверка подключения MiniMed.',
+      question: 'Ответь одним словом: ОК.',
+    },
+    config,
+    fetchFn,
+  );
 }
 
 export function askAiFailureMessage(failure: AskAiFailure): string {

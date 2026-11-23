@@ -10,6 +10,7 @@ import {
   type LexicalQueryBranchPlan,
   normalizeSurfaceText,
   searchSubjectText,
+  type TimeSlicer,
 } from '@localmed/search-lexical';
 import type { SearchDocumentDescriptor } from '@localmed/storage';
 
@@ -35,21 +36,43 @@ export class TerminologySearchIndex {
   private readonly concepts = new Map<string, TermDocument[]>();
   private readonly documents = new Map<string, TermDocument>();
 
-  constructor(documents: readonly SearchDocumentDescriptor[]) {
+  constructor(documents: readonly SearchDocumentDescriptor[], skipPopulate = false) {
+    if (skipPopulate) return;
     for (const document of documents) {
-      if (!document.metadata['terminology']) continue;
-      const parsed = TerminologySearchProjectionSchema.safeParse(document.metadata['terminology']);
-      if (!parsed.success) continue; // Malformed optional metadata never establishes a concept match.
-      const entry = { documentId: document.id, term: parsed.data };
-      this.documents.set(document.id, entry);
-      const concept = this.concepts.get(entry.term.conceptId) ?? [];
-      concept.push(entry);
-      this.concepts.set(entry.term.conceptId, concept);
-      for (const name of new Set(entry.term.names.map(normalizeSurfaceText))) {
-        const matches = this.names.get(name) ?? [];
-        matches.push(entry);
-        this.names.set(name, matches);
-      }
+      this.indexDocument(document);
+    }
+  }
+
+  /**
+   * Builds the terminology index across time slices so large mounted catalogs (80k+ documents)
+   * never block a single animation frame on mobile devices.
+   */
+  static async createSliced(
+    documents: readonly SearchDocumentDescriptor[],
+    slice: TimeSlicer,
+  ): Promise<TerminologySearchIndex> {
+    const index = new TerminologySearchIndex(documents, true);
+    for (const document of documents) {
+      index.indexDocument(document);
+      const due = slice();
+      if (due) await due;
+    }
+    return index;
+  }
+
+  private indexDocument(document: SearchDocumentDescriptor): void {
+    if (!document.metadata['terminology']) return;
+    const parsed = TerminologySearchProjectionSchema.safeParse(document.metadata['terminology']);
+    if (!parsed.success) return; // Malformed optional metadata never establishes a concept match.
+    const entry = { documentId: document.id, term: parsed.data };
+    this.documents.set(document.id, entry);
+    const concept = this.concepts.get(entry.term.conceptId) ?? [];
+    concept.push(entry);
+    this.concepts.set(entry.term.conceptId, concept);
+    for (const name of new Set(entry.term.names.map(normalizeSurfaceText))) {
+      const matches = this.names.get(name) ?? [];
+      matches.push(entry);
+      this.names.set(name, matches);
     }
   }
 

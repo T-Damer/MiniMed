@@ -2,7 +2,8 @@ import { createEffect, createSignal, type JSX, onCleanup, onMount, Show } from '
 
 import { highlightSegments } from '@/features/anchoring/highlight-sync';
 import { type AnchorUnit, createQuoteSelector } from '@/features/anchoring/text-anchor';
-import { isAskAiAvailable } from '@/features/ask-ai/ask-ai-config';
+import { isAskAiActionVisible } from '@/features/ask-ai/ask-ai-config';
+import { captureActiveReaderContext } from '@/features/ask-ai/ask-ai-context';
 import { openAskAiForExcerpt } from '@/features/ask-ai/ask-ai-state';
 import {
   HIGHLIGHT_QUOTE_LIMIT,
@@ -441,10 +442,16 @@ export function UserDocumentHighlights(props: {
               : undefined
           }
           onAskAi={
-            popupValue().lookup && isAskAiAvailable()
+            popupValue().lookup && isAskAiActionVisible()
               ? () => {
                   const text = popupValue().lookup;
-                  if (text) openAskAiForExcerpt({ excerpt: text });
+                  if (text) {
+                    const captured = captureActiveReaderContext(text, {
+                      surface: props.surface(),
+                      documentId: props.documentId,
+                    });
+                    openAskAiForExcerpt({ excerpt: text, ...captured });
+                  }
                   document.getSelection()?.removeAllRanges();
                   setPopup(null);
                 }

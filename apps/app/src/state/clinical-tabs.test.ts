@@ -109,4 +109,18 @@ describe('clinical-tabs state', () => {
     const onlyPinnedAndActive = closeOtherClinicalTabs(tabIdForDocument('official', 'doc.2'), 50);
     expect(onlyPinnedAndActive.tabs).toHaveLength(2);
   });
+
+  it('tracks diaries, patients, calculators, assessments, and modules as tabs while ignoring settings', () => {
+    syncRouteToClinicalTabs('#/notes/diaries', { now: 10 });
+    syncRouteToClinicalTabs('#/calculators/ckd-epi', { title: 'СКФ (CKD-EPI)', now: 20 });
+    syncRouteToClinicalTabs('#/assessments/clinical/phq-9', { title: 'PHQ-9', now: 30 });
+    const afterSettings = syncRouteToClinicalTabs('#/settings/appearance', { now: 40 });
+    expect(afterSettings.tabs.map((tab) => tab.kind)).toEqual([
+      'search',
+      'diary',
+      'calculator',
+      'assessment',
+    ]);
+    expect(afterSettings.activeTabId).toBe('tab:assessment:clinical/phq-9');
+  });
 });

@@ -11,13 +11,26 @@ public final class LocalMedDatabasePlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "LocalMedDatabase"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "openPack", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "openModuleFile", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "hasModuleFile", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "deleteModuleFile", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "query", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "searchVectors", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "close", returnType: CAPPluginReturnPromise),
     ]
 
+    private static let defaultDatabaseName = "core.db"
+
     private let databaseLock = NSLock()
     private var database: OpaquePointer?
+    private var databases: [String: OpaquePointer] = [:]
+
+    private func resolveDatabaseName(_ call: CAPPluginCall) -> String? {
+        guard let name = call.getString("databaseName"), !name.isEmpty else {
+            return Self.defaultDatabaseName
+        }
+        return isSafeFileName(name) ? name : nil
+    }
 
     @objc public func openPack(_ call: CAPPluginCall) {
         guard let assetPath = call.getString("assetPath"), isSafeAssetPath(assetPath) else {
@@ -88,6 +101,7 @@ public final class LocalMedDatabasePlugin: CAPPlugin, CAPBridgedPlugin {
                 throw LocalMedNativeError.sqlite(message: "Unable to open native SQLite database.")
             }
             database = opened
+            databases[databaseName] = opened
 
             let integrity = try scalarString("PRAGMA quick_check")
             guard integrity.lowercased() == "ok" else {
@@ -127,9 +141,132 @@ public final class LocalMedDatabasePlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
+    @objc public func hasModuleFile(_ call: CAPPluginCall) {
+        guard let databaseName = call.getString("databaseName"), isSafeFileName(databaseName) else {
+            call.reject("Invalid module database file name.")
+            return
+        }
+        guard
+            let expectedValue = call.getString("expectedSha256"),
+            let expectedSha256 = normalizeChecksum(expectedValue),
+            expectedSha256.count == 64
+        else {
+            call.resolve(["installed": false])
+            return
+        }
+        do {
+            let modulesDir = try modulesDirectoryURL()
+            let targetURL = modulesDir.appendingPathComponent(databaseName)
+            let markerURL = modulesDir.appendingPathComponent("\(databaseName).sha256")
+            let installedChecksum = try? String(contentsOf: markerURL, encoding: .ascii)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            let installed = FileManager.default.fileExists(atPath: targetURL.path)
+                && installedChecksum == expectedSha256
+            call.resolve(["installed": installed])
+        } catch {
+            call.reject("Unable to inspect module database: \(error.localizedDescription)")
+        }
+    }
+
+    @objc public func deleteModuleFile(_ call: CAPPluginCall) {
+        guard let databaseName = call.getString("databaseName"), isSafeFileName(databaseName) else {
+            call.reject("Invalid module database file name.")
+            return
+        }
+        databaseLock.lock()
+        defer { databaseLock.unlock() }
+        closeDatabase(named: databaseName)
+        if let modulesDir = try? modulesDirectoryURL() {
+            try? FileManager.default.removeItem(at: modulesDir.appendingPathComponent(databaseName))
+            try? FileManager.default.removeItem(at: modulesDir.appendingPathComponent("\(databaseName).sha256"))
+        }
+        call.resolve()
+    }
+
+    @objc public func openModuleFile(_ call: CAPPluginCall) {
+        guard let databaseName = call.getString("databaseName"), isSafeFileName(databaseName) else {
+            call.reject("Invalid module database file name.")
+            return
+        }
+        guard
+            let expectedValue = call.getString("expectedSha256"),
+            let expectedSha256 = normalizeChecksum(expectedValue),
+            expectedSha256.count == 64
+        else {
+            call.reject("A SHA-256 checksum is required for the module database.")
+            return
+        }
+        databaseLock.lock()
+        defer { databaseLock.unlock() }
+        do {
+            closeDatabase(named: databaseName)
+            let modulesDir = try modulesDirectoryURL()
+            let targetURL = modulesDir.appendingPathComponent(databaseName)
+            guard FileManager.default.fileExists(atPath: targetURL.path) else {
+                throw LocalMedNativeError.assetMissing(databaseName)
+            }
+            let actualSha256 = try sha256(url: targetURL)
+            guard actualSha256 == expectedSha256 else {
+                throw LocalMedNativeError.checksumMismatch
+            }
+            var opened: OpaquePointer?
+            let openCode = sqlite3_open_v2(
+                targetURL.path,
+                &opened,
+                SQLITE_OPEN_READONLY | SQLITE_OPEN_NOMUTEX,
+                nil
+            )
+            guard openCode == SQLITE_OK, let opened else {
+                if let opened { sqlite3_close_v2(opened) }
+                throw LocalMedNativeError.sqlite(message: "Unable to open module SQLite database.")
+            }
+            databases[databaseName] = opened
+            let attributes = try FileManager.default.attributesOfItem(atPath: targetURL.path)
+            let sizeBytes = (attributes[.size] as? NSNumber)?.int64Value ?? 0
+            let packRows = try queryRows(
+                sql: "SELECT id FROM content_packs ORDER BY id",
+                arguments: [],
+                database: opened
+            )
+            let contentPackIds = packRows.compactMap { $0["id"] as? String }
+            call.resolve([
+                "schemaVersion": try scalarInt64(
+                    "SELECT CAST(value AS INTEGER) FROM app_metadata WHERE key = 'schema_version'",
+                    database: opened
+                ),
+                "sqliteVersion": try scalarString("SELECT sqlite_version()", database: opened),
+                "fts5Available": true,
+                "contentPackIds": contentPackIds,
+                "documentCount": try scalarInt64("SELECT count(*) FROM documents", database: opened),
+                "databasePath": targetURL.path,
+                "copied": false,
+                "sizeBytes": sizeBytes,
+            ])
+        } catch {
+            closeDatabase(named: databaseName)
+            call.reject("Unable to open module SQLite database: \(error.localizedDescription)")
+        }
+    }
+
+    private func modulesDirectoryURL() throws -> URL {
+        let applicationSupport = try FileManager.default.url(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        )
+        let dir = applicationSupport.appendingPathComponent("LocalMed/modules", isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }
+
     @objc public func query(_ call: CAPPluginCall) {
         guard let sql = call.getString("sql"), isReadOnlyQuery(sql) else {
             call.reject("Only a single read-only SELECT or WITH query is allowed.")
+            return
+        }
+        guard let dbName = resolveDatabaseName(call) else {
+            call.reject("Invalid database file name.")
             return
         }
 
@@ -138,12 +275,13 @@ public final class LocalMedDatabasePlugin: CAPPlugin, CAPBridgedPlugin {
         defer { databaseLock.unlock() }
 
         do {
+            let target = databases[dbName] ?? (dbName == Self.defaultDatabaseName ? database : nil)
             let data = Data(argsJson.utf8)
             let decoded = try JSONSerialization.jsonObject(with: data)
             guard let arguments = decoded as? [Any] else {
                 throw LocalMedNativeError.invalidArguments
             }
-            call.resolve(["rows": try queryRows(sql: sql, arguments: arguments)])
+            call.resolve(["rows": try queryRows(sql: sql, arguments: arguments, database: target)])
         } catch {
             call.reject("Native SQLite query failed: \(error.localizedDescription)")
         }
@@ -196,8 +334,12 @@ public final class LocalMedDatabasePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc public func close(_ call: CAPPluginCall) {
+        guard let dbName = resolveDatabaseName(call) else {
+            call.reject("Invalid database file name.")
+            return
+        }
         databaseLock.lock()
-        closeDatabase()
+        closeDatabase(named: dbName)
         databaseLock.unlock()
         call.resolve()
     }
@@ -408,8 +550,12 @@ public final class LocalMedDatabasePlugin: CAPPlugin, CAPBridgedPlugin {
         arguments.append(contentsOf: filtered)
     }
 
-    private func queryRows(sql: String, arguments: [Any]) throws -> [[String: Any]] {
-        guard let database else { throw LocalMedNativeError.databaseClosed }
+    private func queryRows(
+        sql: String,
+        arguments: [Any],
+        database target: OpaquePointer? = nil
+    ) throws -> [[String: Any]] {
+        guard let database = target ?? self.database else { throw LocalMedNativeError.databaseClosed }
         var statement: OpaquePointer?
         guard sqlite3_prepare_v2(database, sql, -1, &statement, nil) == SQLITE_OK, let statement else {
             throw sqliteError(database)
@@ -483,15 +629,15 @@ public final class LocalMedDatabasePlugin: CAPPlugin, CAPBridgedPlugin {
         guard code == SQLITE_OK else { throw sqliteError(database) }
     }
 
-    private func scalarString(_ sql: String) throws -> String {
-        guard let value = try queryRows(sql: sql, arguments: []).first?.values.first as? String else {
+    private func scalarString(_ sql: String, database target: OpaquePointer? = nil) throws -> String {
+        guard let value = try queryRows(sql: sql, arguments: [], database: target).first?.values.first as? String else {
             throw LocalMedNativeError.sqlite(message: "Expected a scalar string result.")
         }
         return value
     }
 
-    private func scalarInt64(_ sql: String) throws -> Int64 {
-        guard let value = try queryRows(sql: sql, arguments: []).first?.values.first else {
+    private func scalarInt64(_ sql: String, database target: OpaquePointer? = nil) throws -> Int64 {
+        guard let value = try queryRows(sql: sql, arguments: [], database: target).first?.values.first else {
             throw LocalMedNativeError.sqlite(message: "Expected a scalar integer result.")
         }
         if let value = value as? Int64 { return value }
@@ -511,9 +657,18 @@ public final class LocalMedDatabasePlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    private func closeDatabase() {
-        if let database { sqlite3_close_v2(database) }
-        database = nil
+    private func closeDatabase(named name: String = LocalMedDatabasePlugin.defaultDatabaseName) {
+        if let opened = databases.removeValue(forKey: name) {
+            sqlite3_close_v2(opened)
+            if name == Self.defaultDatabaseName {
+                database = nil
+            }
+            return
+        }
+        if name == Self.defaultDatabaseName, let database {
+            sqlite3_close_v2(database)
+            self.database = nil
+        }
     }
 
     private func sqliteError(_ database: OpaquePointer) -> LocalMedNativeError {

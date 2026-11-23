@@ -538,4 +538,33 @@ describe('native open lifetime', () => {
     await expect(adapter.initialize()).resolves.toMatchObject({ fts5Available: true });
     await adapter.close();
   });
+
+  it('keeps multiple named native SQLite databases open concurrently and routes queries by databaseName', async () => {
+    const plugin = new FakeNativePlugin();
+    const core = new CapacitorMedicalStore({
+      assetPath: 'public/content/core.db',
+      databaseName: 'core.db',
+      expectedSha256: 'a'.repeat(64),
+      plugin,
+    });
+    const mod = new CapacitorMedicalStore({
+      assetPath: 'public/content/icd11.db',
+      databaseName: 'icd11.db',
+      expectedSha256: 'b'.repeat(64),
+      plugin,
+    });
+    await core.initialize();
+    await mod.initialize();
+    await core.listDocumentIdentities();
+    await mod.listDocumentIdentities();
+
+    const coreCall = plugin.calls.find((call) => call.databaseName === undefined);
+    const modCall = plugin.calls.find((call) => call.databaseName === 'icd11.db');
+    expect(coreCall).toBeDefined();
+    expect(modCall).toBeDefined();
+
+    await mod.close();
+    await core.close();
+    expect(plugin.closeCount).toBe(2);
+  });
 });

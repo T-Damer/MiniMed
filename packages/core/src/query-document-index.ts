@@ -32,26 +32,55 @@ export class QueryDocumentIndex {
   private linkedProducts: ReadonlyMap<string, readonly string[]> | undefined;
   private pointersByTarget: ReadonlyMap<string, readonly string[]> | undefined;
 
-  constructor(documents: readonly SearchDocumentDescriptor[]) {
+  constructor(documents: readonly SearchDocumentDescriptor[], skipPopulate = false) {
     this.documents = documents;
-    this.byId = new Map(documents.map((document) => [document.id, document]));
+    if (skipPopulate) {
+      this.byId = new Map();
+      return;
+    }
+    const byId = new Map<string, SearchDocumentDescriptor>();
     for (const document of documents) {
-      this.addIdentity(document.title, document.id, this.titles);
-      if (document.shortTitle) {
-        this.addIdentity(document.shortTitle, document.id, this.shortTitles);
-        // «ИМТ — взрослые и дети»: the abbreviation before the dash names the document too.
-        const abbreviation = leadingAbbreviation(document.shortTitle);
-        if (abbreviation) this.addIdentity(abbreviation, document.id, this.shortTitles);
-      }
-      for (const key of ['declaredAliases', 'navigationAliases'] as const) {
-        const names = document.metadata[key];
-        if (!Array.isArray(names)) continue;
-        for (const name of names) {
-          if (typeof name !== 'string') continue;
-          this.addIdentity(name, document.id, this.aliases);
-          if (key === 'navigationAliases') {
-            this.addIdentity(name, document.id, this.navigationAliases);
-          }
+      byId.set(document.id, document);
+      this.indexDocument(document);
+    }
+    this.byId = byId;
+  }
+
+  /**
+   * Builds the document identity index across time slices so large mounted catalogs (80k+ docs)
+   * never block a single animation frame on mobile devices.
+   */
+  static async createSliced(
+    documents: readonly SearchDocumentDescriptor[],
+    slice: TimeSlicer,
+  ): Promise<QueryDocumentIndex> {
+    const index = new QueryDocumentIndex(documents, true);
+    const byId = index.byId as Map<string, SearchDocumentDescriptor>;
+    for (const document of documents) {
+      byId.set(document.id, document);
+      index.indexDocument(document);
+      const due = slice();
+      if (due) await due;
+    }
+    return index;
+  }
+
+  private indexDocument(document: SearchDocumentDescriptor): void {
+    this.addIdentity(document.title, document.id, this.titles);
+    if (document.shortTitle) {
+      this.addIdentity(document.shortTitle, document.id, this.shortTitles);
+      // «ИМТ — взрослые и дети»: the abbreviation before the dash names the document too.
+      const abbreviation = leadingAbbreviation(document.shortTitle);
+      if (abbreviation) this.addIdentity(abbreviation, document.id, this.shortTitles);
+    }
+    for (const key of ['declaredAliases', 'navigationAliases'] as const) {
+      const names = document.metadata[key];
+      if (!Array.isArray(names)) continue;
+      for (const name of names) {
+        if (typeof name !== 'string') continue;
+        this.addIdentity(name, document.id, this.aliases);
+        if (key === 'navigationAliases') {
+          this.addIdentity(name, document.id, this.navigationAliases);
         }
       }
     }
@@ -131,6 +160,96 @@ export class QueryDocumentIndex {
         this.pointersByTarget ??= buildPointersByTarget(this.documents);
       },
     ];
+  }
+
+  /**
+   * Sliced version of {@link warmUpSteps}: builds every lazy lookup table across time slices so
+   * warming up an 80k-document catalog never freezes a reader frame on mobile devices.
+   */
+  async warmUpSliced(slice: TimeSlicer): Promise<void> {
+    if (!this.icdCards) {
+      const cards = new Map<string, string[]>();
+      for (const document of this.documents) {
+        const code = document.metadata['mkbCode'];
+        if (typeof code === 'string') {
+          const key = code.trim().toUpperCase();
+          if (document.title.toUpperCase().startsWith(`${key} `)) {
+            const ids = cards.get(key) ?? [];
+            ids.push(document.id);
+            cards.set(key, ids);
+          }
+        }
+        const due = slice();
+        if (due) await due;
+      }
+      this.icdCards ??= cards;
+    }
+    if (!this.namePrefixes) {
+      const prefixes = new Set<string>();
+      for (const document of this.documents) {
+        for (const name of documentNames(document)) {
+          for (const word of nameWords(name)) prefixes.add(word.slice(0, NAME_PREFIX_LENGTH));
+        }
+        const due = slice();
+        if (due) await due;
+      }
+      this.namePrefixes ??= prefixes;
+    }
+    if (!this.latinNames) {
+      const names = new Map<string, string[]>();
+      for (const document of this.documents) {
+        const latin = document.metadata['nameLat'];
+        if (typeof latin === 'string' && latin.trim().length > 0) {
+          const key = normalizeSurfaceText(latin);
+          const titles = names.get(key) ?? [];
+          if (!titles.includes(document.title)) titles.push(document.title);
+          names.set(key, titles);
+        }
+        const due = slice();
+        if (due) await due;
+      }
+      this.latinNames ??= names;
+    }
+    if (!this.linkedProducts) {
+      const products = new Map<string, SearchDocumentDescriptor[]>();
+      for (const document of this.documents) {
+        const substance = document.metadata['linkedMnnDocumentId'];
+        if (typeof substance === 'string') {
+          const linked = products.get(substance) ?? [];
+          linked.push(document);
+          products.set(substance, linked);
+        }
+        const due = slice();
+        if (due) await due;
+      }
+      this.linkedProducts ??= new Map(
+        [...products].map(([substance, linked]) => [
+          substance,
+          linked
+            .toSorted(
+              (left, right) =>
+                Number(right.sourceType === 'official_drug_instruction') -
+                  Number(left.sourceType === 'official_drug_instruction') ||
+                left.id.localeCompare(right.id),
+            )
+            .map((document) => document.id),
+        ]),
+      );
+    }
+    if (!this.pointersByTarget) {
+      const pointers = new Map<string, string[]>();
+      for (const document of this.documents) {
+        const target = document.metadata['targetDocumentId'];
+        if (typeof target === 'string' && target !== document.id) {
+          const ids = pointers.get(target) ?? [];
+          ids.push(document.id);
+          pointers.set(target, ids);
+        }
+        const due = slice();
+        if (due) await due;
+      }
+      this.pointersByTarget ??= pointers;
+    }
   }
 
   nameVocabulary(extraNames: readonly string[] = []): NameVocabulary {

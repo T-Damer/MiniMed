@@ -286,10 +286,17 @@ function sampleFramesOnInteraction(): void {
   let over50 = 0;
   let over33 = 0;
   let worst = 0;
-  // How far the page moved in the window: tells a scroll from taps, and a slow read from a fling.
+  // How far the page moved in the window: tracked on passive scroll events rather than inside
+  // `requestAnimationFrame` so the collector never forces synchronous layout after DOM writes.
   let scrolled = 0;
-  let lastTop = 0;
+  let lastTop = -1;
   const pageTop = (): number => document.scrollingElement?.scrollTop ?? 0;
+  const onScroll = (): void => {
+    if (frame === 0 && until <= 0) return;
+    const top = pageTop();
+    if (lastTop >= 0) scrolled += Math.abs(top - lastTop);
+    lastTop = top;
+  };
   const deltas: number[] = [];
   const finish = (): void => {
     if (frames >= 3) {
@@ -326,6 +333,7 @@ function sampleFramesOnInteraction(): void {
     over33 = 0;
     worst = 0;
     scrolled = 0;
+    lastTop = -1;
     deltas.length = 0;
     last = 0;
   };
@@ -343,12 +351,8 @@ function sampleFramesOnInteraction(): void {
       if (delta > 50) over50 += 1;
       if (delta > 33.4) over33 += 1;
       if (delta > worst) worst = delta;
-      const top = pageTop();
-      scrolled += Math.abs(top - lastTop);
-      lastTop = top;
     } else {
       windowStart = time;
-      lastTop = pageTop();
     }
     last = time;
     if (time < until) {
@@ -365,6 +369,7 @@ function sampleFramesOnInteraction(): void {
   const options = { capture: true, passive: true } as const;
   const events = ['pointerdown', 'keydown', 'wheel', 'scroll', 'touchmove'] as const;
   for (const name of events) document.addEventListener(name, arm, options);
+  document.addEventListener('scroll', onScroll, options);
   const endWindow = (): void => {
     if (frame !== 0) cancelAnimationFrame(frame);
     frame = 0;
@@ -377,6 +382,7 @@ function sampleFramesOnInteraction(): void {
   document.addEventListener('visibilitychange', onVisibility);
   stopFns.push(() => {
     for (const name of events) document.removeEventListener(name, arm, options);
+    document.removeEventListener('scroll', onScroll, options);
     document.removeEventListener('visibilitychange', onVisibility);
     endWindow();
   });

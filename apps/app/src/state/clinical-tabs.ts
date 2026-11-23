@@ -1,12 +1,22 @@
 import { parseDocumentReadRoute } from '@/state/document-route';
 
 /**
- * Opt-in Clinical Tabs («Вкладки документов», Wave 2.1): keeps up to `MAX_CLINICAL_TABS`
- * open search/document entries with semantic reading anchors, while capping live DOM views at
- * `MAX_HOT_CLINICAL_TABS` (2 hot + N frozen lightweight snapshots).
+ * Opt-in Clinical Tabs («Вкладки», Wave 2.1): tracks open screens across the whole app
+ * (search, official/user documents, diaries, patients, notes, calculators, assessments,
+ * knowledge base, news) with up to `MAX_CLINICAL_TABS` entries (2 hot + N frozen snapshots).
  */
 
-export type ClinicalTabKind = 'search' | 'official' | 'user';
+export type ClinicalTabKind =
+  | 'search'
+  | 'official'
+  | 'user'
+  | 'diary'
+  | 'patients'
+  | 'notes'
+  | 'calculator'
+  | 'assessment'
+  | 'modules'
+  | 'news';
 
 export interface ClinicalTabSnapshot {
   readonly id: string;
@@ -33,9 +43,22 @@ export const MAX_HOT_CLINICAL_TABS = 2;
 
 const SEARCH_TAB_ID = 'tab:search';
 
+const VALID_KINDS: ReadonlySet<string> = new Set<ClinicalTabKind>([
+  'search',
+  'official',
+  'user',
+  'diary',
+  'patients',
+  'notes',
+  'calculator',
+  'assessment',
+  'modules',
+  'news',
+]);
+
 let stateCache: ClinicalTabsState | null = null;
 
-function defaultSearchTab(now = Date.now(), hash = '#/search'): ClinicalTabSnapshot {
+function defaultSearchTab(now = 0, hash = '#/search'): ClinicalTabSnapshot {
   return {
     id: SEARCH_TAB_ID,
     kind: 'search',
@@ -63,7 +86,8 @@ function isClinicalTabSnapshot(value: unknown): value is ClinicalTabSnapshot {
   const item = value as Record<string, unknown>;
   return (
     typeof item['id'] === 'string' &&
-    (item['kind'] === 'search' || item['kind'] === 'official' || item['kind'] === 'user') &&
+    typeof item['kind'] === 'string' &&
+    VALID_KINDS.has(item['kind']) &&
     typeof item['title'] === 'string' &&
     typeof item['hash'] === 'string' &&
     typeof item['lastActiveAt'] === 'number'
@@ -160,6 +184,79 @@ export function tabIdForDocument(kind: 'official' | 'user', documentId: string):
   return `tab:${kind}:${documentId}`;
 }
 
+interface ParsedToolTab {
+  readonly id: string;
+  readonly kind: ClinicalTabKind;
+  readonly defaultTitle: string;
+  readonly subtitle?: string;
+}
+
+function parseToolRouteTab(normalizedHash: string): ParsedToolTab | null {
+  const path = (normalizedHash.replace(/^#\/?/u, '').split('?')[0] ?? '').replace(/\/+$/u, '');
+  if (!path || path === 'search' || path.startsWith('search/')) return null;
+  if (path === 'settings' || path.startsWith('settings/') || path === 'status') return null;
+
+  if (path === 'notes/diaries' || path.startsWith('notes/diaries/')) {
+    const sub = path.slice('notes/diaries'.length).replace(/^\/+/u, '');
+    const segment = sub.split('/')[0] ?? '';
+    return {
+      id: segment ? `tab:diary:${segment}` : 'tab:diary:list',
+      kind: 'diary',
+      defaultTitle: segment && segment !== 'new' ? 'Дневник пациента' : 'Дневники',
+    };
+  }
+  if (path === 'notes/patients' || path.startsWith('notes/patients/')) {
+    const sub = path.slice('notes/patients'.length).replace(/^\/+/u, '');
+    const segment = sub.split('/')[0] ?? '';
+    return {
+      id: segment ? `tab:patients:${segment}` : 'tab:patients:list',
+      kind: 'patients',
+      defaultTitle: segment && segment !== 'new' ? 'Карточка пациента' : 'Пациенты',
+    };
+  }
+  if (path === 'notes' || path.startsWith('notes/')) {
+    const sub = path.slice('notes'.length).replace(/^\/+/u, '');
+    return {
+      id: sub ? `tab:notes:${sub}` : 'tab:notes:root',
+      kind: 'notes',
+      defaultTitle: sub.startsWith('worksheets') ? 'Дневники КПТ' : 'Заметки',
+    };
+  }
+  if (path === 'calculators' || path.startsWith('calculators/')) {
+    const slug = path.slice('calculators'.length).replace(/^\/+/u, '');
+    return {
+      id: slug ? `tab:calculator:${slug}` : 'tab:calculator:list',
+      kind: 'calculator',
+      defaultTitle: slug ? 'Калькулятор' : 'Калькуляторы',
+    };
+  }
+  if (path === 'assessments' || path.startsWith('assessments/')) {
+    const slug = path.slice('assessments'.length).replace(/^\/+/u, '');
+    return {
+      id: slug ? `tab:assessment:${slug}` : 'tab:assessment:list',
+      kind: 'assessment',
+      defaultTitle: slug ? 'Опросник' : 'Опросники',
+    };
+  }
+  if (path === 'modules' || path.startsWith('modules/') || path === 'documents') {
+    const sub = path.startsWith('modules/') ? path.slice('modules/'.length) : '';
+    const title = sub.startsWith('documents/medications')
+      ? 'Препараты'
+      : sub.startsWith('documents/user')
+        ? 'Ваши документы'
+        : 'База знаний';
+    return {
+      id: sub ? `tab:modules:${sub.split('/').slice(0, 2).join('/')}` : 'tab:modules:root',
+      kind: 'modules',
+      defaultTitle: title,
+    };
+  }
+  if (path === 'news' || path.startsWith('news/')) {
+    return { id: 'tab:news', kind: 'news', defaultTitle: 'Лента' };
+  }
+  return null;
+}
+
 export function syncRouteToClinicalTabs(
   hash: string,
   options: {
@@ -205,7 +302,6 @@ export function syncRouteToClinicalTabs(
     });
   }
 
-  // Non-document routes (search / home) update the primary search tab without spawning clutter.
   if (
     normalized === '#/search' ||
     normalized.startsWith('#/search?') ||
@@ -222,6 +318,31 @@ export function syncRouteToClinicalTabs(
     return saveClinicalTabsState({
       tabs: trimOverflowTabs(nextTabs, SEARCH_TAB_ID),
       activeTabId: SEARCH_TAB_ID,
+    });
+  }
+
+  const tool = parseToolRouteTab(normalized);
+  if (tool) {
+    const existing = current.tabs.find((tab) => tab.id === tool.id);
+    const nextTab: ClinicalTabSnapshot = {
+      id: tool.id,
+      kind: tool.kind,
+      title: options.title?.trim() || existing?.title || tool.defaultTitle,
+      ...(options.subtitle !== undefined
+        ? { subtitle: options.subtitle }
+        : existing?.subtitle !== undefined
+          ? { subtitle: existing.subtitle }
+          : {}),
+      hash: normalized,
+      ...(existing?.pinned ? { pinned: true } : {}),
+      lastActiveAt: now,
+    };
+    const nextTabs = existing
+      ? current.tabs.map((tab) => (tab.id === tool.id ? nextTab : tab))
+      : [...current.tabs, nextTab];
+    return saveClinicalTabsState({
+      tabs: trimOverflowTabs(nextTabs, tool.id),
+      activeTabId: tool.id,
     });
   }
 
@@ -268,6 +389,18 @@ export function openClinicalTabInBackground(input: {
     activeTabId: current.activeTabId,
   });
   return { state, tab, created: !existing };
+}
+
+export function updateActiveClinicalTabTitle(title: string): ClinicalTabsState {
+  const trimmed = title.trim();
+  if (!trimmed) return loadClinicalTabsState();
+  const current = loadClinicalTabsState();
+  const active = current.tabs.find((tab) => tab.id === current.activeTabId);
+  if (!active || active.kind === 'search' || active.title === trimmed) return current;
+  return saveClinicalTabsState({
+    ...current,
+    tabs: current.tabs.map((tab) => (tab.id === active.id ? { ...tab, title: trimmed } : tab)),
+  });
 }
 
 export function updateClinicalTabMeta(
@@ -388,8 +521,7 @@ export function closeOtherClinicalTabs(keepId: string, now = Date.now()): Clinic
 
 /**
  * Returns the IDs of up to `MAX_HOT_CLINICAL_TABS` (2) tabs that may stay hot in memory:
- * the active tab plus the most recently used other tab. Every other tab stays frozen as a
- * lightweight route + anchor snapshot.
+ * the active tab plus the most recently used other tab.
  */
 export function hotClinicalTabIds(state: ClinicalTabsState): readonly string[] {
   const active = state.tabs.find((tab) => tab.id === state.activeTabId);

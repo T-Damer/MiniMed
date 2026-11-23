@@ -226,17 +226,17 @@ export function useDocumentReaderChrome(
     measure();
     const observer = new ResizeObserver(schedule);
     observer.observe(element);
-    const mutations = root ? new MutationObserver(schedule) : undefined;
-    const bodyElement = root?.querySelector<HTMLElement>('.document-page__body');
-    if (mutations && bodyElement)
-      mutations.observe(bodyElement, { childList: true, subtree: true });
     window.addEventListener('resize', schedule);
     // The chrome slides out and back (`app-chrome-hidden`): its bottom edge moves without any
     // resize, so the section path line would stay at the safe-area edge, under the revealed chrome.
-    // Measure again once the slide has settled.
+    // Measure again once the slide has settled — ignore unrelated root class toggles.
     element.addEventListener('transitionend', schedule);
     let settleTimer: number | undefined;
+    let wasChromeHidden = document.documentElement.classList.contains('app-chrome-hidden');
     const rootClass = new MutationObserver(() => {
+      const hidden = document.documentElement.classList.contains('app-chrome-hidden');
+      if (hidden === wasChromeHidden) return;
+      wasChromeHidden = hidden;
       if (settleTimer !== undefined) window.clearTimeout(settleTimer);
       settleTimer = window.setTimeout(schedule, 320);
     });
@@ -246,7 +246,6 @@ export function useDocumentReaderChrome(
       if (task !== undefined) window.clearTimeout(task);
       if (settleTimer !== undefined) window.clearTimeout(settleTimer);
       observer.disconnect();
-      mutations?.disconnect();
       rootClass.disconnect();
       element.removeEventListener('transitionend', schedule);
       window.removeEventListener('resize', schedule);
@@ -378,18 +377,25 @@ export function useDocumentReaderChrome(
     // frame was a sixth of a phone's frame budget during a fling (owner 2026-11-16: reading lags);
     // the outline's highlight and the page bubble do not need more.
     let activeFrame: number | undefined;
+    let activeTask: number | undefined;
     let activeTimer: number | undefined;
     let measuredAt = Number.NEGATIVE_INFINITY;
     const measureInFrame = (): void => {
-      if (activeFrame !== undefined) return;
+      if (activeFrame !== undefined || activeTask !== undefined) return;
+      // Read section geometry in the task right after rAF paint so it never forces synchronous
+      // layout inside an animation frame while the user is scrolling a long document.
       activeFrame = requestAnimationFrame(() => {
         activeFrame = undefined;
-        measuredAt = performance.now();
-        updateActiveSection();
+        activeTask = window.setTimeout(() => {
+          activeTask = undefined;
+          measuredAt = performance.now();
+          updateActiveSection();
+        }, 0);
       });
     };
     const scheduleActiveSection = (): void => {
-      if (activeFrame !== undefined || activeTimer !== undefined) return;
+      if (activeFrame !== undefined || activeTask !== undefined || activeTimer !== undefined)
+        return;
       const wait = ACTIVE_SECTION_INTERVAL_MS - (performance.now() - measuredAt);
       if (wait <= 0) {
         measureInFrame();
@@ -414,11 +420,18 @@ export function useDocumentReaderChrome(
       scheduleActiveSection();
     });
     sectionMutations.observe(paper, { childList: true, subtree: true });
-    const chromeClass = new MutationObserver(remeasureSections);
+    let wasSectionChromeHidden = document.documentElement.classList.contains('app-chrome-hidden');
+    const chromeClass = new MutationObserver(() => {
+      const hidden = document.documentElement.classList.contains('app-chrome-hidden');
+      if (hidden === wasSectionChromeHidden) return;
+      wasSectionChromeHidden = hidden;
+      remeasureSections();
+    });
     chromeClass.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     queueMicrotask(scheduleActiveSection);
     onCleanup(() => {
       window.clearTimeout(activeTimer);
+      if (activeTask !== undefined) window.clearTimeout(activeTask);
       paper?.removeEventListener('scroll', scheduleActiveSection);
       body?.removeEventListener('scroll', scheduleActiveSection);
       window.removeEventListener('scroll', scheduleActiveSection);

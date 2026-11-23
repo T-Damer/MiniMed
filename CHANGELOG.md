@@ -4,6 +4,14 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.129] - 2026-11-23
+
+- Eliminate duplicate full-table SQLite catalog scans across OPFS workers, slice 87k-document index/warm-up loops, pace worker alias replies, and remove forced synchronous layouts in `PageHero`, `soft-keyboard`, reader chrome/section path, search input, and perf-log collection.
+- Accelerate RapidFuzz OSA/Levenshtein and batch `extractTop` with a 12 KB standalone C99→WASM kernel (137× faster on 30k medication names across Web, iPhone Safari, iOS, and Android, with automatic pure-TS fallback).
+- Add multi-database native SQLite support (`core.db` + installed module databases) to `@localmed/storage-capacitor`, Android `LocalMedDatabasePlugin.java`, and iOS `LocalMedDatabasePlugin.swift`.
+- Redesign opt-in Clinical Tabs as a bottom-left water-drop satellite button tracking all app tools/screens, unify the Patients header with the bottom-right floating `+` FAB, and deduplicate «Ваши данные» search matches with body-only accordion disclosure.
+- Upgrade «Спросить ИИ» with 1-click free OpenRouter OAuth PKCE (`openrouter/free` + DeepSeek R1 / Qwen 3 / DeepSeek V3 / GPT-4o presets), zero-setup ChatGPT / Perplexity / DeepSeek / Yandex Alice handoff, guided OpenAI/Yandex setup, and structured active document/section context.
+
 ## [0.6.128] - 2026-11-23
 
 - Give the landscape reader a full-height contents pane below the status bar and a right-side toolbar. Use side-by-side controls and content for Search, Files, and News.

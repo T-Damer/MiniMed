@@ -72,12 +72,32 @@ export function ReaderSectionPath(): JSX.Element {
       if (heading) setPath(sectionTitlePath(heading));
     };
     let frame: number | undefined;
-    const schedule = (): void => {
-      if (frame !== undefined) return;
+    const SECTION_PATH_INTERVAL_MS = 100;
+    let task: number | undefined;
+    let timer: number | undefined;
+    let measuredAt = Number.NEGATIVE_INFINITY;
+    const measureAfterPaint = (): void => {
+      if (frame !== undefined || task !== undefined) return;
       frame = requestAnimationFrame(() => {
         frame = undefined;
-        update();
+        task = window.setTimeout(() => {
+          task = undefined;
+          measuredAt = performance.now();
+          update();
+        }, 0);
       });
+    };
+    const schedule = (): void => {
+      if (frame !== undefined || task !== undefined || timer !== undefined) return;
+      const wait = SECTION_PATH_INTERVAL_MS - (performance.now() - measuredAt);
+      if (wait <= 0) {
+        measureAfterPaint();
+        return;
+      }
+      timer = window.setTimeout(() => {
+        timer = undefined;
+        measureAfterPaint();
+      }, wait);
     };
     const remeasure = (): void => {
       stickyTop = undefined;
@@ -94,11 +114,19 @@ export function ReaderSectionPath(): JSX.Element {
     window.addEventListener('resize', remeasure);
     // The line moves to the screen edge when the chrome hides: measure again once it has settled.
     stickyAnchor.addEventListener('transitionend', remeasure);
-    const rootClass = new MutationObserver(remeasure);
+    let wasChromeHidden = document.documentElement.classList.contains('app-chrome-hidden');
+    const rootClass = new MutationObserver(() => {
+      const hidden = document.documentElement.classList.contains('app-chrome-hidden');
+      if (hidden === wasChromeHidden) return;
+      wasChromeHidden = hidden;
+      remeasure();
+    });
     rootClass.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     schedule();
     onCleanup(() => {
       if (frame !== undefined) cancelAnimationFrame(frame);
+      if (task !== undefined) window.clearTimeout(task);
+      if (timer !== undefined) window.clearTimeout(timer);
       mutations.disconnect();
       paper.removeEventListener('contentvisibilityautostatechange', schedule, true);
       window.removeEventListener('scroll', schedule);

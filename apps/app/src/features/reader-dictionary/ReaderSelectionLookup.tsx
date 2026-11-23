@@ -1,6 +1,7 @@
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
-import { isAskAiAvailable } from '@/features/ask-ai/ask-ai-config';
+import { isAskAiActionVisible } from '@/features/ask-ai/ask-ai-config';
+import { captureActiveReaderContext } from '@/features/ask-ai/ask-ai-context';
 import { openAskAiForExcerpt } from '@/features/ask-ai/ask-ai-state';
 import {
   type HighlightPopupPlacement,
@@ -86,9 +87,15 @@ export function ReaderSelectionLookup(props: {
             setPopup(null);
           }}
           onAskAi={
-            isAskAiAvailable()
+            isAskAiActionVisible()
               ? () => {
-                  openAskAiForExcerpt({ excerpt: current().text });
+                  const captured = captureActiveReaderContext(current().text, {
+                    surface: props.surface(),
+                  });
+                  openAskAiForExcerpt({
+                    excerpt: current().text,
+                    ...captured,
+                  });
                   document.getSelection()?.removeAllRanges();
                   setPopup(null);
                 }

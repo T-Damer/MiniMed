@@ -174,17 +174,6 @@
       "modified": "2026-09-05"
     },
     {
-      "path": "data/build/official-clinical-documents-2026-07-27",
-      "class": "RELEASED",
-      "producer": "released clinical-json snapshot databases",
-      "consumers": [
-        "Earlier cores up to 0.6.57 (clinical-source-snapshot primary); core 0.6.64 reads the published modules instead"
-      ],
-      "release": "clinical-json-2026.07.27-13991c1feee5 (744/744) + branch datasets/clinical-json-2026.07.27-13991c1feee5",
-      "bytes": 2072457216,
-      "modified": "2026-09-05"
-    },
-    {
       "path": "data/build/official-clinical-documents",
       "class": "REBUILDABLE",
       "producer": "bun run content:build:clinical:documents",
@@ -305,17 +294,6 @@
       "modified": "2026-10-05"
     },
     {
-      "path": "data/build/grls-instructions-atc-*.db",
-      "pattern": true,
-      "class": "OBSOLETE",
-      "producer": "tools/ingest/scripts/build_grls_atc_modules.py",
-      "consumers": [],
-      "rebuild": "python tools/ingest/scripts/build_grls_atc_modules.py (from grls-full-final + release-esklp)",
-      "bytes": 2140180480,
-      "modified": "2026-09-27",
-      "note": "Superseded 2026-10-05 by data/build/grls-instruction-modules (released as 15 modules, STATE GI1): built from an older workspace, with registry cards, hash embeddings and without kind/OCR metadata."
-    },
-    {
       "path": "data/build/grls-instructions-current-189-v2.db",
       "class": "REBUILDABLE",
       "producer": "medbase build data/intermediate/grls-instructions-current-189-v2",
@@ -354,22 +332,6 @@
       "rebuild": "medbase-regulated-catalog medications over data/raw/official-grls-registry (offline)",
       "bytes": 180337550,
       "modified": "2026-07-24"
-    },
-    {
-      "path": "output/release-0.6.34",
-      "class": "RELEASED",
-      "producer": "release staging",
-      "consumers": [],
-      "release": "v0.6.34 (26 of 28 assets; knowledge-packages.tar.gz and reference-images.tar.gz not re-downloaded)",
-      "note": "Kept by the AGENTS.md rule (newest releases, never fewer than 2). Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2). The two large tarballs (1.4 GB) stay on GitHub only."
-    },
-    {
-      "path": "output/release-0.6.35",
-      "class": "RELEASED",
-      "producer": "release staging and CI evidence",
-      "consumers": [],
-      "release": "v0.6.35 (assets)",
-      "note": "Kept by the AGENTS.md rule. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2)."
     },
     {
       "path": "apps/app/public/content/core.db",
@@ -468,43 +430,6 @@
       "modified": "2026-10-25"
     },
     {
-      "path": "output/module-zstd-2026-10-01",
-      "class": "REBUILDABLE",
-      "producer": "K2 P0 distribution compression (STATE C1): scripts/repack-module-indexes-zstd.ts and medbase compact-module-search",
-      "consumers": [
-        "Candidate catalog entries catalog.candidate.plain.json / catalog.candidate.compacted.json; upload plan in each repack-report.json"
-      ],
-      "rebuild": "see the four subdirectories; ~30 min of CPU",
-      "note": "Unpublished candidate artifacts (ESKLP x15, clinical recommendations x744, plain and search-compacted). Delete after the owner publishes one set or rejects both. clinical-compacted deleted on 2026-10-05 after 0.6.48 shipped the e5 copy (output/module-zstd-e5-2026-10-05). On 2026-10-14 only esklp-compacted was restored from datasets/esklp-2026-08-28; the plain and clinical candidate sets, repack reports and compaction reports were local-only and are lost.",
-      "bytes": 68726678,
-      "modified": "2026-10-14"
-    },
-    {
-      "path": "output/module-zstd-2026-10-01/esklp-compacted",
-      "class": "REBUILDABLE",
-      "producer": "medbase compact-module-search then scripts/repack-module-indexes-zstd.ts --compacted",
-      "consumers": [
-        "Candidate release artifacts for the ESKLP / clinical-recommendation catalog entries (not published)"
-      ],
-      "rebuild": "medbase compact-module-search --input data/build/release-esklp --output <dir> --report <file>; bun scripts/repack-module-indexes-zstd.ts --family esklp --source-dir <dir> --out-dir output/module-zstd-2026-10-01/esklp-compacted --compacted",
-      "note": "15 files; external-content FTS and empty normalized_text, fingerprints identical to the published packs. New decoded checksums. Published 2026-10-02 to the dataset mirror branches for 0.6.46; kept as the local release copy. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
-      "bytes": 68726678,
-      "modified": "2026-10-14"
-    },
-    {
-      "path": "output/module-zstd-e5-2026-10-05",
-      "class": "REBUILDABLE",
-      "producer": "STATE E2: tools/ingest/scripts/embed_modules_e5.py then scripts/reframe-modules-e5.ts",
-      "consumers": [
-        "catalog.preview.json minimed.clinical.recommendation.* (tag clinical-e5-2026.10.05)",
-        "apps/app/e2e/clinical-module-fixture.ts, module-pointer.spec.ts"
-      ],
-      "rebuild": "uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --source <published zstd dirs> --out data/build/clinical-e5/decoded; bun scripts/reframe-modules-e5.ts --family clinical --decoded-dir data/build/clinical-e5/decoded --out-dir output/module-zstd-e5-2026-10-05 --tag clinical-e5-2026.10.05",
-      "note": "774 single-КР modules with e5-small passage vectors; published 2026-10-05 to datasets/clinical-e5-2026.10.05; kept as the local release copy. 122 of them were superseded on 2026-10-07 by output/module-zstd-json-2026-10-07 (STATE KR3); this copy stays for the other 652 modules and as the rollback copy. 52 of the remaining modules were superseded on 2026-10-08 (STATE KR4, output/module-zstd-json-2026-10-08). Most of the remaining modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5); this copy stays as the rollback copy. On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
-      "bytes": 688424967,
-      "modified": "2026-10-14"
-    },
-    {
       "path": "output/allmed-images-2026.10.13-c8e85a688094",
       "class": "RELEASED",
       "producer": "STATE IMG1: uv run --project tools/ingest medbase build-allmed-image-pack --input ~/Downloads/allmed_tinybase.db --output data/build/allmed-images --mirror-tag allmed-images-2026.10.13-c8e85a688094 (mirror/ copied here; the download cache was deleted)",
@@ -517,60 +442,6 @@
       "rebuild": "same command; resume re-downloads ~279 MB from allmed.pro (4 214 photos, ~25 min at 8 workers)",
       "note": "Local release copy of the published Allmed packaging-photo pack (index, 16 shards, catalog fragment, build report). Keep while the project is active; the Allmed snapshot input is ~/Downloads/allmed_tinybase.db. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2). The catalog fragment and build report that were beside the shards are not on the branch and were not restored.",
       "bytes": 281348171,
-      "modified": "2026-10-14"
-    },
-    {
-      "path": "output/module-zstd-json-2026-10-07",
-      "class": "RELEASED",
-      "producer": "STATE KR3: build-documents (July/10-02 plans, numbered sub-headings) -> compact-module-search -> tools/ingest/scripts/embed_modules_e5.py --from-dir -> scripts/republish-clinical-modules.ts",
-      "consumers": [
-        "catalog.preview.json minimed.clinical.recommendation.* of the 122 rebuilt modules (tag clinical-json-2026.10.07-197a48d1f268)",
-        "apps/app/e2e/clinical-module-fixture.ts, module-pointer.spec.ts, kr-numbered-heading-modules.spec.ts"
-      ],
-      "release": "branch datasets/clinical-json-2026.10.07-197a48d1f268 (122 .db.zst)",
-      "rebuild": "uv run --project tools/ingest medbase-clinical-catalog build-documents (plan data/build/official-clinical-source-plan, 10-02 plan for the 30 newer editions; source data/raw/official-clinical-documents) -> medbase compact-module-search -> uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --from-dir <compacted> --out <e5/decoded> -> bun scripts/republish-clinical-modules.ts --decoded-dir <e5/decoded> --out-dir output/module-zstd-json-2026-10-07 --snapshot-id clinical-json-2026.10.07-197a48d1f268 --published-at 2026-10-07T15:40:00Z --write-catalog (~15 min; the module list is data/build/official-clinical-2026-10-07/changed-ids.txt)",
-      "note": "Local release copy of the 122 КР modules rebuilt with numbered sub-headings; the intermediate builds were deleted after verification. 26 of them were superseded on 2026-10-08 by output/module-zstd-json-2026-10-08 (STATE KR4); this copy stays for the other 96 modules and as the rollback copy. 117 of its 122 modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5). On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
-      "bytes": 138992262,
-      "modified": "2026-10-14"
-    },
-    {
-      "path": "output/module-zstd-json-2026-10-08",
-      "class": "RELEASED",
-      "producer": "STATE KR4: build-documents (July plan, extractor revision 4: appendix headings) -> medbase compact-module-search -> tools/ingest/scripts/embed_modules_e5.py --from-dir -> scripts/republish-clinical-modules.ts",
-      "consumers": [
-        "catalog.preview.json minimed.clinical.recommendation.* of the 78 rebuilt modules (tag clinical-json-2026.10.08-f3039e82214e)",
-        "apps/app/e2e/clinical-module-fixture.ts, module-pointer.spec.ts, kr-numbered-heading-modules.spec.ts, kr-appendix-heading-modules.spec.ts"
-      ],
-      "release": "branch datasets/clinical-json-2026.10.08-f3039e82214e (78 .db.zst)",
-      "rebuild": "uv run --project tools/ingest medbase-clinical-catalog build-documents (plan data/build/official-clinical-source-plan, --official-id for the 78 modules; source data/raw/official-clinical-documents) -> medbase compact-module-search -> uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --from-dir <compacted> --out <e5/decoded> -> bun scripts/republish-clinical-modules.ts --decoded-dir <e5/decoded> --out-dir output/module-zstd-json-2026-10-08 --snapshot-id clinical-json-2026.10.08-f3039e82214e --published-at 2026-10-08T17:05:00Z --write-catalog (~10 min; the module list is data/build/official-clinical-2026-10-08/changed-ids.txt)",
-      "note": "Local release copy of the 78 КР modules rebuilt with appendix headings (238 promoted titles); the intermediate builds (control, compacted, e5 decoded, published decoded) were deleted after verification. 72 of its 78 modules were superseded on 2026-10-09 by output/module-zstd-json-2026-10-09 (STATE KR5); this copy stays for the other 6 modules and as the rollback copy. On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
-      "bytes": 84990337,
-      "modified": "2026-10-14"
-    },
-    {
-      "path": "output/module-zstd-json-2026-10-09",
-      "class": "RELEASED",
-      "producer": "STATE KR5: build-documents (July and 10-02 plans, extractor revision 5: template labels) -> medbase compact-module-search -> tools/ingest/scripts/embed_modules_e5.py --from-dir -> scripts/republish-clinical-modules.ts",
-      "consumers": [
-        "catalog.preview.json minimed.clinical.recommendation.* of the 737 rebuilt modules (tag clinical-json-2026.10.09-17bb72b87531)",
-        "apps/app/e2e/clinical-module-fixture.ts, module-pointer.spec.ts, kr-numbered-heading-modules.spec.ts, kr-appendix-heading-modules.spec.ts, kr-template-label-modules.spec.ts"
-      ],
-      "release": "branch datasets/clinical-json-2026.10.09-17bb72b87531 (737 .db.zst)",
-      "rebuild": "uv run --project tools/ingest medbase-clinical-catalog build-documents --all (plan data/build/official-clinical-source-plan for the 744 earlier modules, data/build/official-clinical-2026-10-02/source-plan for the 30 newer; source data/raw/official-clinical-documents) -> medbase compact-module-search -> uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --from-dir <compacted> --out <e5/decoded> -> bun scripts/republish-clinical-modules.ts --decoded-dir <e5/decoded> --out-dir output/module-zstd-json-2026-10-09 --snapshot-id clinical-json-2026.10.09-17bb72b87531 --published-at 2026-10-09T07:10:00Z --write-catalog (~45 min; the module list is data/build/official-clinical-2026-10-09/changed-ids.txt)",
-      "note": "Local release copy of the 737 КР modules rebuilt with KR template labels as headings (3 925 promoted); the intermediate builds (rule-off control, compacted, e5 decoded, published decoded) were deleted after verification. It supersedes most of the KR4, KR3 and E2 copies, which stay for the 37 modules not republished and as rollback copies. On 2026-10-11 (STATE KD1) every КР module was republished with KD1 vectors (output/module-zstd-kd1-2026-10-11); this copy is the input of that rebuild and the e5 rollback copy. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
-      "bytes": 664403645,
-      "modified": "2026-10-14"
-    },
-    {
-      "path": "output/module-zstd-drug-e5-2026-10-05",
-      "class": "REBUILDABLE",
-      "producer": "STATE E3: tools/ingest/scripts/embed_modules_e5.py --family medications then scripts/reframe-modules-e5.ts --family medications",
-      "consumers": [
-        "catalog.preview.json ГРЛС instruction and Allmed modules (tags grls-instructions-2026.10.05-056961ab2b54-e5, allmed-2026.10.05-2d39a7fc2b43-e5)"
-      ],
-      "rebuild": "uv run tools/ingest/scripts/embed_modules_e5.py --family medications --source data/build/grls-instruction-modules/zst --source data/build/allmed-module/zst --out data/build/drug-e5/decoded; bun scripts/reframe-modules-e5.ts --family medications --decoded-dir data/build/drug-e5/decoded --out-dir output/module-zstd-drug-e5-2026-10-05",
-      "note": "16 medication modules with e5 vectors for their indication sections (14 116 chunks); published 2026-10-05; kept as the local release copy. Supersedes data/build/grls-instruction-modules/zst and data/build/allmed-module/zst as release copies. Superseded on 2026-10-11 by output/module-zstd-drug-kd1-2026-10-11 (STATE KD1); kept as its input and the e5 rollback copy. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
-      "bytes": 283353394,
       "modified": "2026-10-14"
     },
     {
@@ -684,19 +555,6 @@
       "modified": "2026-10-25"
     },
     {
-      "path": "output/module-zstd-kd1-2026-10-11",
-      "class": "RELEASED",
-      "producer": "STATE KD1: tools/ingest/scripts/embed_modules.py --family clinical then scripts/reframe-modules.ts --marker kd1",
-      "consumers": [
-        "catalog.preview.json minimed.clinical.recommendation.* (tag clinical-kd1-2026.10.11)"
-      ],
-      "release": "branch datasets/clinical-kd1-2026.10.11 (774 .db.zst)",
-      "rebuild": "uv run tools/ingest/scripts/embed_modules.py --projection data/build/kd1/giga480m-projection-384.npy --family clinical --source output/module-zstd-json-2026-10-09 --source output/module-zstd-json-2026-10-08 --source output/module-zstd-json-2026-10-07 --source output/module-zstd-e5-2026-10-05 --out data/build/clinical-kd1/decoded; bun scripts/reframe-modules.ts --marker kd1 --family clinical --decoded-dir data/build/clinical-kd1/decoded --out-dir output/module-zstd-kd1-2026-10-11 --tag clinical-kd1-2026.10.11 (~1 h GPU)",
-      "note": "Local release copy of the 774 single-КР modules with Giga-480M passage vectors projected to 384 d (localmed.kd1-giga480m.384.int8.v1); only embedding_profiles/chunk_embeddings differ from the KR5/KR4/KR3/E2 copies. Decoded copies and encoder shards were deleted after verification. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
-      "bytes": 691125850,
-      "modified": "2026-10-14"
-    },
-    {
       "path": "output/module-zstd-drug-kd1-2026-10-11",
       "class": "RELEASED",
       "producer": "STATE KD1: tools/ingest/scripts/embed_modules.py --family medications then scripts/reframe-modules.ts --marker kd1 --family medications",
@@ -708,47 +566,6 @@
       "note": "16 medication modules with KD1 vectors for their indication sections (14 116 chunks); local release copy. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2).",
       "bytes": 283359286,
       "modified": "2026-10-14"
-    },
-    {
-      "path": "output/module-zstd-esklp-atc2-2026-10-13",
-      "class": "RELEASED",
-      "producer": "STATE ATC2: tools/ingest/scripts/build_atc_fill.py derive|apply over the decoded published ЕСКЛП modules, then scripts/reframe-modules.ts --marker atc2 --family esklp",
-      "consumers": [
-        "catalog.preview.json 14 ЕСКЛП group modules (tag esklp-2026-08-28-atc2, version 2026-08-28.atc2)"
-      ],
-      "release": "branch datasets/esklp-2026-08-28-atc2",
-      "rebuild": "decode output/module-zstd-2026-10-01/esklp-compacted into data/build/atc-fill/base; uv run --project tools/ingest python tools/ingest/scripts/build_atc_fill.py derive|apply --out data/build/atc-fill/out; bun scripts/reframe-modules.ts --marker atc2 --family esklp --module-id … --decoded-dir data/build/atc-fill/out/patched --out-dir output/module-zstd-esklp-atc2-2026-10-13",
-      "note": "14 ЕСКЛП modules with completed ATC codes (269 nodes) and flags (676 conflicts); only documents.metadata_json differs from output/module-zstd-2026-10-01/esklp-compacted, which stays as the previous release copy. Decoded copies, patched databases and the Allmed decode were deleted after verification. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2). Superseded in the catalog on 2026-10-15 by output/module-zstd-esklp-str1-2026-10-15 (STATE DOSE1); kept as the previous release copy.",
-      "bytes": 68574066,
-      "modified": "2026-10-14"
-    },
-    {
-      "path": "output/module-zstd-esklp-atc3-2026-10-14",
-      "class": "RELEASED",
-      "producer": "STATE ATC3: tools/ingest/scripts/build_atc_fill.py derive|apply (stub consensus, owner 2026-10-14) over the decoded original ЕСКЛП modules, then scripts/reframe-modules.ts --marker atc3 --family esklp for the nine groups with a consensus node",
-      "consumers": [
-        "catalog.preview.json 9 ЕСКЛП group modules (tag esklp-2026-08-28-atc3, version 2026-08-28.atc3)"
-      ],
-      "release": "branch datasets/esklp-2026-08-28-atc3",
-      "rebuild": "decode output/module-zstd-2026-10-01/esklp-compacted into data/build/atc-fill/base; uv run --project tools/ingest python tools/ingest/scripts/build_atc_fill.py derive|apply --out data/build/atc-fill/out3 --data-root <main checkout>; bun scripts/reframe-modules.ts --marker atc3 --family esklp --module-id … --decoded-dir data/build/atc-fill/out3/patched --out-dir output/module-zstd-esklp-atc3-2026-10-14",
-      "note": "9 ЕСКЛП modules with atcConsensus on 26 nodes of 13 cards; only documents.metadata_json differs from output/module-zstd-esklp-atc2-2026-10-13, which stays as the previous release copy (the other five completed groups and antiparasitic are still served from their atc2/original tags). Decoded copies and patched databases were deleted after verification. Superseded in the catalog on 2026-10-15 by output/module-zstd-esklp-str1-2026-10-15 (STATE DOSE1); kept as the previous release copy.",
-      "bytes": 53834542,
-      "modified": "2026-10-14"
-    },
-    {
-      "path": "output/module-zstd-esklp-str1-2026-10-15",
-      "class": "RELEASED",
-      "producer": "STATE DOSE1: tools/ingest/scripts/repair_esklp_strengths.py apply over the decoded published ЕСКЛП modules (atc3/atc2/original copies) and the non-compacted release-esklp build, then scripts/reframe-modules.ts --marker str1 --family esklp",
-      "consumers": [
-        "catalog.preview.json 15 ЕСКЛП group modules (tag esklp-2026-08-28-str1, version 2026-08-28.str1)",
-        "apps/app/e2e/module-install-timing.spec.ts",
-        "scripts/lib/published-esklp.ts (INT1/SAFE1 index builders find the published modules here by SHA-256)"
-      ],
-      "release": "branch datasets/esklp-2026-08-28-str1",
-      "rebuild": "decode the catalog's previous 15 ЕСКЛП artifacts (output/module-zstd-esklp-atc3-2026-10-14, output/module-zstd-esklp-atc2-2026-10-13, output/module-zstd-2026-10-01/esklp-compacted for antiparasitic) into data/build/esklp-str1/base; uv run --project tools/ingest python tools/ingest/scripts/repair_esklp_strengths.py apply --original data/build/release-esklp --published data/build/esklp-str1/base --work data/build/esklp-str1/work --out data/build/esklp-str1/out --report data/build/esklp-str1/report.json; bun scripts/reframe-modules.ts --marker str1 --family esklp --decoded-dir data/build/esklp-str1/out --out-dir output/module-zstd-esklp-str1-2026-10-15",
-      "note": "All 15 ЕСКЛП modules with the registry's «1.0» placeholder removed from dosages (1 839 cards, 20 602 chunks) and no literal «НЕ УКАЗАНО» in the card text; the ATC2/ATC3 fill is carried over. The atc3, atc2 and esklp-compacted copies stay as the previous release (rollback; older fixtures read esklp-compacted). The decoded base/work/out copies (about 1.9 GB) and the probe decodes were deleted after verification. Since 2026-10-20 the rollback copy of MOD-REBUILD (the catalog and the index builders read the 2026-10-20 copies).",
-      "bytes": 68698171,
-      "modified": "2026-10-15"
     },
     {
       "path": "data/build/kd1",
@@ -803,19 +620,6 @@
       "modified": "2026-10-14"
     },
     {
-      "path": "output/module-zstd-grls-ocr1-kd1-2026-10-14",
-      "class": "RELEASED",
-      "producer": "STATE OCR1: build_grls_instruction_modules.py build -> medbase compact-module-search -> package-instruction-modules.ts (lexical stage) -> embed_modules.py --family medications --from-dir -> reframe-modules.ts --marker kd1",
-      "consumers": [
-        "rollback copy (the catalog now lists grls-2026.10.15.kd1, output/module-zstd-grls-leaf1-2026-10-15)"
-      ],
-      "release": "branch datasets/grls-instructions-2026.10.14-15ce0cf79f45-kd1 (15 .db.zst)",
-      "rebuild": "gh/git checkout of the branch; or the commands above over data/intermediate/grls-ocr-cleaned",
-      "note": "Local copy of the released OCR1 instruction modules (224.9 MB); the earlier copy of the 2026-10-05 release stays under data/build/grls-instruction-modules/zst. Re-downloaded and checksum-verified on 2026-10-14 after the output/ directory was lost (an `output` symlink committed from a worktree replaced it, fixed in 599c7cc2). Superseded by output/module-zstd-grls-leaf1-2026-10-15 (LEAF1, 2026-10-15); kept as the rollback copy.",
-      "bytes": 224889019,
-      "modified": "2026-10-14"
-    },
-    {
       "path": "data/intermediate/manufacturer-instructions-m1",
       "class": "REBUILDABLE",
       "producer": "STATE OCR1 / M1: build_manufacturer_instruction_module.py registry, medbase prepare (PDF, text), grls_ocr_requality.py manufacturer (prepared-pdf-ocr1)",
@@ -838,36 +642,6 @@
       "note": "Prepared Markdown of the 678 chosen sister-register documents (646 PDF, 32 DOCX text) and the registries; the published module is on datasets/eaeu-instructions-2026.10.26-bb27176ae521, local copy output/module-zstd-eaeu-2026-10-26.",
       "bytes": 273121952,
       "modified": "2026-10-26"
-    },
-    {
-      "path": "data/build/marker-eval/venv",
-      "class": "REBUILDABLE",
-      "producer": "STATE MARKER1: uv venv (CPython 3.12) + marker-pdf 2.0.0 (surya-ocr 0.22.1, torch 2.14.1)",
-      "consumers": ["scripts/marker_convert.py"],
-      "rebuild": "uv venv --python 3.12 data/build/marker-eval/venv && uv pip install --python data/build/marker-eval/venv/bin/python marker-pdf==2.0.0 (about 1 GiB of wheels)",
-      "note": "Optional local build tool for scanned legal acts, textbook scans and the second reading of low-grade ГРЛС scans (docs/research/marker-eval-2026-10-14.md). Not used by the app or any pack.",
-      "bytes": 1051905326,
-      "modified": "2026-10-14"
-    },
-    {
-      "path": "data/build/marker-eval/cache",
-      "class": "REBUILDABLE",
-      "producer": "first run of scripts/marker_convert.py (HF_HOME and MODEL_CACHE_DIR inside the folder): Surya-2 GGUF + projector and layout model from Hugging Face, detection and OCR-error models from datalab",
-      "consumers": ["scripts/marker_convert.py"],
-      "rebuild": "run scripts/marker_convert.py on any PDF; it downloads about 1.76 GiB of weights (needs network and the Homebrew llama-server)",
-      "note": "Model weights of the Marker environment; delete together with the venv if Marker is dropped.",
-      "bytes": 1888349901,
-      "modified": "2026-10-14"
-    },
-    {
-      "path": "data/build/marker-eval",
-      "class": "REBUILDABLE",
-      "producer": "STATE MARKER1: scripts/marker_convert.py environment (venv and model cache below)",
-      "consumers": ["scripts/marker_convert.py", "scripts/marker_pages_run.py"],
-      "rebuild": "see the venv and cache entries",
-      "note": "Parent folder of the Marker environment; only the two nested entries are large.",
-      "bytes": 2940255227,
-      "modified": "2026-10-14"
     },
     {
       "path": "data/raw/regulatory-sources",
@@ -917,48 +691,6 @@
       "rebuild": "uv run python scripts/grls_contents_lists.py apply --out ../../data/intermediate/grls-contents-lists --overlay ../../data/build/grls-contents-lists.jsonl (about 1 minute; MINIMED_DATA_ROOT from a worktree); the extraction JSON in the old workspaces is the input",
       "note": "3 787 re-rendered GRLS leaflets (Markdown only; the extraction stays in grls-full-final / grls-ocr-cleaned), the current build input of the 15 ГРЛС instruction modules for those documents.",
       "bytes": 14830027,
-      "modified": "2026-10-20"
-    },
-    {
-      "path": "output/module-zstd-grls-leaf1-2026-10-15",
-      "class": "RELEASED",
-      "producer": "STATE LEAF1: build_grls_instruction_modules.py build -> medbase compact-module-search -> package-instruction-modules.ts (lexical stage) -> embed_modules.py --family medications --from-dir --reuse-from -> reframe-modules.ts --marker kd1",
-      "consumers": [
-        "catalog.preview.json minimed.medications.instructions.<group>.ru (15 modules, version grls-2026.10.15.kd1)",
-        "scripts/build-drug-interactions.ts, build-medication-safety.ts, build-drug-comparison.ts, build-dose-rules.ts (MODULE_DIRECTORIES), apps/app/e2e/medication-module-fixture.ts"
-      ],
-      "release": "branch datasets/grls-instructions-2026.10.15-36a501e7f136-kd1 (15 .db.zst)",
-      "rebuild": "gh/git checkout of the branch; or the commands above over data/intermediate/grls-contents-lists and the old workspaces",
-      "note": "Local copy of the LEAF1 instruction modules (222.5 MB); the OCR1 copy output/module-zstd-grls-ocr1-kd1-2026-10-14 stays as the rollback one. The superseded first-pass branch datasets/grls-instructions-2026.10.15-8e814530e861-kd1 was deleted on 2026-10-15. Since 2026-10-20 the rollback copy of MOD-REBUILD (the catalog and the index builders read the 2026-10-20 copies).",
-      "bytes": 222521672,
-      "modified": "2026-10-14"
-    },
-    {
-      "path": "output/module-zstd-json-2026-10-20",
-      "class": "RELEASED",
-      "producer": "STATE MOD-REBUILD: build-documents (July and 10-02 plans, heading levels reconciled with the numbering) -> medbase compact-module-search -> tools/ingest/scripts/embed_modules.py --family clinical --from-dir --reuse-from -> scripts/republish-clinical-modules.ts --marker kd1",
-      "consumers": [
-        "catalog.preview.json minimed.clinical.recommendation.* of the 358 rebuilt modules (tag clinical-json-2026.10.20-23375280029c)",
-        "apps/app/e2e/module-pointer.spec.ts, kr-appendix-heading-modules.spec.ts, many-modules-reload.spec.ts"
-      ],
-      "release": "branch datasets/clinical-json-2026.10.20-23375280029c (358 .db.zst)",
-      "rebuild": "uv run --project tools/ingest medbase-clinical-catalog build-documents --all (plans data/build/official-clinical-source-plan and data/build/official-clinical-2026-10-02/source-plan, source data/raw/official-clinical-documents) -> medbase compact-module-search over the modules of data/build/official-clinical-2026-10-20/republish-ids.txt -> uv run tools/ingest/scripts/embed_modules.py --projection data/build/kd1/giga480m-projection-384.npy --family clinical --from-dir <compacted> --reuse-from <decoded published> --out <kd1/decoded> -> bun scripts/republish-clinical-modules.ts --decoded-dir <kd1/decoded> --out-dir output/module-zstd-json-2026-10-20 --snapshot-id clinical-json-2026.10.20-23375280029c --published-at 2026-10-20T19:00:00Z --marker kd1 --write-catalog (~40 min)",
-      "note": "Local release copy of the 358 КР modules whose structure the 2026-10-20 ingest fixes changed (heading levels follow the numbering; private-use glyphs in 15). The other 416 stay in output/module-zstd-kd1-2026-10-11, which is also the rollback copy of these. Control/final builds, decoded copies and encoder shards were deleted after verification.",
-      "bytes": 370233744,
-      "modified": "2026-10-20"
-    },
-    {
-      "path": "output/module-zstd-grls-h2-2026-10-20",
-      "class": "RELEASED",
-      "producer": "STATE MOD-REBUILD: medbase prepare (text-layer PDFs extracted again, OCR reused) -> grls_contents_lists.py apply -> build_grls_instruction_modules.py build -> medbase compact-module-search -> package-instruction-modules.ts (lexical stage) -> embed_modules.py --family medications --from-dir --reuse-from -> reframe-modules.ts --marker kd1",
-      "consumers": [
-        "catalog.preview.json minimed.medications.instructions.<group>.ru (15 modules, version grls-2026.10.20.kd1)",
-        "scripts/build-drug-interactions.ts, build-medication-safety.ts, build-drug-comparison.ts, build-dose-rules.ts, diff-interaction-atc.ts (MODULE_DIRECTORIES), apps/app/e2e/medication-module-fixture.ts"
-      ],
-      "release": "branch datasets/grls-instructions-2026.10.20-4b6befe857de-kd1 (15 .db.zst)",
-      "rebuild": "gh/git checkout of the branch; or the commands above over data/intermediate/grls-full-final, grls-g1-additions(-2), grls-ocr-cleaned and grls-contents-lists",
-      "note": "Local copy of the instruction modules without private-use bullet glyphs and mid-word chunk cuts (221.3 MB). The LEAF1 copy output/module-zstd-grls-leaf1-2026-10-15 stays as the rollback one.",
-      "bytes": 221294776,
       "modified": "2026-10-20"
     },
     {

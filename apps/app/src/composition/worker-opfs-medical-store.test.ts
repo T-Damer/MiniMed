@@ -343,6 +343,10 @@ describe('WorkerOpfsMedicalStore', () => {
     const second = await WorkerOpfsMedicalStore.open(options);
     await expect(second.listNavigationDocuments()).resolves.toBe(await firstList);
     expect(calls('listNavigationDocuments')).toHaveLength(1);
+    // `listSearchDocuments` is a strict subset of `listNavigationDocuments`: reuse it without a
+    // second full-table SQLite scan on the same worker.
+    await expect(second.listSearchDocuments()).resolves.toBe(await firstList);
+    expect(calls('listSearchDocuments')).toHaveLength(0);
 
     // A failed read reaches its caller and is not kept.
     const failed = second.listAliases();

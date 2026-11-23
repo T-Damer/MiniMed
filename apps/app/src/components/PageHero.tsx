@@ -197,6 +197,12 @@ export function useHeroScroll(
       const start = Math.max(0, top - safeTop);
       const end = top + height - bar;
       if (end <= start) return;
+      // Read every remaining geometric property BEFORE mutating custom properties or classes so
+      // this ResizeObserver pass never triggers read-after-write forced synchronous layout.
+      const block = element.querySelector<HTMLElement>('.page__header');
+      const pinnedOffsetTop = pinned.offsetTop;
+      const clear = block ? block.offsetTop - (pinnedOffsetTop + rowHeight) : end - start;
+      const hasEmblem = Boolean(pinned.querySelector('.page-hero__emblem'));
       // The sticky offset itself is CSS (`--safe-top` live): the status bar's inset may arrive
       // after this measurement (Capacitor sets it once the WebView reports it).
       setLength(element, '--page-hero-height', height);
@@ -206,10 +212,8 @@ export function useHeroScroll(
       setLength(element, '--page-hero-end', end);
       // The row slides down over the title block under it: that block is gone by the time the
       // row reaches it, so a page that scrolls only a little never shows the two overlapping.
-      const block = element.querySelector<HTMLElement>('.page__header');
-      const clear = block ? block.offsetTop - (pinned.offsetTop + rowHeight) : end - start;
       setLength(element, '--page-hero-fade-end', start + Math.max(4, clear));
-      measureEmblem(element, pinned);
+      if (hasEmblem) setLength(element, '--page-hero-row-offset', pinnedOffsetTop);
       element.classList.add('page--hero-sticky');
       pinned.classList.add('page__above-header--sticky');
     };
@@ -221,12 +225,6 @@ export function useHeroScroll(
       stopInsets();
     });
   });
-}
-
-/** The emblem is drawn in the row (above the row's pinned fill), placed from the header's top. */
-function measureEmblem(header: HTMLElement, row: HTMLElement): void {
-  if (!row.querySelector('.page-hero__emblem')) return;
-  setLength(header, '--page-hero-row-offset', row.offsetTop);
 }
 
 /** One watcher for every header: each kept its own observer, listener and probe layout. */

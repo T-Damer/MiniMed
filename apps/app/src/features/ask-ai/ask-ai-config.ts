@@ -21,8 +21,8 @@ export const ASK_AI_CONFIG_KEY = 'minimed.ask-ai-config.v1';
 export const ASK_AI_CONFIG_EVENT = 'minimed:ask-ai-config-changed';
 
 export const DEFAULT_OPENAI_BASE_URL = 'https://api.openai.com/v1';
-export const DEFAULT_OPENAI_MODEL = 'gpt-4o-mini';
-export const DEFAULT_YANDEX_MODEL = 'yandexgpt-lite/latest';
+export const DEFAULT_OPENAI_MODEL = 'gpt-4o';
+export const DEFAULT_YANDEX_MODEL = 'yandexgpt/latest';
 
 export const DEFAULT_ASK_AI_CONFIG: AskAiConfig = {
   provider: 'off',
@@ -82,6 +82,13 @@ export function saveAskAiConfig(config: AskAiConfig): AskAiConfig {
 
 export function clearAskAiConfig(): void {
   saveAskAiConfig(DEFAULT_ASK_AI_CONFIG);
+}
+
+/** True whenever the device is online: allows zero-setup external AI handoff or inline API. */
+export function isAskAiActionVisible(
+  online = typeof navigator === 'undefined' ? true : navigator.onLine !== false,
+): boolean {
+  return online;
 }
 
 /** True only when a provider is configured with credentials AND the device is online. */

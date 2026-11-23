@@ -261,9 +261,16 @@ export function watchSoftKeyboard(root: HTMLElement = document.documentElement):
       revealFocusedField();
     }, REVEAL_SETTLE_MS);
   };
-  // `focusout` fires before the next element is focused: read the active element afterwards.
+  let focusOutFrame: number | undefined;
+  // `focusout` fires before the next element is focused: read the active element after the click
+  // frame settles so tapping ordinary links/buttons never forces a synchronous layout flush.
   const onFocusOut = (): void => {
-    queueMicrotask(sync);
+    if (focusOutFrame !== undefined) return;
+    focusOutFrame = requestAnimationFrame(() => {
+      focusOutFrame = undefined;
+      if (!root.classList.contains(OPEN_CLASS) && !focused()) return;
+      sync();
+    });
   };
   const onViewportResize = (): void => {
     sync();
@@ -280,6 +287,7 @@ export function watchSoftKeyboard(root: HTMLElement = document.documentElement):
     document.removeEventListener('focusout', onFocusOut);
     viewport?.removeEventListener('resize', onViewportResize);
     window.removeEventListener('resize', onViewportResize);
+    if (focusOutFrame !== undefined) cancelAnimationFrame(focusOutFrame);
     for (const timer of [revealTimer, settleTimer]) {
       if (timer !== undefined) clearTimeout(timer);
     }

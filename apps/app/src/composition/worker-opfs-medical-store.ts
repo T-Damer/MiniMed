@@ -433,6 +433,16 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   ): Promise<Awaited<ReturnType<WorkerOpfsMedicalStore[M]>>> {
     const owner = this.owner;
     let pending = owner.listings.get(method);
+    if (!pending && method === 'listSearchDocuments') {
+      // `listNavigationDocuments` extracts a strict superset of `listSearchDocuments`
+      // (`NAVIGATION_METADATA_FIELDS` includes all `SEARCH_METADATA_FIELDS`). When navigation
+      // catalog loading is already cached or in flight on this worker, reuse it instead of
+      // scanning the entire SQLite `documents` table a second time in parallel (0.6.128 perf log).
+      const navPending = owner.listings.get('listNavigationDocuments');
+      if (navPending) {
+        pending = navPending;
+      }
+    }
     if (!pending) {
       pending =
         method === 'listNavigationDocuments' || method === 'listSearchDocuments'

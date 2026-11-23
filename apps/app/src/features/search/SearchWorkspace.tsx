@@ -1296,18 +1296,21 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   function updateQuery(value: string, debounce = true): void {
     urlQuery = undefined;
     urlRestorePending = false;
+    const trimmed = searchableQuery(value);
     // An emptied field leaves no query in the address; a half-typed one keeps the last committed.
-    if (!searchableQuery(value)) replaceSearchQueryInAddress(undefined);
-    if (searchableQuery(value) !== searchableQuery(query())) setRequestedInlineCalculator();
-    // «Искать везде» belongs to the words it was asked for; an edited query names sources again.
-    if (searchableQuery(value) !== everywhereQuery()) setEverywhereQuery(undefined);
-    setQuery(value);
-    if (response()?.analysis.originalQuery !== searchableQuery(value)) {
-      setResponse(undefined);
-      setPendingResponse(undefined);
-      setRefreshing(false);
-      setContext(undefined);
-    }
+    if (!trimmed) replaceSearchQueryInAddress(undefined);
+    batch(() => {
+      if (trimmed !== searchableQuery(query())) setRequestedInlineCalculator();
+      // «Искать везде» belongs to the words it was asked for; an edited query names sources again.
+      if (trimmed !== everywhereQuery()) setEverywhereQuery(undefined);
+      setQuery(value);
+      if (response()?.analysis.originalQuery !== trimmed) {
+        setResponse(undefined);
+        setPendingResponse(undefined);
+        setRefreshing(false);
+        setContext(undefined);
+      }
+    });
     scheduleAnalysis(value);
     if (debounce) scheduleSearch(value);
   }
@@ -1932,13 +1935,15 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
               }
               value={query()}
               onInput={(event) => {
-                setCorrectionDismissed(true);
-                updateQuery(event.currentTarget.value);
-                resizeTextarea(event.currentTarget);
-                syncToolPicker(
-                  event.currentTarget.value,
-                  event.currentTarget.selectionStart ?? event.currentTarget.value.length,
-                );
+                const target = event.currentTarget;
+                const value = target.value;
+                const caret = target.selectionStart ?? value.length;
+                batch(() => {
+                  setCorrectionDismissed(true);
+                  updateQuery(value);
+                  syncToolPicker(value, caret);
+                });
+                requestAnimationFrame(() => resizeTextarea(target));
               }}
               onKeyDown={handleKeyDown}
               onFocus={() => setFocused(true)}

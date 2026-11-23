@@ -14,7 +14,7 @@ import {
 } from '@/features/modules/encoded-index-reader';
 import { type EpochInstallPhase, epochNow } from '@/features/modules/install-timing';
 
-const RESULT_PAGE_ROWS = 1000;
+const RESULT_PAGE_ROWS = 512;
 // Catalog rows can contain large nested metadata. Measure their weight on the worker for unprojected
 // `listDocuments`, and stream compact projections in fixed pages paced across macrotasks so
 // Chromium never coalesces hundreds of structured-clone replies into one long main-thread frame.
@@ -258,6 +258,7 @@ self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<voi
           id: message.id,
           part: result.slice(start, start + RESULT_PAGE_ROWS),
         } satisfies OpfsPackWorkerResponse);
+        if (start + RESULT_PAGE_ROWS < result.length) await yieldWorkerTask();
       }
       self.postMessage({ id: message.id, result: [] } satisfies OpfsPackWorkerResponse);
       return;

@@ -21,6 +21,8 @@
  * see `normalizeSurfaceText`); nothing here does Unicode normalization of its own.
  */
 
+import { wasmExtractTopStrings, wasmPairDistance } from './rapidfuzz-wasm';
+
 const WORD_BITS = 64;
 const U64_MASK = (1n << 64n) - 1n;
 
@@ -216,6 +218,8 @@ function dispatch(
 export const Levenshtein = {
   /** Exact edit distance (insert/delete/substitute, each cost 1). */
   distance(left: string, right: string, _options?: DistanceOptions): number {
+    const wasm = wasmPairDistance(left, right, 'levenshtein');
+    if (wasm !== undefined) return wasm;
     return dispatch(left, right, levenshteinBitParallel, levenshteinDp);
   },
   normalizedDistance(left: string, right: string, options?: SimilarityOptions): number {
@@ -234,6 +238,8 @@ export const Levenshtein = {
 export const OSA = {
   /** Exact OSA distance (insert/delete/substitute/adjacent-transpose, each cost 1). */
   distance(left: string, right: string, _options?: DistanceOptions): number {
+    const wasm = wasmPairDistance(left, right, 'osa');
+    if (wasm !== undefined) return wasm;
     return dispatch(left, right, osaBitParallel, osaDp);
   },
   normalizedDistance(left: string, right: string, options?: SimilarityOptions): number {
@@ -351,6 +357,20 @@ export function extractTop<T>(
 ): ExtractMatch<T>[] {
   if (limit <= 0) return [];
   const { scorer = OSA.normalizedSimilarity, processor, scoreCutoff = 0 } = options;
+  if (
+    !processor &&
+    (scorer === OSA.normalizedSimilarity || scorer === Levenshtein.normalizedSimilarity)
+  ) {
+    const metric = scorer === OSA.normalizedSimilarity ? 'osa' : 'levenshtein';
+    const wasmMatches = wasmExtractTopStrings(
+      query,
+      choices as unknown as readonly string[],
+      limit,
+      scoreCutoff,
+      metric,
+    );
+    if (wasmMatches !== undefined) return wasmMatches as unknown as ExtractMatch<T>[];
+  }
   const score = resolveFastScorer(query, scorer);
   // Min-heap ordered so the *weakest* kept match — lowest score, ties broken by highest index —
   // is always at the root: that is the one a better candidate should evict.

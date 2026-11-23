@@ -2,12 +2,10 @@ import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js'
 import { Portal } from 'solid-js/web';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
-import { HorizontalScroller } from '@/components/HorizontalScroller';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { visitRoute } from '@/state/app-back';
 import {
   activateClinicalTab,
-  adjacentClinicalTab,
   type ClinicalTabKind,
   type ClinicalTabSnapshot,
   type ClinicalTabsState,
@@ -17,55 +15,97 @@ import {
   subscribeClinicalTabs,
   syncRouteToClinicalTabs,
   togglePinClinicalTab,
+  updateActiveClinicalTabTitle,
 } from '@/state/clinical-tabs';
-import { hapticFeedback } from '@/state/haptics';
-import { uiSounds } from '@/state/ui-sounds';
 
 import '@/features/tabs/clinical-tabs.css';
 
-const SWIPE_THRESHOLD_PX = 48;
-
 function tabGlyph(kind: ClinicalTabKind): AppGlyphName {
-  if (kind === 'search') return 'search';
-  if (kind === 'user') return 'file-text';
-  return 'book-open';
+  switch (kind) {
+    case 'search':
+      return 'search';
+    case 'user':
+      return 'file-text';
+    case 'diary':
+      return 'calendar-check';
+    case 'patients':
+      return 'users';
+    case 'notes':
+      return 'notes';
+    case 'calculator':
+      return 'calculator';
+    case 'assessment':
+      return 'list-checks';
+    case 'modules':
+      return 'books';
+    case 'news':
+      return 'newspaper';
+    case 'official':
+      return 'book-open';
+  }
 }
 
 function tabKindLabel(kind: ClinicalTabKind): string {
-  if (kind === 'search') return 'Поиск';
-  if (kind === 'user') return 'Личный файл';
-  return 'Документ';
+  switch (kind) {
+    case 'search':
+      return 'Поиск';
+    case 'user':
+      return 'Личный файл';
+    case 'diary':
+      return 'Дневники';
+    case 'patients':
+      return 'Пациенты';
+    case 'notes':
+      return 'Заметки';
+    case 'calculator':
+      return 'Калькулятор';
+    case 'assessment':
+      return 'Опросник';
+    case 'modules':
+      return 'База знаний';
+    case 'news':
+      return 'Лента';
+    case 'official':
+      return 'Документ';
+  }
 }
 
 /**
- * Opt-in Clinical Tabs («Вкладки документов», Wave 2.1):
- * - Desktop (≥900 px): compact horizontal tab strip at top of the workspace.
- * - Mobile (<900 px): swipeable active-tab pill above the bottom bar + `[N]` card-grid switcher.
+ * Opt-in Clinical Tabs («Вкладки»): a single round water-drop satellite button emerging to the
+ * left of the bottom navigation bar once 2+ screens/tools are open. Never obscures page headers
+ * or bottom-right floating actions; tapping opens the card-grid tab switcher.
  */
 export function ClinicalTabsBar(props: { readonly currentHash: string }): JSX.Element {
   const [state, setState] = createSignal<ClinicalTabsState>(loadClinicalTabsState());
   const [switcherOpen, setSwitcherOpen] = createSignal(false);
 
-  let swipeStartX: number | null = null;
-  let swipeStartY: number | null = null;
-
   onMount(() => {
-    setState(syncRouteToClinicalTabs(props.currentHash));
-    const unsubscribe = subscribeClinicalTabs((next) => setState(next));
-    const onHash = (): void => {
-      setState(syncRouteToClinicalTabs(window.location.hash));
+    let titleTimer: number | undefined;
+    const syncHeading = (): void => {
+      window.clearTimeout(titleTimer);
+      titleTimer = window.setTimeout(() => {
+        const heading = document
+          .querySelector<HTMLElement>('.app-view.active h1, .app-view--document-read.active h1')
+          ?.textContent?.trim();
+        if (heading) updateActiveClinicalTabTitle(heading);
+      }, 120);
     };
+    const syncCurrent = (hash: string): void => {
+      setState(syncRouteToClinicalTabs(hash));
+      syncHeading();
+    };
+    syncCurrent(props.currentHash);
+    const unsubscribe = subscribeClinicalTabs((next) => setState(next));
+    const onHash = (): void => syncCurrent(window.location.hash);
     window.addEventListener('hashchange', onHash);
     window.addEventListener('popstate', onHash);
     onCleanup(() => {
+      window.clearTimeout(titleTimer);
       unsubscribe();
       window.removeEventListener('hashchange', onHash);
       window.removeEventListener('popstate', onHash);
     });
   });
-
-  const activeTab = (): ClinicalTabSnapshot | undefined =>
-    state().tabs.find((tab) => tab.id === state().activeTabId) ?? state().tabs[0];
 
   const openTab = (tab: ClinicalTabSnapshot): void => {
     activateClinicalTab(tab.id);
@@ -75,37 +115,12 @@ export function ClinicalTabsBar(props: { readonly currentHash: string }): JSX.El
     }
   };
 
-  const stepTab = (delta: -1 | 1): void => {
-    const next = adjacentClinicalTab(state(), delta);
-    if (!next || next.id === state().activeTabId) return;
-    uiSounds.play('swipe');
-    hapticFeedback('selection');
-    openTab(next);
-  };
-
   const handleCloseTab = (event: MouseEvent, tab: ClinicalTabSnapshot): void => {
     event.stopPropagation();
     const wasActive = tab.id === state().activeTabId;
     const { nextActive } = closeClinicalTab(tab.id);
     if (wasActive && window.location.hash !== nextActive.hash) {
       visitRoute(nextActive.hash);
-    }
-  };
-
-  const handlePillPointerDown = (event: PointerEvent): void => {
-    if (event.button !== 0) return;
-    swipeStartX = event.clientX;
-    swipeStartY = event.clientY;
-  };
-
-  const handlePillPointerUp = (event: PointerEvent): void => {
-    if (swipeStartX === null || swipeStartY === null) return;
-    const dx = event.clientX - swipeStartX;
-    const dy = event.clientY - swipeStartY;
-    swipeStartX = null;
-    swipeStartY = null;
-    if (Math.abs(dx) >= SWIPE_THRESHOLD_PX && Math.abs(dx) > Math.abs(dy) * 1.4) {
-      stepTab(dx < 0 ? 1 : -1);
     }
   };
 
@@ -124,113 +139,19 @@ export function ClinicalTabsBar(props: { readonly currentHash: string }): JSX.El
   return (
     <Show when={visible()}>
       <Portal>
-        {/* Desktop (≥900 px) top tab strip */}
-        <nav
-          class="clinical-tabs-strip"
-          aria-label="Открытые вкладки"
-          data-testid="clinical-tabs-strip"
+        <button
+          type="button"
+          class="clinical-tabs-drop"
+          data-testid="clinical-tabs-button"
+          aria-label={`Открытые вкладки (${state().tabs.length})`}
+          title={`Вкладки (${state().tabs.length})`}
+          onClick={() => setSwitcherOpen(true)}
         >
-          <HorizontalScroller
-            class="clinical-tabs-strip__scroller"
-            controls
-            hideScrollbar
-            light
-            controlLabel="вкладки"
-          >
-            <ul class="clinical-tabs-strip__list">
-              <For each={state().tabs}>
-                {(tab) => {
-                  const isActive = () => tab.id === state().activeTabId;
-                  return (
-                    <li
-                      class="clinical-tabs-strip__item"
-                      classList={{ 'clinical-tabs-strip__item--active': isActive() }}
-                    >
-                      <button
-                        type="button"
-                        class="clinical-tabs-strip__tab"
-                        classList={{ 'clinical-tabs-strip__tab--active': isActive() }}
-                        aria-current={isActive() ? 'page' : undefined}
-                        onClick={() => openTab(tab)}
-                      >
-                        <AppGlyph name={tabGlyph(tab.kind)} class="clinical-tabs-strip__icon" />
-                        <span class="clinical-tabs-strip__title">{tab.title}</span>
-                      </button>
-                      <Show when={tab.kind !== 'search'}>
-                        <button
-                          type="button"
-                          class="clinical-tabs-strip__close"
-                          aria-label={`Закрыть вкладку «${tab.title}»`}
-                          onClick={(event) => handleCloseTab(event, tab)}
-                        >
-                          <AppGlyph name="close" class="clinical-tabs-strip__close-icon" />
-                        </button>
-                      </Show>
-                    </li>
-                  );
-                }}
-              </For>
-            </ul>
-          </HorizontalScroller>
-          <button
-            type="button"
-            class="clinical-tabs-strip__count"
-            aria-label={`Все вкладки (${state().tabs.length})`}
-            title="Все вкладки"
-            onClick={() => setSwitcherOpen(true)}
-          >
+          <AppGlyph name="browsers" class="clinical-tabs-drop__icon" />
+          <span class="clinical-tabs-drop__badge" aria-hidden="true">
             {state().tabs.length}
-          </button>
-        </nav>
-
-        {/* Mobile (<900 px) swipeable tab pill docked above the bottom bar */}
-        <div
-          class="clinical-tabs-pill"
-          data-testid="clinical-tabs-pill"
-          onPointerDown={handlePillPointerDown}
-          onPointerUp={handlePillPointerUp}
-          onPointerCancel={() => {
-            swipeStartX = null;
-            swipeStartY = null;
-          }}
-        >
-          <button
-            type="button"
-            class="clinical-tabs-pill__step"
-            aria-label="Предыдущая вкладка"
-            onClick={() => stepTab(-1)}
-          >
-            <AppGlyph name="caret-left" class="clinical-tabs-pill__step-icon" />
-          </button>
-          <button
-            type="button"
-            class="clinical-tabs-pill__current"
-            aria-label="Открыть список вкладок"
-            onClick={() => setSwitcherOpen(true)}
-          >
-            <AppGlyph
-              name={tabGlyph(activeTab()?.kind ?? 'search')}
-              class="clinical-tabs-pill__icon"
-            />
-            <span class="clinical-tabs-pill__title">{activeTab()?.title ?? 'Поиск'}</span>
-          </button>
-          <button
-            type="button"
-            class="clinical-tabs-pill__count"
-            aria-label={`Открытые вкладки: ${state().tabs.length}`}
-            onClick={() => setSwitcherOpen(true)}
-          >
-            {state().tabs.length}
-          </button>
-          <button
-            type="button"
-            class="clinical-tabs-pill__step"
-            aria-label="Следующая вкладка"
-            onClick={() => stepTab(1)}
-          >
-            <AppGlyph name="caret-right" class="clinical-tabs-pill__step-icon" />
-          </button>
-        </div>
+          </span>
+        </button>
 
         <OverlayDialog
           open={switcherOpen()}

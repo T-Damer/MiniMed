@@ -1,7 +1,7 @@
 # Current state
 
 > Updated: 23 November 2026
-> Released version: `0.6.128` (public prerelease toward `1.0`)
+> Released version: `0.6.129` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -19,6 +19,21 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Xiaomi 14 `0.6.128` perf follow-ups & UI polish — 2026-11-23
+
+- **Perf (`0.6.128` log: 25.8 min session, 233 long frames, 8.91 s blocking — down from 30.2 s in `0.6.127`):**
+  - Eliminated duplicate full-table SQLite scans (`storage.catalog` `navigation` 23.1 s + `search` 20.4 s) in `WorkerOpfsMedicalStore.listing` by reusing an in-flight/cached `listNavigationDocuments()` for `listSearchDocuments()` (since `NAVIGATION_METADATA_FIELDS` is a strict superset of `SEARCH_METADATA_FIELDS`).
+  - Sliced `QueryDocumentIndex.createSliced`, `QueryDocumentIndex.warmUpSliced`, `TerminologySearchIndex.createSliced`, and the second indexing pass of `medicationSpellingMatcherSteps` to eliminate the 962 ms / 582 ms / 490 ms / 518 ms `Scheduler.yield.then` frames over 87k-doc catalogs.
+  - Paced `opfs-pack.worker.ts` `RESULT_PAGE_ROWS` (512 rows + `yieldWorkerTask()`) so `listAliases` / `listCoreIdentityNames` no longer coalesce into 661 ms `Worker.onmessage` frames.
+  - Eliminated forced synchronous layouts across `perf-log-collector.ts` (378 ms fl — moved `scrollTop` read out of `rAF` onto passive `scroll`), `PageHero.tsx` (389 ms fl — hoisted all DOM reads before CSS custom property writes), `soft-keyboard.ts` (276 ms fl — deferred `focusout` check to `rAF` with fast-path skip when keyboard is closed), `document-reader-chrome.tsx` & `ReaderSectionPath.tsx` (107 ms fl + 38% missed reader scroll frames — removed body `MutationObserver` from top chrome, filtered `rootClass` to `app-chrome-hidden` only, throttled `ReaderSectionPath` to 100 ms after paint), and `SearchWorkspace.tsx` (batched `updateQuery` / `onInput` and deferred `resizeTextarea` to `rAF`).
+  - Added standalone C99→WASM lexical kernels (`packages/search-lexical/wasm/lexical_kernels.c` → 12.3 KB `.wasm`, compiled via `emcc -O3 -s STANDALONE_WASM=1`) for Hyyrö OSA, Myers Levenshtein, and packed batch `extractTop` with native `i64` arithmetic and pure-TS fallback (**137.7× faster** on 30k Cyrillic medication names: 233.6 ms → 1.70 ms across Web, iPhone Safari, iOS, and Android).
+  - Upgraded native SQLite (`packages/storage-capacitor`, Android `LocalMedDatabasePlugin.java`, iOS `LocalMedDatabasePlugin.swift`) to support multiple concurrent named databases (`core.db` + installed module DBs via `openModuleFile` / `hasModuleFile` / `deleteModuleFile` and per-database routing/locks).
+- **UI updates:**
+  - Guided «Спросить ИИ» onboarding (`AskAiSettings`, `ask-ai-oauth.ts`): 1-click zero-backend OpenRouter OAuth PKCE login (GPT-4o-mini / Claude / Gemini), numbered step-by-step OpenAI & Yandex Cloud guides with direct links, 1-tap clipboard paste, automatic Yandex `Api-Key` / `Bearer` IAM token support, and live «Проверить подключение» verification.
+  - Opt-in Clinical Tabs redesigned as a round bottom-left water-drop satellite button with one-shot emergence animation and full-app tool/screen tracking (diaries, patients, notes, calculators, assessments, modules, news, documents, search).
+  - `PatientList` unified onto a single `<Page>` header + sticky search bar with the `+` («Новый пациент») action moved to the shared bottom-right `FloatingActionButton` (`#app-floating-controls`).
+  - Search «Ваши данные» (`PersonalNoteMatches`) deduplicates mirrored user-library notes (`source.kind === 'note'`) and renders `Заметка — <Название>` / `Пациент — <Имя>` / `Документ — <Название>` rows with an accordion disclosure chevron only when matched in body text.
 
 ## Android search and route loading fixes — 2026-11-18, included in 0.6.113
 

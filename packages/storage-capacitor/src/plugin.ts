@@ -32,6 +32,8 @@ export interface NativeDatabaseHealth {
 export interface NativeQueryOptions {
   readonly sql: string;
   readonly argsJson?: string;
+  /** Target native SQLite database name (defaults to `"core.db"` when omitted). */
+  readonly databaseName?: string;
 }
 
 export interface NativeQueryResult {
@@ -47,6 +49,8 @@ export interface NativeVectorSearchOptions {
   readonly specialties?: readonly string[];
   readonly ageGroups?: readonly string[];
   readonly sectionTypes?: readonly string[];
+  /** Target native SQLite database name (defaults to `"core.db"` when omitted). */
+  readonly databaseName?: string;
 }
 
 export interface NativeVectorHit {
@@ -87,11 +91,19 @@ export interface NativeCoreDownloadPlugin {
   ): Promise<PluginListenerHandle>;
 }
 
+export interface OpenModuleFileOptions {
+  readonly databaseName: string;
+  readonly expectedSha256: string;
+}
+
 export interface LocalMedDatabasePlugin {
   openPack(options: OpenPackOptions): Promise<NativeDatabaseHealth>;
+  openModuleFile?(options: OpenModuleFileOptions): Promise<NativeDatabaseHealth>;
+  hasModuleFile?(options: OpenModuleFileOptions): Promise<{ readonly installed: boolean }>;
+  deleteModuleFile?(options: { readonly databaseName: string }): Promise<void>;
   query(options: NativeQueryOptions): Promise<NativeQueryResult>;
   searchVectors(options: NativeVectorSearchOptions): Promise<NativeVectorSearchResult>;
-  close(): Promise<void>;
+  close(options?: { readonly databaseName?: string }): Promise<void>;
 }
 
 export const LocalMedDatabase = registerPlugin<LocalMedDatabasePlugin & NativeCoreDownloadPlugin>(

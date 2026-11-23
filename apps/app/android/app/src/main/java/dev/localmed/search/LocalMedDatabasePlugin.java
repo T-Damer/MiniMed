@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -40,9 +42,27 @@ public final class LocalMedDatabasePlugin extends Plugin {
     private static final Pattern SAFE_FILE_NAME = Pattern.compile("[A-Za-z0-9._-]{1,120}");
     private static final Pattern READ_QUERY = Pattern.compile("^(SELECT|WITH)\\b", Pattern.CASE_INSENSITIVE);
 
+    private static final String DEFAULT_DATABASE_NAME = "core.db";
+
     private final Object databaseLock = new Object();
+    private final Map<String, SQLiteDatabase> databases = new ConcurrentHashMap<>();
+    private final Map<String, Object> databaseLocks = new ConcurrentHashMap<>();
     private SQLiteDatabase database;
     private final java.util.concurrent.ExecutorService openExecutor = Executors.newSingleThreadExecutor();
+
+    private String resolveDatabaseName(PluginCall call) {
+        String name = call.getString("databaseName");
+        if (name == null || name.isEmpty()) return DEFAULT_DATABASE_NAME;
+        if (!SAFE_FILE_NAME.matcher(name).matches()) {
+            throw new IllegalArgumentException("Invalid database file name.");
+        }
+        return name;
+    }
+
+    private Object lockFor(String name) {
+        if (DEFAULT_DATABASE_NAME.equals(name)) return databaseLock;
+        return databaseLocks.computeIfAbsent(name, unused -> new Object());
+    }
 
     @PluginMethod
     public void hasCorePack(PluginCall call) {
@@ -196,6 +216,7 @@ public final class LocalMedDatabasePlugin extends Plugin {
                     phase = "sqliteOpen";
                     phaseStarted = SystemClock.elapsedRealtime();
                     database = NativePackDatabase.openReadOnly(target);
+                    databases.put(databaseName, database);
                     timings.put(phase + "Ms", SystemClock.elapsedRealtime() - phaseStarted);
                     phase = "integrity";
                     phaseStarted = SystemClock.elapsedRealtime();
@@ -298,6 +319,101 @@ public final class LocalMedDatabasePlugin extends Plugin {
     }
 
     @PluginMethod
+    public void hasModuleFile(PluginCall call) {
+        String databaseName = call.getString("databaseName");
+        String expectedSha256 = normalizeChecksum(call.getString("expectedSha256"));
+        if (databaseName == null || !SAFE_FILE_NAME.matcher(databaseName).matches()) {
+            call.reject("Invalid module database file name.");
+            return;
+        }
+        File directory = new File(getContext().getFilesDir(), "localmed/modules");
+        File target = new File(directory, databaseName);
+        File marker = new File(directory, databaseName + ".sha256");
+        JSObject result = new JSObject();
+        try {
+            result.put("installed", expectedSha256 != null && target.isFile() && expectedSha256.equals(readMarker(marker)));
+            call.resolve(result);
+        } catch (IOException error) {
+            call.reject("Unable to inspect module database: " + safeMessage(error));
+        }
+    }
+
+    @PluginMethod
+    public void deleteModuleFile(PluginCall call) {
+        String databaseName = call.getString("databaseName");
+        if (databaseName == null || !SAFE_FILE_NAME.matcher(databaseName).matches()) {
+            call.reject("Invalid module database file name.");
+            return;
+        }
+        synchronized (lockFor(databaseName)) {
+            closeDatabase(databaseName);
+            File directory = new File(getContext().getFilesDir(), "localmed/modules");
+            File target = new File(directory, databaseName);
+            deleteBestEffort(target);
+            deleteBestEffort(new File(directory, databaseName + ".sha256"));
+            deleteBestEffort(validationMarker(target));
+            call.resolve();
+        }
+    }
+
+    @PluginMethod
+    public void openModuleFile(PluginCall call) {
+        String databaseName = call.getString("databaseName");
+        String expectedSha256 = normalizeChecksum(call.getString("expectedSha256"));
+        if (databaseName == null || !SAFE_FILE_NAME.matcher(databaseName).matches()) {
+            call.reject("Invalid module database file name.");
+            return;
+        }
+        if (expectedSha256 == null || !expectedSha256.matches("[a-f0-9]{64}")) {
+            call.reject("A SHA-256 checksum is required for the module database.");
+            return;
+        }
+        openExecutor.execute(() -> {
+            synchronized (lockFor(databaseName)) {
+                try {
+                    closeDatabase(databaseName);
+                    String sqliteVersion = probeRuntimeFts5();
+                    File directory = new File(getContext().getFilesDir(), "localmed/modules");
+                    File target = new File(directory, databaseName);
+                    if (!target.isFile()) {
+                        throw new PackValidationException("Installed module database file is missing.");
+                    }
+                    File validationMarker = validationMarker(target);
+                    String identity = validationIdentity(target, expectedSha256, sqliteVersion);
+                    boolean verified = identity.equals(readMarker(validationMarker));
+                    if (!verified && !expectedSha256.equals(sha256(target))) {
+                        throw new PackValidationException("Installed module database checksum mismatch.");
+                    }
+                    SQLiteDatabase opened = NativePackDatabase.openReadOnly(target);
+                    databases.put(databaseName, opened);
+                    if (!verified) {
+                        String integrity = scalarString(opened, "PRAGMA quick_check");
+                        if (!"ok".equalsIgnoreCase(integrity)) {
+                            throw new PackValidationException("Module database integrity check failed.");
+                        }
+                        writeMarker(validationMarker, identity);
+                    }
+                    JSObject result = new JSObject();
+                    result.put("schemaVersion", scalarLong(opened,
+                        "SELECT CAST(value AS INTEGER) FROM app_metadata WHERE key = 'schema_version'"
+                    ));
+                    result.put("sqliteVersion", sqliteVersion);
+                    result.put("fts5Available", true);
+                    result.put("contentPackIds", contentPackIds(opened));
+                    result.put("documentCount", scalarLong(opened, "SELECT count(*) FROM documents"));
+                    result.put("databasePath", target.getAbsolutePath());
+                    result.put("copied", false);
+                    result.put("sizeBytes", target.length());
+                    call.resolve(result);
+                } catch (Exception | LinkageError error) {
+                    closeDatabase(databaseName);
+                    call.reject("Unable to open module database: " + safeMessage(error));
+                }
+            }
+        });
+    }
+
+    @PluginMethod
     public void query(PluginCall call) {
         String sql = call.getString("sql");
         if (!isReadOnlyQuery(sql)) {
@@ -306,9 +422,16 @@ public final class LocalMedDatabasePlugin extends Plugin {
         }
         String argsJson = call.getString("argsJson");
         if (argsJson == null) argsJson = "[]";
-        synchronized (databaseLock) {
+        final String dbName;
+        try {
+            dbName = resolveDatabaseName(call);
+        } catch (IllegalArgumentException error) {
+            call.reject(error.getMessage());
+            return;
+        }
+        synchronized (lockFor(dbName)) {
             try {
-                SQLiteDatabase opened = requireDatabase();
+                SQLiteDatabase opened = requireDatabase(dbName);
                 JSONArray arguments = new JSONArray(argsJson);
                 String[] selectionArgs = new String[arguments.length()];
                 for (int index = 0; index < arguments.length(); index++) {
@@ -369,9 +492,16 @@ public final class LocalMedDatabasePlugin extends Plugin {
             return;
         }
         int limit = Math.max(1, Math.min(requestedLimit == null ? 50 : requestedLimit, 500));
-        synchronized (databaseLock) {
+        final String dbName;
+        try {
+            dbName = resolveDatabaseName(call);
+        } catch (IllegalArgumentException error) {
+            call.reject(error.getMessage());
+            return;
+        }
+        synchronized (lockFor(dbName)) {
             try {
-                SQLiteDatabase opened = requireDatabase();
+                SQLiteDatabase opened = requireDatabase(dbName);
                 List<String> clauses = new ArrayList<>();
                 List<String> args = new ArrayList<>();
                 clauses.add("ce.profile_id = ?");
@@ -427,8 +557,15 @@ public final class LocalMedDatabasePlugin extends Plugin {
 
     @PluginMethod
     public void close(PluginCall call) {
-        synchronized (databaseLock) {
-            closeDatabase();
+        final String dbName;
+        try {
+            dbName = resolveDatabaseName(call);
+        } catch (IllegalArgumentException error) {
+            call.reject(error.getMessage());
+            return;
+        }
+        synchronized (lockFor(dbName)) {
+            closeDatabase(dbName);
             call.resolve();
         }
     }
@@ -499,15 +636,23 @@ public final class LocalMedDatabasePlugin extends Plugin {
     }
 
     private JSArray contentPackIds() {
+        return contentPackIds(requireDatabase());
+    }
+
+    private JSArray contentPackIds(SQLiteDatabase target) {
         JSArray result = new JSArray();
-        try (Cursor cursor = requireDatabase().rawQuery("SELECT id FROM content_packs ORDER BY id", null)) {
+        try (Cursor cursor = target.rawQuery("SELECT id FROM content_packs ORDER BY id", null)) {
             while (cursor.moveToNext()) result.put(cursor.getString(0));
         }
         return result;
     }
 
     private String scalarString(String sql) {
-        try (Cursor cursor = requireDatabase().rawQuery(sql, null)) {
+        return scalarString(requireDatabase(), sql);
+    }
+
+    private String scalarString(SQLiteDatabase target, String sql) {
+        try (Cursor cursor = target.rawQuery(sql, null)) {
             if (!cursor.moveToFirst() || cursor.isNull(0)) {
                 throw new SQLiteException("Expected a scalar result for: " + sql);
             }
@@ -516,7 +661,11 @@ public final class LocalMedDatabasePlugin extends Plugin {
     }
 
     private long scalarLong(String sql) {
-        try (Cursor cursor = requireDatabase().rawQuery(sql, null)) {
+        return scalarLong(requireDatabase(), sql);
+    }
+
+    private long scalarLong(SQLiteDatabase target, String sql) {
+        try (Cursor cursor = target.rawQuery(sql, null)) {
             if (!cursor.moveToFirst() || cursor.isNull(0)) {
                 throw new SQLiteException("Expected a scalar result for: " + sql);
             }
@@ -525,15 +674,31 @@ public final class LocalMedDatabasePlugin extends Plugin {
     }
 
     private SQLiteDatabase requireDatabase() {
-        if (database == null || !database.isOpen()) {
+        return requireDatabase(DEFAULT_DATABASE_NAME);
+    }
+
+    private SQLiteDatabase requireDatabase(String name) {
+        SQLiteDatabase opened = databases.get(name);
+        if (opened == null && DEFAULT_DATABASE_NAME.equals(name)) {
+            opened = database;
+        }
+        if (opened == null || !opened.isOpen()) {
             throw new IllegalStateException("The packaged LocalMed database is not open.");
         }
-        return database;
+        return opened;
     }
 
     private void closeDatabase() {
-        if (database != null && database.isOpen()) database.close();
-        database = null;
+        closeDatabase(DEFAULT_DATABASE_NAME);
+    }
+
+    private void closeDatabase(String name) {
+        SQLiteDatabase opened = databases.remove(name);
+        if (opened != null && opened.isOpen()) opened.close();
+        if (DEFAULT_DATABASE_NAME.equals(name)) {
+            if (database != null && database != opened && database.isOpen()) database.close();
+            database = null;
+        }
     }
 
     private static void putCursorValue(JSObject row, String name, Cursor cursor, int column)

@@ -1365,6 +1365,15 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     | { readonly aliases: MedicalAliasRecords; readonly done: Promise<void> }
     | undefined;
   let indexedDocuments: readonly SearchDocumentDescriptor[] | undefined;
+  let documentIndexBuild:
+    | {
+        readonly documents: readonly SearchDocumentDescriptor[];
+        readonly done: Promise<{
+          documentIndex: QueryDocumentIndex;
+          termIndex: TerminologySearchIndex;
+        }>;
+      }
+    | undefined;
   let aliasesPromise: Promise<Result<MedicalAliasRecords, LocalMedError>> | undefined;
   let queryDocumentIndex: QueryDocumentIndex | undefined;
   let terminologyIndex: TerminologySearchIndex | undefined;
@@ -1383,6 +1392,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       lookupExpansion = undefined;
       lookupExpansionBuild = undefined;
       indexedDocuments = undefined;
+      documentIndexBuild = undefined;
       documentSummariesPromise = undefined;
       navigationDocumentsPromise = undefined;
       searchDocumentsPromise = undefined;
@@ -1563,17 +1573,31 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     await lookupExpansionBuild.done;
   };
 
-  /** The document and terminology indexes of `documents`, built once per document list. */
-  const documentIndexesFor = (
+  /** The document and terminology indexes of `documents`, built in time slices once per list. */
+  const ensureDocumentIndexes = async (
     documents: readonly SearchDocumentDescriptor[],
-  ): { documentIndex: QueryDocumentIndex; termIndex: TerminologySearchIndex } => {
-    if (indexedDocuments !== documents || !queryDocumentIndex || !terminologyIndex) {
-      queryDocumentIndex = new QueryDocumentIndex(documents);
-      terminologyIndex = new TerminologySearchIndex(documents);
-      icdRecommendations = undefined;
-      indexedDocuments = documents;
+  ): Promise<{ documentIndex: QueryDocumentIndex; termIndex: TerminologySearchIndex }> => {
+    if (indexedDocuments === documents && queryDocumentIndex && terminologyIndex) {
+      return { documentIndex: queryDocumentIndex, termIndex: terminologyIndex };
     }
-    return { documentIndex: queryDocumentIndex, termIndex: terminologyIndex };
+    if (documentIndexBuild?.documents !== documents) {
+      documentIndexBuild = {
+        documents,
+        done: (async () => {
+          const slice = createTimeSlicer();
+          const documentIndex = await QueryDocumentIndex.createSliced(documents, slice);
+          const termIndex = await TerminologySearchIndex.createSliced(documents, slice);
+          if (documentIndexBuild?.documents === documents) {
+            queryDocumentIndex = documentIndex;
+            terminologyIndex = termIndex;
+            icdRecommendations = undefined;
+            indexedDocuments = documents;
+          }
+          return { documentIndex, termIndex };
+        })(),
+      };
+    }
+    return documentIndexBuild.done;
   };
 
   const runSearch = async (
@@ -1623,12 +1647,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       }
 
       const documents = await getSearchDocuments();
-      // First search before the warm-up got here: the names are normalized in slices, so the
-      // index built next does not hold the thread for them.
-      if (indexedDocuments !== documents) {
-        await QueryDocumentIndex.prepare(documents, createTimeSlicer());
-      }
-      const { documentIndex, termIndex } = documentIndexesFor(documents);
+      const { documentIndex, termIndex } = await ensureDocumentIndexes(documents);
       const terminologyMatch =
         parsed.data.analysisMode === 'lookup' ? termIndex.match(parsed.data.query) : undefined;
       const terminologySearches = terminologyMatch
@@ -2619,27 +2638,11 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       await prepareLookupSpelling(aliases.value, createTimeSlicer());
       await pause();
       const documents = await getSearchDocuments();
-      if (indexedDocuments !== documents || !queryDocumentIndex || !terminologyIndex) {
-        await QueryDocumentIndex.prepare(documents, createTimeSlicer());
-        const documentIndex = new QueryDocumentIndex(documents);
-        await pause();
-        const termIndex = new TerminologySearchIndex(documents);
-        // A search that ran during the pause has built them already.
-        if (indexedDocuments !== documents || !queryDocumentIndex || !terminologyIndex) {
-          queryDocumentIndex = documentIndex;
-          terminologyIndex = termIndex;
-          icdRecommendations = undefined;
-          indexedDocuments = documents;
-        }
-      }
-      const index = queryDocumentIndex;
-      if (!index) return;
-      for (const step of index.warmUpSteps()) {
-        await pause();
-        step();
-      }
+      const { documentIndex } = await ensureDocumentIndexes(documents);
       await pause();
-      await spellingVocabulary(index);
+      await documentIndex.warmUpSliced(createTimeSlicer());
+      await pause();
+      await spellingVocabulary(documentIndex);
       // The drug directory the lookup asks after its text search (homeopathic cards, class words,
       // codes): the application loads megabytes for it on the first call, which was the first
       // search — time the search's own timer never saw.
@@ -2780,6 +2783,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       lookupExpansion = undefined;
       lookupExpansionBuild = undefined;
       indexedDocuments = undefined;
+      documentIndexBuild = undefined;
       documentSummariesPromise = undefined;
       navigationDocumentsPromise = undefined;
       searchDocumentsPromise = undefined;

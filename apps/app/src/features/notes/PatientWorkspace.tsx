@@ -22,6 +22,7 @@ import { Button } from '@/components/Button';
 import { DateField } from '@/components/DateField';
 import { todayValue } from '@/components/date-value';
 import { EmptyState } from '@/components/EmptyState';
+import { FloatingActionButton } from '@/components/FloatingActionButton';
 import { createLineClamp } from '@/components/line-clamp';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
@@ -853,35 +854,19 @@ function PatientList(props: {
 
   return (
     <>
-      <header
-        ref={setHeadingElement}
-        class="patient-workspace__search-chrome knowledge-subroute-heading knowledge-subroute-heading--blurred sticky-surface route-sticky-chrome route-sticky-chrome--transparent"
-      >
-        <NavBack
-          class="patient-workspace__back-button knowledge-back-button knowledge-subroute-heading__control"
-          aria-label={props.backLabel ?? 'Назад к заметкам'}
-          onClick={() => navigateBack(notesPath())}
-        />
-        <SearchField
-          class="patient-workspace__search route-search knowledge-subroute-heading__control"
-          id="patient-workspace-search"
-          value={query()}
-          onInput={setQuery}
-          onClear={() => setQuery('')}
-          label="Поиск по пациентам"
-          hideLabel
-          placeholder="Имя, номер карты или дата рождения"
-        />
-        <div class="patient-workspace__search-actions">
-          <Button
-            type="button"
-            variant="primary"
-            class="patient-workspace__new-button"
-            aria-label="Новый пациент"
-            title="Новый пациент"
-            onClick={() => props.onNavigate(notesPatientsPath('new'))}
-            icon={<AppGlyph name="plus" />}
+      <Page
+        class="patient-workspace__page"
+        navigation={
+          <NavBack
+            class="patient-workspace__back-button"
+            aria-label={props.backLabel ?? 'Назад к заметкам'}
+            onClick={() => navigateBack(notesPath())}
           />
+        }
+        title={<Heading depth={1}>Пациенты</Heading>}
+        help={<PatientStorageHelp />}
+        helpTitle="Где хранятся карточки"
+        actions={
           <AppContextMenu class="patient-workspace__menu" actions={menuActions} hideButton>
             <Button
               type="button"
@@ -893,13 +878,27 @@ function PatientList(props: {
               icon={<AppGlyph name="menu" />}
             />
           </AppContextMenu>
-        </div>
-      </header>
-      <Page
-        class="patient-workspace__page"
-        title={<Heading depth={1}>Пациенты</Heading>}
-        help={<PatientStorageHelp />}
-        helpTitle="Где хранятся карточки"
+        }
+      />
+      <div
+        ref={setHeadingElement}
+        class="patient-workspace__search-chrome sticky-surface route-sticky-chrome route-sticky-chrome--transparent"
+      >
+        <SearchField
+          class="patient-workspace__search route-search"
+          id="patient-workspace-search"
+          value={query()}
+          onInput={setQuery}
+          onClear={() => setQuery('')}
+          label="Поиск по пациентам"
+          hideLabel
+          placeholder="Имя, номер карты или дата рождения"
+        />
+      </div>
+      <FloatingActionButton
+        class="floating-window-controls__item"
+        label="Новый пациент"
+        onClick={() => props.onNavigate(notesPatientsPath('new'))}
       />
       <div class="patient-workspace__list">
         <For each={visibleProfiles()}>
