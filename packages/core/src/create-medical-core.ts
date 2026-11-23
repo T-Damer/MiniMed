@@ -530,37 +530,112 @@ async function filterQueryAliasesSliced(
   return kept;
 }
 
-// Normalizing every medication alias per query dominated search time; the list is immutable.
-const preparedMedicationAliases = new WeakMap<
+interface PreparedMedicationAliases {
+  /** Candidates indexed by their first normalized token for O(query tokens) lookup. */
+  readonly byFirstToken: ReadonlyMap<string, readonly MedicationAliasCandidate[]>;
+  /** Rare medication aliases with no alphanumeric token (fallback scan). */
+  readonly tokenlessCandidates: readonly MedicationAliasCandidate[];
+  /** Single-token normalized medication aliases for O(1) suffix-fallback checks. */
+  readonly singleTokenAliases: ReadonlySet<string>;
+  /** Pre-normalized two-token medication aliases for suffix-fallback matching. */
+  readonly twoTokenAliases: readonly {
+    readonly normalizedAlias: string;
+    readonly normalizedCanonicalTerm: string;
+  }[];
+}
+
+const EMPTY_PREPARED_MEDICATION_ALIASES: PreparedMedicationAliases = {
+  byFirstToken: new Map(),
+  tokenlessCandidates: [],
+  singleTokenAliases: new Set(),
+  twoTokenAliases: [],
+};
+
+// Preparing tens of thousands of medication aliases synchronously blocked the main thread for >2 s
+// on phones (Xiaomi 0.6.127 perf log). Build the indexed lookup once per alias list in time slices.
+const preparedMedicationAliasesPromise = new WeakMap<
   MedicalAliasRecords,
-  readonly MedicationAliasCandidate[]
+  Promise<PreparedMedicationAliases>
 >();
+
+function prepareMedicationAliasesSliced(
+  aliases: MedicalAliasRecords,
+): Promise<PreparedMedicationAliases> {
+  if (aliases.length === 0) return Promise.resolve(EMPTY_PREPARED_MEDICATION_ALIASES);
+  let pending = preparedMedicationAliasesPromise.get(aliases);
+  if (pending) return pending;
+  pending = (async (): Promise<PreparedMedicationAliases> => {
+    const slice = createTimeSlicer();
+    const byFirstToken = new Map<string, MedicationAliasCandidate[]>();
+    const tokenlessCandidates: MedicationAliasCandidate[] = [];
+    const singleTokenAliases = new Set<string>();
+    const twoTokenAliases: { normalizedAlias: string; normalizedCanonicalTerm: string }[] = [];
+
+    for (const alias of aliases) {
+      if (alias.category === 'medication') {
+        const normalizedAlias = normalizeSurfaceText(alias.alias);
+        const normalizedCanonicalTerm = normalizeSurfaceText(alias.canonicalTerm);
+        const aliasTokens = tokenize(normalizedAlias);
+        if (aliasTokens.length === 1) {
+          singleTokenAliases.add(normalizedAlias);
+        } else if (aliasTokens.length === 2) {
+          twoTokenAliases.push({ normalizedAlias, normalizedCanonicalTerm });
+        }
+        if (normalizedAlias !== normalizedCanonicalTerm) {
+          const candidate: MedicationAliasCandidate = {
+            alias: alias.alias,
+            normalizedAlias,
+            normalizedCanonicalTerm,
+          };
+          const firstToken = aliasTokens[0];
+          if (firstToken) {
+            const bucket = byFirstToken.get(firstToken);
+            if (bucket) bucket.push(candidate);
+            else byFirstToken.set(firstToken, [candidate]);
+          } else {
+            tokenlessCandidates.push(candidate);
+          }
+        }
+      }
+      const due = slice();
+      if (due) await due;
+    }
+
+    return {
+      byFirstToken,
+      tokenlessCandidates,
+      singleTokenAliases,
+      twoTokenAliases,
+    };
+  })();
+  preparedMedicationAliasesPromise.set(aliases, pending);
+  return pending;
+}
 
 function exactMedicationAliasCandidates(
   query: string,
-  aliases: MedicalAliasRecords,
+  prepared: PreparedMedicationAliases,
 ): readonly MedicationAliasCandidate[] {
-  let prepared = preparedMedicationAliases.get(aliases);
-  if (!prepared) {
-    prepared = aliases
-      .filter((alias) => alias.category === 'medication')
-      .map((alias) => ({
-        alias: alias.alias,
-        normalizedAlias: normalizeSurfaceText(alias.alias),
-        normalizedCanonicalTerm: normalizeSurfaceText(alias.canonicalTerm),
-      }))
-      .filter(
-        ({ normalizedAlias, normalizedCanonicalTerm }) =>
-          normalizedAlias !== normalizedCanonicalTerm,
-      );
-    preparedMedicationAliases.set(aliases, prepared);
-  }
   const normalizedQuery = normalizeSurfaceText(query);
-  return prepared
-    .filter(
-      ({ normalizedAlias }) => findNormalizedPhraseIndex(normalizedQuery, normalizedAlias) >= 0,
-    )
-    .toSorted((left, right) => right.normalizedAlias.length - left.normalizedAlias.length);
+  const queryTokens = new Set(tokenize(normalizedQuery));
+  const matches: MedicationAliasCandidate[] = [];
+  for (const token of queryTokens) {
+    const bucket = prepared.byFirstToken.get(token);
+    if (!bucket) continue;
+    for (const candidate of bucket) {
+      if (findNormalizedPhraseIndex(normalizedQuery, candidate.normalizedAlias) >= 0) {
+        matches.push(candidate);
+      }
+    }
+  }
+  for (const candidate of prepared.tokenlessCandidates) {
+    if (findNormalizedPhraseIndex(normalizedQuery, candidate.normalizedAlias) >= 0) {
+      matches.push(candidate);
+    }
+  }
+  return matches.toSorted(
+    (left, right) => right.normalizedAlias.length - left.normalizedAlias.length,
+  );
 }
 
 function snippetQueryTokenCoverage(result: SearchResult, searchTerms: readonly string[]): number {
@@ -596,32 +671,23 @@ function presentationAliasSnippetBoost(
 
 function suffixFallbackCanonicalTerms(
   query: string,
-  aliases: MedicalAliasRecords,
+  prepared: PreparedMedicationAliases,
 ): ReadonlySet<string> {
   const normalizedQuery = normalizeSurfaceText(query);
   const queryTokens = tokenize(normalizedQuery);
   const queryToken = queryTokens.length === 1 ? queryTokens[0] : undefined;
   if (!queryToken || queryToken.length < MIN_FUZZY_TOKEN_LENGTH) return new Set();
-  const hasExactSingleTokenMedicationAlias = aliases.some((alias) => {
-    if (alias.category !== 'medication') return false;
-    const normalizedAlias = normalizeSurfaceText(alias.alias);
-    return normalizedAlias === normalizedQuery && tokenize(normalizedAlias).length === 1;
-  });
-  if (hasExactSingleTokenMedicationAlias) return new Set();
+  if (prepared.singleTokenAliases.has(normalizedQuery)) return new Set();
 
   const canonicalTerms = new Set<string>();
-  for (const alias of aliases) {
-    if (alias.category !== 'medication') continue;
-    const normalizedAlias = normalizeSurfaceText(alias.alias);
-    const aliasTokens = tokenize(normalizedAlias);
+  for (const { normalizedAlias, normalizedCanonicalTerm } of prepared.twoTokenAliases) {
     if (
-      aliasTokens.length !== 2 ||
       findNormalizedPhraseIndex(normalizedQuery, normalizedAlias) >= 0 ||
       !fuzzyPhraseSpan(normalizedQuery, normalizedAlias)
     ) {
       continue;
     }
-    canonicalTerms.add(normalizeSurfaceText(alias.canonicalTerm));
+    canonicalTerms.add(normalizedCanonicalTerm);
   }
   return canonicalTerms;
 }
@@ -629,10 +695,10 @@ function suffixFallbackCanonicalTerms(
 function filterSuffixFallbackGroups(
   groups: readonly SearchResultGroup[],
   query: string,
-  aliases: MedicalAliasRecords,
+  prepared: PreparedMedicationAliases,
   protectedDocumentIds: ReadonlySet<string> = new Set(),
 ): readonly SearchResultGroup[] {
-  const canonicalTerms = suffixFallbackCanonicalTerms(query, aliases);
+  const canonicalTerms = suffixFallbackCanonicalTerms(query, prepared);
   if (canonicalTerms.size === 0) return groups;
 
   const canonicalDocumentIds = new Set(
@@ -655,12 +721,15 @@ function groupResults(
   demoteMetaSections: boolean,
   query: string,
   searchTerms: readonly string[],
-  aliases: MedicalAliasRecords,
+  preparedMedicationAliases: PreparedMedicationAliases,
   documents: readonly Pick<MedicalDocumentSummary, 'id' | 'sourceType' | 'metadata'>[],
   analysis: QueryAnalysis,
   lookupTermGroups?: readonly LookupTermGroup[],
 ): readonly SearchResultGroup[] {
-  const medicationAliasCandidates = exactMedicationAliasCandidates(query, aliases);
+  const medicationAliasCandidates = exactMedicationAliasCandidates(
+    query,
+    preparedMedicationAliases,
+  );
   const normalizedQuery = normalizeSurfaceText(query);
   const exactPresentationAliasCandidates = medicationAliasCandidates.filter(
     (candidate) => candidate.normalizedAlias === normalizedQuery,
@@ -1407,7 +1476,9 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       if (!ready.ok) return err(ready.error);
       try {
         const aliases = await filterQueryAliasesSliced(await options.store.listAliases());
-
+        // Warm up the indexed medication alias lookup in background slices so the first search
+        // never pays a multi-second synchronous preparation stall on phones.
+        void prepareMedicationAliasesSliced(aliases);
         return ok(aliases);
       } catch (error) {
         return err(asLocalMedError(error));
@@ -1775,6 +1846,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         ...exactIdentityResults.map((result) => result.chunkId),
         ...spellingResults.map((result) => result.chunkId),
       ]);
+      const preparedMedicationAliases = await prepareMedicationAliasesSliced(aliasesResult.value);
       const groupedResults = filterSuffixFallbackGroups(
         groupResults(
           results,
@@ -1782,7 +1854,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           !/ограничен/u.test(plan.analysis.normalizedQuery),
           plan.analysis.normalizedQuery,
           plan.terms,
-          aliasesResult.value,
+          preparedMedicationAliases,
           [...new Set(results.map((result) => result.documentId))].flatMap((id) => {
             const document = documentIndex.byId.get(id);
             return document ? [document] : [];
@@ -1791,7 +1863,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           lexicalOnly ? plan.lookupTermGroups : undefined,
         ),
         plan.analysis.normalizedQuery,
-        aliasesResult.value,
+        preparedMedicationAliases,
         new Set([...exactIdentityDocumentIds, ...spellingDocumentIds]),
       );
       const subjectGroups =
@@ -1859,7 +1931,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
               false,
               plan.analysis.normalizedQuery,
               plan.terms,
-              aliasesResult.value,
+              preparedMedicationAliases,
               [...new Set(bridgedResults.map((result) => result.documentId))].flatMap((id) => {
                 const document = documentIndex.byId.get(id);
                 return document ? [document] : [];
@@ -2022,7 +2094,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
             true,
             named.analysis.normalizedQuery,
             named.terms,
-            NO_ALIASES,
+            EMPTY_PREPARED_MEDICATION_ALIASES,
             own.map((hit) => toDocumentSummary(hit.document)),
             named.analysis,
             named.lookupTermGroups,
@@ -2066,7 +2138,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         !/ограничен/u.test(plan.analysis.normalizedQuery),
         plan.analysis.normalizedQuery,
         plan.terms,
-        NO_ALIASES,
+        EMPTY_PREPARED_MEDICATION_ALIASES,
         [...documents.values()],
         plan.analysis,
         plan.lookupTermGroups,

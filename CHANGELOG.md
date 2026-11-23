@@ -4,6 +4,13 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.128] - 2026-11-23
+
+- Give the landscape reader a full-height contents pane below the status bar and a right-side toolbar. Use side-by-side controls and content for Search, Files, and News.
+- Slice first-search medication alias preparation and large worker responses. Keep the active query when changing sections, merge duplicate drug results, and avoid reloading a document when its menu closes.
+- Add optional document tabs, notes on documents and highlights, and an explicit Ask AI action for selected text. Show source-linked pharmacology for supported medicines.
+- Add an Android home-screen widget with shortcuts to Search, Medications, Calculators, and Notes.
+
 ## [0.6.127] - 2026-11-23
 
 - Rank lexical matches in SQLite and fetch excerpts only for the combined top hits across installed packs.

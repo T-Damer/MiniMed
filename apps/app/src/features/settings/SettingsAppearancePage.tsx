@@ -8,12 +8,14 @@ import { Switch } from '@/components/Switch';
 import { setUsefulFeaturesShown, usefulFeaturesShown } from '@/features/search/useful-features';
 import { THEME_LABELS } from '@/features/settings/settings-status';
 import {
+  getClinicalTabsEnabled,
   getFloatingWindowsEnabled,
   getMotionSpeed,
   getSoundVolume,
   getSplitNavigation,
   getVibrationEnabled,
   isMotionSpeed,
+  setClinicalTabsEnabled,
   setFloatingWindowsEnabled,
   setMotionSpeed,
   setSoundVolume,
@@ -48,6 +50,7 @@ export function SettingsAppearancePage(): JSX.Element {
   const [floatingWindowsEnabled, setFloatingWindowsEnabledState] = createSignal(
     getFloatingWindowsEnabled(),
   );
+  const [clinicalTabsEnabled, setClinicalTabsEnabledState] = createSignal(getClinicalTabsEnabled());
   const [usefulFeatures, setUsefulFeaturesState] = createSignal(usefulFeaturesShown());
   const [theme, setTheme] = createSignal(getThemePreference());
 
@@ -58,6 +61,7 @@ export function SettingsAppearancePage(): JSX.Element {
       setSoundVolumeState(preferences.soundVolume);
       setMotionSpeedState(preferences.motionSpeed);
       setFloatingWindowsEnabledState(preferences.floatingWindowsEnabled);
+      setClinicalTabsEnabledState(preferences.clinicalTabsEnabled);
       setUsefulFeaturesState(!preferences.usefulFeaturesHidden);
     });
     const unsubscribeTheme = subscribeTheme(() => setTheme(getThemePreference()));
@@ -173,6 +177,26 @@ export function SettingsAppearancePage(): JSX.Element {
             checked={usefulFeatures()}
             aria-label="Полезные функции на главной"
             onChange={setUsefulFeaturesShown}
+          />
+        </div>
+      </Show>
+
+      <Show when={settingShown('clinical-tabs')}>
+        <div class="settings-row">
+          <div class="settings-row__text">
+            <span class="settings-row__label settings-row__label--with-icon">
+              <AppGlyph name="browsers" class="settings-row__label-icon" aria-hidden="true" />
+              Вкладки документов
+            </span>
+            <p class="settings-row__helper">
+              Держать несколько открытых документов и переходить между ними свайпом или верхней
+              панелью.
+            </p>
+          </div>
+          <Switch
+            checked={clinicalTabsEnabled()}
+            aria-label="Вкладки документов"
+            onChange={(enabled) => setClinicalTabsEnabled(enabled)}
           />
         </div>
       </Show>

@@ -1,5 +1,7 @@
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
+import { isAskAiAvailable } from '@/features/ask-ai/ask-ai-config';
+import { openAskAiForExcerpt } from '@/features/ask-ai/ask-ai-state';
 import {
   type HighlightPopupPlacement,
   highlightPopupPlacement,
@@ -83,6 +85,15 @@ export function ReaderSelectionLookup(props: {
             document.getSelection()?.removeAllRanges();
             setPopup(null);
           }}
+          onAskAi={
+            isAskAiAvailable()
+              ? () => {
+                  openAskAiForExcerpt({ excerpt: current().text });
+                  document.getSelection()?.removeAllRanges();
+                  setPopup(null);
+                }
+              : undefined
+          }
         />
       )}
     </Show>

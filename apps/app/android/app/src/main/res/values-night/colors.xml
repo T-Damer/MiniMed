@@ -3,4 +3,7 @@
     <!-- Dark splash, window and WebView ground: the web app's dark surface, so start-up never
          flashes the light palette. -->
     <color name="splashBackground">#2D2721</color>
+    <color name="widgetText">#F3ECD9</color>
+    <color name="widgetChipBg">#2E7BA68F</color>
+    <color name="widgetStroke">#33FFFFFF</color>
 </resources>

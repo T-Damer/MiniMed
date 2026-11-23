@@ -236,6 +236,7 @@ export function SearchQuickAccess(props: {
         class="search-quick-access__row"
         controls
         hideScrollbar
+        light
         controlLabel="инструменты"
         controlClass="search-quick-access__control"
       >

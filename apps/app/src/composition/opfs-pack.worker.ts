@@ -15,12 +15,35 @@ import {
 import { type EpochInstallPhase, epochNow } from '@/features/modules/install-timing';
 
 const RESULT_PAGE_ROWS = 1000;
-// Catalog rows can contain large nested metadata. Measure their weight on the worker,
-// before a structured clone reaches the UI thread.
-const CATALOG_PAGE_ROWS = 128;
+// Catalog rows can contain large nested metadata. Measure their weight on the worker for unprojected
+// `listDocuments`, and stream compact projections in fixed pages paced across macrotasks so
+// Chromium never coalesces hundreds of structured-clone replies into one long main-thread frame.
+const CATALOG_PAGE_ROWS = 256;
+const FULL_CATALOG_PAGE_ROWS = 128;
 const CATALOG_PAGE_CHARACTERS = 256 * 1024;
 
-async function sendCatalogRows(id: number, rows: readonly unknown[]): Promise<void> {
+function yieldWorkerTask(): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 0);
+  });
+}
+
+async function sendCatalogRows(
+  id: number,
+  rows: readonly unknown[],
+  measureWeight: boolean,
+): Promise<void> {
+  if (!measureWeight) {
+    for (let start = 0; start < rows.length; start += CATALOG_PAGE_ROWS) {
+      self.postMessage({
+        id,
+        part: rows.slice(start, start + CATALOG_PAGE_ROWS),
+      } satisfies OpfsPackWorkerResponse);
+      if (start + CATALOG_PAGE_ROWS < rows.length) await yieldWorkerTask();
+    }
+    self.postMessage({ id, result: [] } satisfies OpfsPackWorkerResponse);
+    return;
+  }
   const slice = createTimeSlicer();
   let part: unknown[] = [];
   let characters = 0;
@@ -28,11 +51,12 @@ async function sendCatalogRows(id: number, rows: readonly unknown[]): Promise<vo
     const size = JSON.stringify(row).length;
     if (
       part.length > 0 &&
-      (part.length >= CATALOG_PAGE_ROWS || characters + size > CATALOG_PAGE_CHARACTERS)
+      (part.length >= FULL_CATALOG_PAGE_ROWS || characters + size > CATALOG_PAGE_CHARACTERS)
     ) {
       self.postMessage({ id, part } satisfies OpfsPackWorkerResponse);
       part = [];
       characters = 0;
+      await yieldWorkerTask();
     }
     part.push(row);
     characters += size;
@@ -225,7 +249,7 @@ self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<voi
         message.method === 'listNavigationDocuments' ||
         message.method === 'listSearchDocuments')
     ) {
-      await sendCatalogRows(message.id, result);
+      await sendCatalogRows(message.id, result, message.method === 'listDocuments');
       return;
     }
     if (Array.isArray(result) && result.length > RESULT_PAGE_ROWS) {

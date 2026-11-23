@@ -4,4 +4,7 @@
     <color name="colorPrimaryDark">#00000000</color>
     <color name="colorAccent">#405B4E</color>
     <color name="splashBackground">#F3ECD9</color>
+    <color name="widgetText">#1F2421</color>
+    <color name="widgetChipBg">#1E405B4E</color>
+    <color name="widgetStroke">#26000000</color>
 </resources>

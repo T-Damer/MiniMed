@@ -25,7 +25,11 @@ export interface AppProfileNavItem extends RootViewItem {
 }
 
 /** Settings rows that only matter to the full app; a profile without that part hides them. */
-export type SettingsRowId = 'split-navigation' | 'useful-features' | 'floating-windows';
+export type SettingsRowId =
+  | 'split-navigation'
+  | 'useful-features'
+  | 'floating-windows'
+  | 'clinical-tabs';
 
 export interface AppProfile {
   readonly id: string;
@@ -86,7 +90,7 @@ export const APP_PROFILES: readonly AppProfile[] = [
     ],
     settingsPages: ['clinician', 'appearance'],
     // No search home, no section tabs and no documents to float in the diaries profile.
-    hiddenSettings: ['split-navigation', 'useful-features', 'floating-windows'],
+    hiddenSettings: ['split-navigation', 'useful-features', 'floating-windows', 'clinical-tabs'],
     skipOnboarding: true,
     skipSearchCore: true,
   },

@@ -71,5 +71,13 @@ export type ShelfLockStatus = 'lock-wait' | 'lock-acquired';
 
 export type ShelfResponse =
   | { readonly id: number; readonly result: unknown }
+  | {
+      readonly id: number;
+      /**
+       * One page of a large array outcome inside a `batch` reply, streamed ahead of the final
+       * `result` so structured-clone deserialisation never stalls the main thread for seconds.
+       */
+      readonly batchPart: { readonly index: number; readonly rows: readonly unknown[] };
+    }
   | { readonly id: number; readonly error: string }
   | { readonly id: number; readonly status: ShelfLockStatus };

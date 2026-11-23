@@ -80,7 +80,8 @@ export function centerOutlineItem(viewport: HTMLElement, item: HTMLElement): voi
   if (scroll) viewport.scrollBy(scroll);
 }
 
-export const DESKTOP_READER_LAYOUT_QUERY = '(min-width: 761px)';
+export const DESKTOP_READER_LAYOUT_QUERY =
+  '(min-width: 761px), (orientation: landscape) and (min-width: 640px) and (max-height: 550px)';
 
 export function isDesktopReaderLayout(): boolean {
   return window.matchMedia(DESKTOP_READER_LAYOUT_QUERY).matches;

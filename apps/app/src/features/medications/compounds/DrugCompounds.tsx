@@ -77,6 +77,7 @@ export function CompositionComponents(props: { readonly text: string }): JSX.Ele
         viewportClass="composition-components__viewport"
         controls
         hideScrollbar
+        light
         controlLabel="компоненты"
       >
         <ul class="composition-components__list" data-testid="composition-components">

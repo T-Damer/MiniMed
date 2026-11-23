@@ -199,14 +199,14 @@ export function useDocumentReaderChrome(
       const height = `${box.height}px`;
       if (height !== shownHeight) {
         shownHeight = height;
-        element.style.setProperty('--document-chrome-height', height);
-        root?.style.setProperty('--document-chrome-height', height);
+        element.style.setProperty('--document-measured-chrome-height', height);
+        root?.style.setProperty('--document-measured-chrome-height', height);
       }
       // The section path line (`ReaderSectionPath`) and the section jumps start below the chrome.
       const headingTop = `${Math.max(0, Math.ceil(box.bottom))}px`;
       if (headingTop !== shownHeadingTop) {
         shownHeadingTop = headingTop;
-        root?.style.setProperty('--document-heading-top', headingTop);
+        root?.style.setProperty('--document-measured-heading-top', headingTop);
       }
     };
     // Read after the frame has been laid out (the task after the animation frame), not inside the

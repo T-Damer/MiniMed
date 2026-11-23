@@ -92,6 +92,12 @@ Official and personal document readers do not use backdrop blur.
 This behavior is controlled by `use-root-navigation.ts`, `.app-chrome-hidden`, and the reader styles.
 Do not add blur to document readers and do not offset their whole header below `--safe-top`.
 
+In short landscape viewports (at least 640 px wide and at most 550 px tall), the WebView reader has
+a full-height contents column and a right-side action rail. Both columns keep controls below
+`--safe-top` and above `--safe-bottom`. The section-path line sticks at the safe top of the paper.
+The same scroll-direction behavior moves the action rail sideways. The floating tab bar is parked
+while the reader or the News website frame uses this layout.
+
 ## Compose native chrome (user decisions, 2026-09-30)
 
 Native Compose routes use `NativeChromeScaffold`. Android system-bar scrims are transparent; the

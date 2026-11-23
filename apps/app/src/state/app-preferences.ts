@@ -31,6 +31,8 @@ export interface AppPreferences {
   readonly soundVolume: number;
   readonly bookReadingMode: boolean;
   readonly floatingWindowsEnabled: boolean;
+  /** Opt-in Clinical Tabs: keep multiple documents/searches open with swipe & tab bar (Wave 2.1). */
+  readonly clinicalTabsEnabled: boolean;
   readonly experimentalModulesEnabled: boolean;
   readonly moduleAutoUpdatesEnabled: boolean;
   /** AnimationManager speed for every transition in the app. */
@@ -61,6 +63,7 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   soundVolume: DEFAULT_SOUND_VOLUME,
   bookReadingMode: false,
   floatingWindowsEnabled: false,
+  clinicalTabsEnabled: false,
   experimentalModulesEnabled: true,
   moduleAutoUpdatesEnabled: true,
   motionSpeed: 'normal',
@@ -89,6 +92,7 @@ function normalizePreferences(value: unknown): AppPreferences {
     readonly soundVolume?: unknown;
     readonly bookReadingMode?: unknown;
     readonly floatingWindowsEnabled?: unknown;
+    readonly clinicalTabsEnabled?: unknown;
     readonly experimentalModulesEnabled?: unknown;
     readonly moduleAutoUpdatesEnabled?: unknown;
     readonly motionSpeed?: unknown;
@@ -134,6 +138,10 @@ function normalizePreferences(value: unknown): AppPreferences {
       typeof candidate.floatingWindowsEnabled === 'boolean'
         ? candidate.floatingWindowsEnabled
         : DEFAULT_PREFERENCES.floatingWindowsEnabled,
+    clinicalTabsEnabled:
+      typeof candidate.clinicalTabsEnabled === 'boolean'
+        ? candidate.clinicalTabsEnabled
+        : DEFAULT_PREFERENCES.clinicalTabsEnabled,
     experimentalModulesEnabled:
       typeof candidate.experimentalModulesEnabled === 'boolean'
         ? candidate.experimentalModulesEnabled
@@ -285,6 +293,14 @@ export function getFloatingWindowsEnabled(): boolean {
 
 export function setFloatingWindowsEnabled(enabled: boolean): AppPreferences {
   return saveAppPreferences({ ...loadAppPreferences(), floatingWindowsEnabled: enabled });
+}
+
+export function getClinicalTabsEnabled(): boolean {
+  return loadAppPreferences().clinicalTabsEnabled;
+}
+
+export function setClinicalTabsEnabled(enabled: boolean): AppPreferences {
+  return saveAppPreferences({ ...loadAppPreferences(), clinicalTabsEnabled: enabled });
 }
 
 export function getMotionSpeed(): MotionSpeed {

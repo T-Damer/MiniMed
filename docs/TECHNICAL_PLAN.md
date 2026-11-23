@@ -299,6 +299,40 @@ This is not a 1.0 release gate and must not become a big-bang rewrite. The curre
 the reference until shared golden fixtures and differential tests demonstrate equivalent search,
 source navigation, provenance, errors, offline fallback, and rollback behavior.
 
+## Watch companion (Wear OS and watchOS — planned)
+
+An optional offline-first wrist companion paired locally with the phone app for glanceable bedside
+use. The watch is a thin, bounded companion — it never carries the full SQLite corpus, never adds a
+hosted backend, and never replaces phone retrieval.
+
+- **Glanceable clinical surfaces:**
+  - **Pinned reference cards:** read-only snapshots of clinician-pinned drugs (key dosing lines,
+    `t½`, receptor highlights) synced from the phone's favourites/pins.
+  - **Quick bedside calculators:** a small schema-driven subset of rapid tap scores (for example
+    CHA₂DS₂-VASc, CURB-65, HAS-BLED, GCS, QTc) rendered generically from the shared calculator
+    schema contract without watch-specific clinical branching.
+  - **Consultation recorder remote:** start/pause/stop control and live elapsed-time indicator for
+    the phone's local `LocalMedRecordingActivity` recorder, plus optional short wrist voice memos
+    transferred locally to the phone when unlocked.
+  - **Tiles and complications:** one-tap launch into the active recorder or pinned reference deck.
+- **Transport and trust boundaries:**
+  - Strictly local phone-to-watch sync (`Wearable Data Layer` on Android/Wear OS,
+    `WatchConnectivity` on iOS/watchOS) with a bounded JSON snapshot (target ≤2 MB); no cloud relay.
+  - Pinned medical references and calculator schemas contain no patient data. Patient reminders or
+    notes remain off the watch unless explicitly opted in and gated by device wrist-detection/lock.
+- **Phased delivery:**
+  1. **Shared watch snapshot contract** (`packages/contracts` or app bridge): deterministic
+     serializer exporting pinned drug summaries + quick-calculator schemas + recorder state.
+  2. **Wear OS companion module** (`apps/app/android/wear` + phone bridge plugin in
+     `apps/app/android/app`): Wear OS app + Tile syncing over Wearable Data Layer, sharing the
+     existing Android release pipeline.
+  3. **watchOS companion target** (`apps/app/ios` SwiftUI target): consumes the identical snapshot
+     contract over `WatchConnectivity`.
+
+Done when the watch works fully offline after a local phone sync, renders pinned cards and
+calculators from the shared schema with zero clinical hardcoding, toggles the phone recorder
+reliably, and passes idle battery/no-endless-animation checks on real or emulated watch hardware.
+
 ## Non-goals
 
 - a Rust runtime migration before the 1.1 evaluation;

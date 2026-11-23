@@ -324,9 +324,9 @@ export function useHeroBleed(header: () => HTMLElement | undefined, enabled: () 
       // Never past the screen's sides (a wider surface would scroll the page sideways).
       const left = Math.max(outer.left, 0);
       const right = Math.min(outer.right, document.documentElement.clientWidth);
-      setLength(element, '--page-hero-inset-left', Math.max(0, box.left - left));
-      setLength(element, '--page-hero-inset-right', Math.max(0, right - box.right));
-      setLength(element, '--page-hero-inset-top', box.top - outer.top);
+      setLength(element, '--page-hero-measured-left', Math.max(0, box.left - left));
+      setLength(element, '--page-hero-measured-right', Math.max(0, right - box.right));
+      setLength(element, '--page-hero-measured-top', box.top - outer.top);
     };
     // A script-driven entrance (`Element.animate`, e.g. «Новый пациент» sliding in) fires no
     // `animationend`: wait for every running animation of the header or of anything holding it,

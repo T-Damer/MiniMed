@@ -11,7 +11,8 @@ import {
   Suspense,
 } from 'solid-js';
 
-import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
+import { toast } from 'solid-sonner';
+import { AppGlyph } from '@/components/AppGlyph';
 import { externalUrlLabel } from '@/components/external-url-label';
 import { segmentTextWithExternalUrls } from '@/components/external-url-segments';
 import { QueryHighlightedText } from '@/components/HighlightedText';
@@ -23,7 +24,6 @@ import { openAssessment } from '@/features/assessments/assessment-links';
 import { openCalculator } from '@/features/calculators/calculator-links';
 import {
   createDocumentLinkMatcher,
-  type DocumentInlineLinkKind,
   type DocumentLinkMatcher,
   type DocumentLinkPhrase,
   type DocumentTextBlock,
@@ -39,7 +39,10 @@ import {
 import type { ResolvedReferenceImage } from '@/features/library/reference-image-assets';
 import { segmentTextWithAtcCodes } from '@/features/medications/atc-text-links';
 import { segmentTextWithToolLinks } from '@/features/tool-links/document-tool-links';
+import { getClinicalTabsEnabled } from '@/state/app-preferences';
+import { openClinicalTabInBackground } from '@/state/clinical-tabs';
 import { openDocumentOverlay } from '@/state/document-navigation';
+import { buildOfficialDocumentHash } from '@/state/document-route';
 import { useHistoryLayer } from '@/state/use-history-layer';
 
 import '@/components/menu-owner.css';
@@ -97,17 +100,6 @@ function withInlineLinkPunctuation<T extends { readonly kind: string; readonly v
       value: slice.value.slice(start, slice.value.length - end),
     };
   });
-}
-
-function glyphForDocumentLinkKind(kind: DocumentInlineLinkKind): AppGlyphName {
-  switch (kind) {
-    case 'medication':
-      return 'pill';
-    case 'recommendation':
-      return 'book-open';
-    case 'document':
-      return 'file-text';
-  }
 }
 
 function HighlightedLabel(props: {
@@ -267,6 +259,22 @@ function InlineDocumentLink(props: {
       openDocumentOverlay(source.documentId, source.anchor ?? null, { preferSummary: true });
     else props.onOpen(documentId);
   };
+  const openSourceInBackground = (
+    source: { readonly documentId: string; readonly anchor?: string } | undefined,
+    documentId: string,
+    title: string,
+  ): void => {
+    const targetId = source?.documentId ?? documentId;
+    const hash = buildOfficialDocumentHash(targetId, source?.anchor);
+    const { created } = openClinicalTabInBackground({
+      kind: 'official',
+      documentId: targetId,
+      title,
+      hash,
+    });
+    setOpen(false);
+    toast(created ? `Открыто в фоне: ${title}` : `Уже открыто во вкладках: ${title}`);
+  };
   const needsMedicationSummary = () => props.segment.linkKind === 'medication' && props.core;
   const activate = async () => {
     setOpen((value) => !value);
@@ -309,10 +317,6 @@ function InlineDocumentLink(props: {
             aria-label={props.closing ? props.segment.value : undefined}
             onClick={activate}
           >
-            <AppGlyph
-              name={glyphForDocumentLinkKind(ambiguous() ? 'document' : props.segment.linkKind)}
-              class="document-inline-link__icon"
-            />
             <HighlightedLabel
               text={props.segment.value + (props.closing ?? '')}
               query={props.query}
@@ -348,6 +352,23 @@ function InlineDocumentLink(props: {
                   : (props.segment.preview?.title ?? summary()?.title ?? props.segment.value)}
               </strong>
               <Show when={!ambiguous()}>
+                <Show when={getClinicalTabsEnabled()}>
+                  <button
+                    type="button"
+                    class="document-inline-preview__open"
+                    aria-label={`Открыть в фоновой вкладке: ${props.segment.preview?.title ?? props.segment.value}`}
+                    title="Открыть в фоновой вкладке"
+                    onClick={() =>
+                      openSourceInBackground(
+                        props.segment.preview?.source,
+                        props.segment.documentId,
+                        props.segment.preview?.title ?? props.segment.value,
+                      )
+                    }
+                  >
+                    <AppGlyph name="plus" class="document-inline-preview__open-icon" />
+                  </button>
+                </Show>
                 <PreviewOpenButton
                   label={props.segment.preview?.title ?? props.segment.value}
                   title={props.segment.preview?.source?.label}
@@ -504,7 +525,6 @@ function AtcInlineLink(props: {
           setOpen(true);
         }}
       >
-        <AppGlyph name="pill" class="document-inline-link__icon" />
         <HighlightedLabel
           text={props.written}
           query={props.query}
@@ -640,10 +660,6 @@ function LinkedPlainText(props: {
                   : openCalculator(segment.slug, { preferWindow: true })
               }
             >
-              <AppGlyph
-                name={assessment ? 'list-checks' : 'calculator'}
-                class="document-inline-link__icon"
-              />
               <HighlightedLabel
                 text={segment.value + (segment.closing ?? '')}
                 query={props.query}
@@ -706,7 +722,6 @@ function InlineDocumentText(props: {
             class="document-inline-link document-inline-reference"
             onClick={() => props.onReference?.(reference)}
           >
-            <AppGlyph name="notes" class="document-inline-link__icon" />
             <HighlightedLabel
               text={hashtag ?? part.value}
               query={props.query}

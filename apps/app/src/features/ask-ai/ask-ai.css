@@ -1,0 +1,227 @@
+/* Ask AI on selection sheet & settings card (Wave 3.2) */
+
+.ask-ai-sheet {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.ask-ai-sheet__excerpt {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border-left: 3px solid var(--theme-accent);
+  border-radius: 0 0.55rem 0.55rem 0;
+  background: var(--theme-surface);
+}
+
+.ask-ai-sheet__source {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.ask-ai-sheet__quote {
+  color: var(--theme-text);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.ask-ai-sheet__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ask-ai-sheet__chip {
+  min-height: 2.15rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8125rem;
+}
+
+.ask-ai-sheet__chip--active {
+  border-color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+}
+
+.ask-ai-sheet__form {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.ask-ai-sheet__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 2.6rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.55rem;
+  color: var(--theme-text);
+  background: var(--theme-surface);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.ask-ai-sheet__submit {
+  flex: none;
+  min-height: 2.6rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--theme-accent);
+  border-radius: 0.55rem;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.ask-ai-sheet__submit:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.ask-ai-sheet__error {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.5rem;
+  color: var(--theme-danger);
+  background: color-mix(in srgb, var(--theme-danger) 10%, transparent);
+  font-size: 0.875rem;
+}
+
+.ask-ai-sheet__answer {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.65rem;
+  background: var(--theme-surface-raised);
+}
+
+.ask-ai-sheet__answer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ask-ai-sheet__answer-meta {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.ask-ai-sheet__copy {
+  display: grid;
+  place-items: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.45rem;
+  color: var(--theme-text-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.ask-ai-sheet__copy-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.ask-ai-sheet__answer-body {
+  margin: 0;
+  color: var(--theme-text);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Settings card */
+.ask-ai-settings {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.ask-ai-settings__head {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.ask-ai-settings__fields {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.ask-ai-settings__field {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.ask-ai-settings__label {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.ask-ai-settings__input {
+  width: 100%;
+  min-height: 2.55rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.55rem;
+  color: var(--theme-text);
+  background: var(--theme-surface);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.ask-ai-settings__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ask-ai-settings__btn {
+  min-height: 2.4rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.55rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.ask-ai-settings__btn--primary {
+  border-color: var(--theme-accent);
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+}
+
+@media (hover: hover) {
+  .ask-ai-sheet__chip:hover,
+  .ask-ai-sheet__copy:hover,
+  .ask-ai-settings__btn:hover {
+    border-color: var(--theme-accent);
+    background: var(--theme-accent-soft);
+  }
+
+  .ask-ai-settings__btn--primary:hover {
+    color: var(--theme-accent-contrast);
+    background: var(--theme-accent);
+  }
+}

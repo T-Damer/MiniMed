@@ -90,6 +90,12 @@ const SOUND_ALIKE = [
   'iy',
 ];
 
+/**
+ * Extra near-key slips observed on compact mobile Russian keyboards where thumb reach crosses
+ * slightly wider than one desktop key width (for example «о» ↔ «щ»).
+ */
+const MOBILE_NEAR_KEYS = ['ощ'];
+
 const SILENT = new Set(['ь', 'ъ']);
 
 /**
@@ -120,6 +126,7 @@ const cheapPairs: ReadonlySet<string> = (() => {
         add(left.letter, right.letter);
     }
   for (const pair of SOUND_ALIKE) add(pair[0] ?? '', pair[1] ?? '');
+  for (const pair of MOBILE_NEAR_KEYS) add(pair[0] ?? '', pair[1] ?? '');
   return pairs;
 })();
 

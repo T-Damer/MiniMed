@@ -20,6 +20,12 @@
   --page-hero-pin: max(var(--safe-top, 0px), 0.5rem);
 }
 
+.page--hero {
+  --page-hero-inset-left: var(--page-hero-measured-left, var(--page-hero-bleed-x, 0px));
+  --page-hero-inset-right: var(--page-hero-measured-right, var(--page-hero-bleed-x, 0px));
+  --page-hero-inset-top: var(--page-hero-measured-top, var(--page-hero-bleed-top, 0px));
+}
+
 .page-hero {
   position: absolute;
   z-index: -1;

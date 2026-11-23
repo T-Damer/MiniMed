@@ -1,5 +1,6 @@
 package dev.localmed.search;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -194,5 +195,28 @@ public class MainActivity extends BridgeActivity {
                         == Configuration.UI_MODE_NIGHT_YES;
         controller.setAppearanceLightStatusBars(!darkMode);
         controller.setAppearanceLightNavigationBars(!darkMode);
+        applyWidgetRouteIntent(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        applyWidgetRouteIntent(intent);
+    }
+
+    /** Navigates the WebView to a validated internal hash route requested by the home-screen widget. */
+    private void applyWidgetRouteIntent(Intent intent) {
+        if (intent == null) return;
+        String routeHash = intent.getStringExtra(LocalMedWidgetProvider.EXTRA_ROUTE_HASH);
+        if (routeHash == null || !routeHash.matches("^#/[a-zA-Z0-9/_-]{1,120}$")) return;
+        intent.removeExtra(LocalMedWidgetProvider.EXTRA_ROUTE_HASH);
+        WebView webView = getBridge() == null ? null : getBridge().getWebView();
+        if (webView == null) return;
+        webView.post(
+                () ->
+                        webView.evaluateJavascript(
+                                "window.location.hash = " + org.json.JSONObject.quote(routeHash) + ";",
+                                null));
     }
 }

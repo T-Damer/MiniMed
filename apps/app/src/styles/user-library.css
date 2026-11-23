@@ -1147,6 +1147,54 @@
   font-size: 0.8125rem;
 }
 
+.user-highlight-popup--editing {
+  width: min(20rem, calc(100vw - 1.5rem));
+}
+
+.user-highlight-popup__saved-note {
+  flex: 1 0 100%;
+  margin: 0.15rem 0 0;
+  padding: 0.35rem 0.55rem;
+  border-top: 1px solid var(--theme-border);
+  color: var(--theme-text);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.user-highlight-popup__note-editor {
+  display: grid;
+  flex: 1 0 100%;
+  gap: 0.4rem;
+  padding: 0.4rem 0.35rem 0.25rem;
+  border-top: 1px solid var(--theme-border);
+}
+
+.user-highlight-popup__textarea {
+  width: 100%;
+  min-height: 4.25rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.45rem;
+  color: var(--theme-text);
+  background: var(--theme-surface);
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  resize: vertical;
+}
+
+.user-highlight-popup__note-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.user-highlight-popup__action--save {
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+}
+
 .user-highlight-popup__note {
   flex: 1 0 100%;
   margin: 0;

@@ -17,6 +17,7 @@ export function SearchExamples(props: SearchExamplesProps): JSX.Element {
         controlClass="example-scroll__control"
         controls
         hideScrollbar
+        light
         controlLabel="примеры"
       >
         <div class="example-scroll-content">

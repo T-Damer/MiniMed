@@ -11,9 +11,11 @@ import {
   createSignal,
   For,
   type JSX,
+  lazy,
   onCleanup,
   onMount,
   Show,
+  Suspense,
   untrack,
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
@@ -184,6 +186,12 @@ import type { ItemRefInput } from '@/state/item-collections';
 import { holdReaderChrome } from '@/state/reader-chrome-hold';
 
 import '@/features/modules/module-download-offer.css';
+
+const DrugPinnedFacts = lazy(() =>
+  import('@/features/medications/pharmacology/DrugPinnedFacts').then(({ DrugPinnedFacts }) => ({
+    default: DrugPinnedFacts,
+  })),
+);
 
 interface OfficialDocumentReaderProps {
   readonly core?: MedicalCore | undefined;
@@ -1406,16 +1414,16 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     testId: 'document-info',
                     onSelect: () => window.setTimeout(() => setInfoOpen(true), 0),
                   },
-                  ...(isClinicalRecommendationSource(documentValue().sourceType)
-                    ? [
-                        {
-                          id: 'highlights',
-                          label: 'Выделения',
-                          icon: 'highlighter' as const,
-                          onSelect: () => setHighlightsOpen(true),
-                        },
-                      ]
-                    : []),
+                  {
+                    id: 'highlights',
+                    label: isClinicalRecommendationSource(documentValue().sourceType)
+                      ? 'Заметки и выделения'
+                      : 'Заметка по документу',
+                    icon: isClinicalRecommendationSource(documentValue().sourceType)
+                      ? ('highlighter' as const)
+                      : ('note-pencil' as const),
+                    onSelect: () => setHighlightsOpen(true),
+                  },
                 ]}
               />
             </div>
@@ -1532,14 +1540,14 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     ready={mountedSectionCount() > 0 && !sectionsPending()}
                     predecessorDocumentIds={earlierEditionDocumentIds(documentValue())}
                   />
-                  <DocumentHighlightsSheet
-                    documentId={documentValue().id}
-                    open={highlightsOpen()}
-                    onClose={() => setHighlightsOpen(false)}
-                    onJump={(item) => chrome.scrollTo(item.pageAnchor)}
-                    onOpenEarlier={(documentId) => openDocumentOverlay(documentId, null)}
-                  />
                 </Show>
+                <DocumentHighlightsSheet
+                  documentId={documentValue().id}
+                  open={highlightsOpen()}
+                  onClose={() => setHighlightsOpen(false)}
+                  onJump={(item) => chrome.scrollTo(item.pageAnchor)}
+                  onOpenEarlier={(documentId) => openDocumentOverlay(documentId, null)}
+                />
                 <Show
                   when={drugScreen()}
                   fallback={
@@ -1753,6 +1761,14 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                           />
                         }
                       />
+                      <Suspense>
+                        <DrugPinnedFacts
+                          inn={
+                            textOf(documentValue().metadata['inn']) ?? props.medicationProduct?.inn
+                          }
+                          fallbackTitle={screen().header.title}
+                        />
+                      </Suspense>
                       <Show when={linksReady()}>
                         <DrugQuickLinks
                           links={screen().links}

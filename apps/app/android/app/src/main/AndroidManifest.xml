@@ -50,6 +50,18 @@
         <receiver
             android:name=".ApkUpdateCancelReceiver"
             android:exported="false" />
+
+        <receiver
+            android:name=".LocalMedWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_minimed_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/appwidget_minimed_quick" />
+        </receiver>
     </application>
 
     <uses-permission android:name="android.permission.INTERNET" />

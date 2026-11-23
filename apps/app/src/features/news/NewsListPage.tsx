@@ -158,179 +158,184 @@ export function NewsListPage(props: { readonly snapshot: Accessor<NewsSnapshot> 
   const sourceCount = () => subscriptions().length;
   return (
     <section class="news-page page-surface page-grain" data-testid="news-page">
-      <Page
-        class="news-page__heading"
-        hero={PAGE_HEROES.news}
-        title={
-          <span class="news-page__brand">
-            <AppGlyph name="newspaper" class="news-page__brand-icon" />
-            <h1 class="news-page__title">Лента</h1>
-          </span>
-        }
-        description={
-          sourceCount() === 0
-            ? undefined
-            : `${sourceCount()} ${pluralRu(sourceCount(), 'источник', 'источника', 'источников')} · обновлено ${fetchedAtLabel(lastFetched(), Date.now())}`
-        }
-        help={
-          <>
-            <p>
-              Лента собирает новости из источников, которые вы выбрали. Запросы уходят только к этим
-              сайтам: когда вы открываете ленту (не чаще раза в 15 минут) и когда нажимаете
-              «Обновить».
-            </p>
-            <p>
-              Запись становится прочитанной, когда вы пролистали её. Статьи сохраняются на
-              устройстве и читаются без сети.
-            </p>
-          </>
-        }
-        actions={
-          <div class="news-page__actions">
-            <a
-              class="news-icon-button news-icon-button--pill"
-              href={NEWS_PUBMED_HASH}
-              aria-label="Поиск в PubMed"
-              title="Поиск в PubMed"
-              data-testid="news-pubmed-entry"
-            >
-              <AppGlyph name="search" class="news-icon-button__icon" />
-              PubMed
-            </a>
-            <Show when={feeds().length > 0}>
-              <button
-                type="button"
-                class="news-icon-button"
-                aria-label="Обновить ленту"
-                title="Обновить ленту"
-                disabled={refreshing()}
-                onClick={() => void refresh()}
+      <div class="news-page__controls">
+        <Page
+          class="news-page__heading"
+          hero={PAGE_HEROES.news}
+          title={
+            <span class="news-page__brand">
+              <AppGlyph name="newspaper" class="news-page__brand-icon" />
+              <h1 class="news-page__title">Лента</h1>
+            </span>
+          }
+          description={
+            sourceCount() === 0
+              ? undefined
+              : `${sourceCount()} ${pluralRu(sourceCount(), 'источник', 'источника', 'источников')} · обновлено ${fetchedAtLabel(lastFetched(), Date.now())}`
+          }
+          help={
+            <>
+              <p>
+                Лента собирает новости из источников, которые вы выбрали. Запросы уходят только к
+                этим сайтам: когда вы открываете ленту (не чаще раза в 15 минут) и когда нажимаете
+                «Обновить».
+              </p>
+              <p>
+                Запись становится прочитанной, когда вы пролистали её. Статьи сохраняются на
+                устройстве и читаются без сети.
+              </p>
+            </>
+          }
+          actions={
+            <div class="news-page__actions">
+              <a
+                class="news-icon-button news-icon-button--pill"
+                href={NEWS_PUBMED_HASH}
+                aria-label="Поиск в PubMed"
+                title="Поиск в PubMed"
+                data-testid="news-pubmed-entry"
               >
-                <AppGlyph
-                  name="refresh"
-                  class={`news-icon-button__icon${refreshing() ? ' news-icon-button__icon--spinning' : ''}`}
-                />
-              </button>
-            </Show>
-            <a
-              class="news-icon-button"
-              href={NEWS_SOURCES_HASH}
-              aria-label="Управление источниками"
-              title="Источники"
-            >
-              <AppGlyph name="rss" class="news-icon-button__icon" />
-            </a>
-          </div>
-        }
-      />
+                <AppGlyph name="search" class="news-icon-button__icon" />
+                PubMed
+              </a>
+              <Show when={feeds().length > 0}>
+                <button
+                  type="button"
+                  class="news-icon-button"
+                  aria-label="Обновить ленту"
+                  title="Обновить ленту"
+                  disabled={refreshing()}
+                  onClick={() => void refresh()}
+                >
+                  <AppGlyph
+                    name="refresh"
+                    class={`news-icon-button__icon${refreshing() ? ' news-icon-button__icon--spinning' : ''}`}
+                  />
+                </button>
+              </Show>
+              <a
+                class="news-icon-button"
+                href={NEWS_SOURCES_HASH}
+                aria-label="Управление источниками"
+                title="Источники"
+              >
+                <AppGlyph name="rss" class="news-icon-button__icon" />
+              </a>
+            </div>
+          }
+        />
 
-      <Show when={!online() && feeds().length > 0}>
-        <p class="news-page__banner" role="status" data-testid="news-offline">
-          <AppGlyph name="info" class="news-page__banner-icon" />
-          Нет сети. Показаны сохранённые записи; время последнего обновления —{' '}
-          {fetchedAtLabel(lastFetched(), Date.now())}.
-        </p>
-      </Show>
-      <Show when={online() && failing().length > 0}>
-        <div
-          class="news-page__banner news-page__banner--error"
-          role="status"
-          data-testid="news-errors"
-        >
-          <AppGlyph name="info" class="news-page__banner-icon" />
-          <div class="news-page__banner-copy">
-            <For each={failing()}>
-              {(entry) => (
-                <p class="news-page__banner-line">
-                  <strong class="news-page__banner-source">{entry.title}:</strong>{' '}
-                  {entry.error ? failureLine(subscriptionErrorState(entry.error)) : ''}
-                </p>
-              )}
-            </For>
-            <a class="news-page__banner-link" href={NEWS_SOURCES_HASH}>
-              Источники
-            </a>
+        <Show when={!online() && feeds().length > 0}>
+          <p class="news-page__banner" role="status" data-testid="news-offline">
+            <AppGlyph name="info" class="news-page__banner-icon" />
+            Нет сети. Показаны сохранённые записи; время последнего обновления —{' '}
+            {fetchedAtLabel(lastFetched(), Date.now())}.
+          </p>
+        </Show>
+        <Show when={online() && failing().length > 0}>
+          <div
+            class="news-page__banner news-page__banner--error"
+            role="status"
+            data-testid="news-errors"
+          >
+            <AppGlyph name="info" class="news-page__banner-icon" />
+            <div class="news-page__banner-copy">
+              <For each={failing()}>
+                {(entry) => (
+                  <p class="news-page__banner-line">
+                    <strong class="news-page__banner-source">{entry.title}:</strong>{' '}
+                    {entry.error ? failureLine(subscriptionErrorState(entry.error)) : ''}
+                  </p>
+                )}
+              </For>
+              <a class="news-page__banner-link" href={NEWS_SOURCES_HASH}>
+                Источники
+              </a>
+            </div>
           </div>
-        </div>
-      </Show>
+        </Show>
 
-      <Show
-        when={feeds().length === 0}
-        fallback={
+        <Show when={feeds().length > 0}>
           <NewsSourceRail
             subscriptions={subscriptions()}
             icons={icons()}
             onOpen={(feed, avatar) => openSource({ kind: 'suggested', feed }, avatar)}
           />
-        }
-      >
-        {/* The browser build lists only the sources a browser can read (owner 2026-10-20: no
+        </Show>
+      </div>
+      <div class="news-page__items">
+        <Show when={feeds().length === 0}>
+          {/* The browser build lists only the sources a browser can read (owner 2026-10-20: no
             banner). A later «all sources in the Android app» hint could link ANDROID_APK_URL from
             release.ts; for now the web version is simply limited. */}
-        <NewsSourceGrid
-          subscriptions={subscriptions()}
-          icons={icons()}
-          onOpen={(feed, avatar) => openSource({ kind: 'suggested', feed }, avatar)}
-          onSubscribe={subscribeSuggested}
-          canSubscribe={canSubscribeHere}
-          shows={canSubscribeHere}
-        />
-      </Show>
-
-      <Show when={subscriptions().length > 0}>
-        <Show when={sites().length > 0}>
-          <ul class="news-sites" aria-label="Сайты">
-            <For each={sites()}>
-              {(site) => (
-                <li class="news-sites__item">
-                  <a class="news-sites__link" href={newsSiteHash(site.id)} data-news-site={site.id}>
-                    <NewsAvatar size="sm" look={avatarLookOf(site, icons())} />
-                    <span class="news-sites__copy">
-                      <span class="news-sites__title">{site.title}</span>
-                      <span class="news-sites__host">{hostLabel(site.url)}</span>
-                    </span>
-                    <AppGlyph name="caret-right" class="news-sites__chevron" />
-                  </a>
-                </li>
-              )}
-            </For>
-          </ul>
+          <NewsSourceGrid
+            subscriptions={subscriptions()}
+            icons={icons()}
+            onOpen={(feed, avatar) => openSource({ kind: 'suggested', feed }, avatar)}
+            onSubscribe={subscribeSuggested}
+            canSubscribe={canSubscribeHere}
+            shows={canSubscribeHere}
+          />
         </Show>
-        <Show when={feeds().length > 0}>
-          <Show
-            when={visibleItems().length > 0}
-            fallback={
-              <p class="news-page__empty" role="status">
-                {refreshing()
-                  ? 'Загружаем записи…'
-                  : 'Записей пока нет. Нажмите «Обновить», когда появится сеть.'}
-              </p>
-            }
-          >
-            <ul class="news-feed" data-testid="news-feed">
-              <For each={visibleItems()}>
-                {(item) => (
-                  <NewsItemRow
-                    item={item}
-                    subscription={subscriptionById().get(item.feedId)}
-                    icons={icons()}
-                    now={now()}
-                    onUnreadRow={(element, id) => passed?.observe(element, id)}
-                  />
+
+        <Show when={subscriptions().length > 0}>
+          <Show when={sites().length > 0}>
+            <ul class="news-sites" aria-label="Сайты">
+              <For each={sites()}>
+                {(site) => (
+                  <li class="news-sites__item">
+                    <a
+                      class="news-sites__link"
+                      href={newsSiteHash(site.id)}
+                      data-news-site={site.id}
+                    >
+                      <NewsAvatar size="sm" look={avatarLookOf(site, icons())} />
+                      <span class="news-sites__copy">
+                        <span class="news-sites__title">{site.title}</span>
+                        <span class="news-sites__host">{hostLabel(site.url)}</span>
+                      </span>
+                      <AppGlyph name="caret-right" class="news-sites__chevron" />
+                    </a>
+                  </li>
                 )}
               </For>
             </ul>
-            <Show when={renderLimit() < items().length}>
-              <div
-                class="news-feed__more"
-                aria-hidden="true"
-                ref={(element) => more?.observe(element)}
-              />
+          </Show>
+          <Show when={feeds().length > 0}>
+            <Show
+              when={visibleItems().length > 0}
+              fallback={
+                <p class="news-page__empty" role="status">
+                  {refreshing()
+                    ? 'Загружаем записи…'
+                    : 'Записей пока нет. Нажмите «Обновить», когда появится сеть.'}
+                </p>
+              }
+            >
+              <ul class="news-feed" data-testid="news-feed">
+                <For each={visibleItems()}>
+                  {(item) => (
+                    <NewsItemRow
+                      item={item}
+                      subscription={subscriptionById().get(item.feedId)}
+                      icons={icons()}
+                      now={now()}
+                      onUnreadRow={(element, id) => passed?.observe(element, id)}
+                    />
+                  )}
+                </For>
+              </ul>
+              <Show when={renderLimit() < items().length}>
+                <div
+                  class="news-feed__more"
+                  aria-hidden="true"
+                  ref={(element) => more?.observe(element)}
+                />
+              </Show>
             </Show>
           </Show>
         </Show>
-      </Show>
-
+      </div>
       <NewsSourceSheet
         target={sheetTarget()}
         subscriptions={subscriptions() as readonly Subscription[]}

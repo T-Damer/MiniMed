@@ -25,6 +25,8 @@ interface LayoutVirtualizedGridProps<T> {
   readonly columns?: number;
   readonly maxColumns?: LayoutColumnCount;
   readonly minColumns?: LayoutColumnCount;
+  /** Measure a grid in a split layout by its pane width. */
+  readonly fitContainer?: boolean;
   /** `start` lets each card keep its own height instead of growing to the tallest of its row. */
   readonly align?: 'stretch' | 'start';
   /**
@@ -45,7 +47,9 @@ export function LayoutVirtualizedGrid<T>(props: LayoutVirtualizedGridProps<T>): 
   );
   const responsiveColumns = createMemo(() =>
     layoutColumnCount(
-      Math.max(containerWidth(), viewportWidth()),
+      props.fitContainer && containerWidth() > 0
+        ? containerWidth()
+        : Math.max(containerWidth(), viewportWidth()),
       props.maxColumns ?? 2,
       props.minColumns ?? 1,
     ),

@@ -120,6 +120,40 @@ describe('ModuleShelf with kept facts', () => {
     expect(calls(requests)).toEqual([]);
   });
 
+  it('reassembles streamed batchPart pages into the matching call outcome', async () => {
+    const worker: ShelfWorker = {
+      onmessage: null,
+      onerror: null,
+      terminate() {},
+      postMessage(message) {
+        queueMicrotask(() => {
+          if (message.type === 'init') {
+            worker.onmessage?.({
+              data: { id: message.id, result: ['big'] },
+            } as MessageEvent<ShelfResponse>);
+            return;
+          }
+          if (message.type === 'open') {
+            worker.onmessage?.({
+              data: { id: message.id, result: undefined },
+            } as MessageEvent<ShelfResponse>);
+            return;
+          }
+          if (message.type === 'batch') {
+            const send = (data: ShelfResponse) =>
+              worker.onmessage?.({ data } as MessageEvent<ShelfResponse>);
+            send({ id: message.id, batchPart: { index: 0, rows: [{ id: 'd1' }, { id: 'd2' }] } });
+            send({ id: message.id, batchPart: { index: 0, rows: [{ id: 'd3' }] } });
+            send({ id: message.id, result: [{ value: [] }] });
+          }
+        });
+      },
+    };
+    const shelf = new ModuleShelf({ shardCount: 1, createWorker: () => worker });
+    const store = await shelf.open('big', 10, { cacheSizeKiB: -256 });
+    expect(await store.listSearchDocuments()).toEqual([{ id: 'd1' }, { id: 'd2' }, { id: 'd3' }]);
+  });
+
   it('initialises the file in front of its first real call, once', async () => {
     const { worker, requests } = fakeWorker();
     const { store: facts } = memoryFacts({ a: { health: HEALTH as never } });

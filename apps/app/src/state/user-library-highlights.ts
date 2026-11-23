@@ -45,6 +45,9 @@ export interface UserDocumentHighlight {
   readonly end: number;
   /** Quoted text for verification after re-extraction. */
   readonly quote: string;
+  /** Optional clinician note attached directly to this highlight (Wave 2.2). */
+  readonly note?: string;
+  readonly updatedAt?: string;
   readonly cfiRange?: string;
   readonly color?: UserHighlightColor;
   readonly createdAt: string;
@@ -201,6 +204,36 @@ async function readOne(database: IDBDatabase, id: string): Promise<UserDocumentH
       resolve((request.result as UserDocumentHighlight | undefined) ?? null);
     request.onerror = () => reject(request.error ?? new Error('Не удалось загрузить выделение.'));
   });
+}
+
+/** Updates or clears the personal note attached to an existing highlight. */
+export async function updateUserHighlightNote(
+  id: string,
+  rawNote: string,
+): Promise<UserDocumentHighlight | null> {
+  const database = await openDatabase();
+  let updated: UserDocumentHighlight | null = null;
+  try {
+    const existing = await readOne(database, id);
+    if (!existing) return null;
+    const trimmed = rawNote.trim();
+    const { note: _previousNote, ...rest } = existing;
+    updated = {
+      ...rest,
+      ...(trimmed ? { note: trimmed } : {}),
+      updatedAt: new Date().toISOString(),
+    };
+    const nextRecord = updated;
+    await runWrite(
+      database,
+      (store) => store.put(nextRecord),
+      'Не удалось сохранить заметку к выделению.',
+    );
+  } finally {
+    database.close();
+  }
+  window.dispatchEvent(new Event(USER_HIGHLIGHTS_EVENT));
+  return updated;
 }
 
 /**

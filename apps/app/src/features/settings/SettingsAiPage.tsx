@@ -1,5 +1,5 @@
 import type { JSX } from 'solid-js';
-
+import { AskAiSettings } from '@/features/ask-ai/AskAiSettings';
 import { AsrSettings } from '@/features/asr/AsrSettings';
 import { OcrSettings } from '@/features/ocr/OcrSettings';
 import { SemanticSearchSettings } from '@/features/semantic/SemanticSearchSettings';
@@ -25,6 +25,7 @@ export function SettingsAiPage(): JSX.Element {
       <EcgModelSettings />
       <SkinPackSettings />
       <OcrSettings />
+      <AskAiSettings />
     </>
   );
 }

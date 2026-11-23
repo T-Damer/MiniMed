@@ -473,47 +473,49 @@ export function NewsViewer(props: {
           </div>
         }
       />
-      <Show
-        when={!missing()}
-        fallback={
-          <div class="news-viewer__missing" role="status">
-            <p>Эта запись больше не хранится в ленте.</p>
-            <button
-              type="button"
-              class="news-pill"
-              onClick={() => {
-                window.location.hash = NEWS_ROOT_HASH;
-              }}
-            >
-              К ленте
-            </button>
-          </div>
-        }
-      >
+      <div class="news-viewer__content">
         <Show
-          when={frameUrl()}
+          when={!missing()}
           fallback={
-            <Show
-              when={item() && (cacheChecked() || isPubmed())}
-              fallback={<SkeletonLines label="Загружаем статью" lines={8} />}
-            >
-              <NewsArticle
-                item={item() as NewsItem}
-                subscription={subscription()}
-                article={article()}
-                state={articleState()}
-                problem={problem()}
-              />
-            </Show>
+            <div class="news-viewer__missing" role="status">
+              <p>Эта запись больше не хранится в ленте.</p>
+              <button
+                type="button"
+                class="news-pill"
+                onClick={() => {
+                  window.location.hash = NEWS_ROOT_HASH;
+                }}
+              >
+                К ленте
+              </button>
+            </div>
           }
         >
-          {(url) => (
-            <div class="news-viewer__frame-slot">
-              <NewsRawPage url={url()} title={title()} />
-            </div>
-          )}
+          <Show
+            when={frameUrl()}
+            fallback={
+              <Show
+                when={item() && (cacheChecked() || isPubmed())}
+                fallback={<SkeletonLines label="Загружаем статью" lines={8} />}
+              >
+                <NewsArticle
+                  item={item() as NewsItem}
+                  subscription={subscription()}
+                  article={article()}
+                  state={articleState()}
+                  problem={problem()}
+                />
+              </Show>
+            }
+          >
+            {(url) => (
+              <div class="news-viewer__frame-slot">
+                <NewsRawPage url={url()} title={title()} />
+              </div>
+            )}
+          </Show>
         </Show>
-      </Show>
+      </div>
     </section>
   );
 }

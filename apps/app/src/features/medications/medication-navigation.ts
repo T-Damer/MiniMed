@@ -19,6 +19,25 @@ export function queueMedicationProductContext(product: MedicationProduct): strin
   return documentId;
 }
 
+export function hasQueuedMedicationProduct(documentId: string): boolean {
+  return pendingMedicationProduct?.documentId === documentId;
+}
+
+export function isSameMedicationProduct(
+  left: MedicationProduct | undefined | null,
+  right: MedicationProduct | undefined | null,
+): boolean {
+  if (left === right) return true;
+  if (!left || !right) return false;
+  return (
+    left.sourceKind === right.sourceKind &&
+    left.registrationDocumentId === right.registrationDocumentId &&
+    left.registrationNumber === right.registrationNumber &&
+    left.tradeName === right.tradeName &&
+    left.instructionDocumentId === right.instructionDocumentId
+  );
+}
+
 export function consumeMedicationProductContext(documentId: string): MedicationProduct | null {
   const pending = pendingMedicationProduct;
   pendingMedicationProduct = null;

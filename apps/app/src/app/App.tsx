@@ -57,6 +57,7 @@ import { searchCoreStatus } from '@/features/search/search-core-status';
 import { holdCoreStart, isSetupDismissed, releaseCoreStart } from '@/features/setup/setup-state';
 import { replaceRoute, visitRoute } from '@/state/app-back';
 import {
+  getClinicalTabsEnabled,
   getFloatingWindowsEnabled,
   getSplitNavigation,
   subscribeAppPreferences,
@@ -93,6 +94,16 @@ const loadDocumentPageHost = () =>
     default: component,
   }));
 const DocumentPageHost = lazy(loadDocumentPageHost);
+const ClinicalTabsBar = lazy(() =>
+  import('@/features/tabs/ClinicalTabsBar').then(({ ClinicalTabsBar: component }) => ({
+    default: component,
+  })),
+);
+const AskAiSheetHost = lazy(() =>
+  import('@/features/ask-ai/AskAiSheet').then(({ AskAiSheetHost: component }) => ({
+    default: component,
+  })),
+);
 // First run (and «Пройти обучение заново»): the tour carries its own styles, a particle worker and
 // the optional downloads, which must stay out of the start-up bundle of every later launch.
 const loadOnboarding = () =>
@@ -291,6 +302,7 @@ export function App(): JSX.Element {
   const [floatingWindowsEnabled, setFloatingWindowsEnabled] = createSignal(
     getFloatingWindowsEnabled(),
   );
+  const [clinicalTabsEnabled, setClinicalTabsEnabled] = createSignal(getClinicalTabsEnabled());
   onMount(() => {
     // Local diagnostic marks: shell interactivity and searchable content are independent gates.
     let navigationFrame: number | undefined;
@@ -308,6 +320,7 @@ export function App(): JSX.Element {
     });
     const unsubscribePreferences = subscribeAppPreferences((preferences) => {
       setFloatingWindowsEnabled(preferences.floatingWindowsEnabled);
+      setClinicalTabsEnabled(preferences.clinicalTabsEnabled);
       setSplitNavigation(preferences.splitNavigation);
     });
     const syncFloatingViewport = (): void => {
@@ -644,6 +657,9 @@ export function App(): JSX.Element {
         core={session.searchCore() ?? session.ready()?.core}
         onContentChanged={session.connectInstalledModules}
       />
+      <Suspense>
+        <AskAiSheetHost />
+      </Suspense>
 
       <Show
         when={
@@ -653,6 +669,22 @@ export function App(): JSX.Element {
         }
       >
         <FloatingWindowLayer manager={floatingWindows} onClose={closeFloatingWindow} />
+      </Show>
+
+      <Show
+        when={
+          shellReady() &&
+          clinicalTabsEnabled() &&
+          !embeddedFloatingWindow &&
+          !medicalImageViewerActive() &&
+          !floatingWindows.fullscreenWindowId() &&
+          !profileHidesNavigation(activeProfile()) &&
+          !isFullScreen(currentHash())
+        }
+      >
+        <Suspense>
+          <ClinicalTabsBar currentHash={currentHash()} />
+        </Suspense>
       </Show>
 
       <Show

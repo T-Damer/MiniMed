@@ -1,7 +1,7 @@
 # Current state
 
 > Updated: 23 November 2026
-> Released version: `0.6.127` (public prerelease toward `1.0`)
+> Released version: `0.6.128` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -59,6 +59,36 @@ requires a corresponding numeric token for each differing value. None of these c
 The clinical delta release adds 27 individually downloadable official editions to the app catalog.
 The corresponding dataset branch carries identical SQLite files for browser downloads. The registry
 check runs on demand in GitHub Actions, and daily when a runner with Ministry API access is configured.
+
+## Short landscape layout — 2026-11-23
+
+On short landscape screens, the reader uses the viewport height for its sticky contents pane,
+with the status and navigation insets reserved for controls. Back, contents, find and document
+actions use a rail to the right of the paper. Search, Files and News place tools or source controls
+beside their content. The News website viewer fills the available height and keeps scrolling
+inside the embedded page.
+
+## Waves 1–4 & Xiaomi 0.6.127 freeze fixes — 2026-11-23
+
+- **Xiaomi `0.6.127` main-thread freeze fixes:**
+  - `exactMedicationAliasCandidates` and `suffixFallbackCanonicalTerms` in `@localmed/core` now prepare an indexed `PreparedMedicationAliases` lookup (`byFirstToken`, `singleTokenAliases`, `twoTokenAliases`) asynchronously in `createTimeSlicer()` slices, eliminating the 2.1 s synchronous main-thread freeze on first search.
+  - `ModuleShelf` worker batches stream array outcomes larger than 512 rows in macrotask-paced `batchPart` pages, and `opfs-pack.worker.ts` streams compact catalog projections (`listSearchDocuments`, `listNavigationDocuments`) in macrotask-paced 256-row pages without per-row `JSON.stringify`, preventing 2.0 s `Worker.onmessage` structured-clone freezes.
+  - `DocumentPageHost` short-circuits `syncFromLocation()` when `popstate` fires on the exact same `DocumentReadRoute` and unchanged medication product (e.g. closing a sheet/popover), stopping redundant `reader.load` cycles and `instructionDocument` resets.
+  - `CompositionComponents`, `SearchQuickAccess`, and `SearchExamples` use `HorizontalScroller light` (native scroll + ‹ › controls without `OverlayScrollbars` ResizeObserver/MutationObserver layout frames).
+- **Wave 1 (reader, search dedup, section switch, mobile typos):**
+  - Inline prose links in `DocumentText` render as plain `display: inline` text without width-adding leading glyphs, plus `overflow-anchor: auto` on `.document-page` / `.document-overlay-paper` for zero reflow on deferred link activation.
+  - `collapseGroupsByTargetDocument` deduplicates medication trade-name variants (`®`/`™`, trailing dosage-form parentheses) and prefers complete official instructions / ЕСКЛП records over incomplete stubs.
+  - Switching search sections in `SearchWorkspace` with an active query keeps the query and narrows visible groups in place (`partial: true`) while the scoped search refines.
+  - `@localmed/search-lexical` `word-typo.ts` adds mobile near-key `о↔щ` at half-edit cost (`0.5`).
+- **Wave 2 (opt-in Clinical Tabs + document & highlight notes):**
+  - Added opt-in **«Вкладки документов»** (`clinicalTabsEnabled`, default off, Settings → «Внешний вид»): up to 12 tabs (2 hot + N frozen route/anchor snapshots), desktop top strip, mobile swipeable pill + card-grid switcher, and background «+» open from inline link previews.
+  - Extended `UserDocumentHighlight` with `note?: string` + inline popup note editor, added per-document notes (`minimed-document-notes-v1`), and upgraded `DocumentHighlightsSheet` to «Заметки и выделения» across all official and user documents.
+- **Wave 3 (pinned drug facts + opt-in Ask AI):**
+  - Added schema-driven lazy-loaded `DrugPinnedFacts` chips (`t½` and color-coded receptor affinity profile with pathways, clinical effects, and cited published sources) below `DrugScreenHeader` for 17 psychotropic INNs.
+  - Added opt-in **«Спросить ИИ»** on text selection (OpenAI-compatible & Yandex Foundation Models via local BYOK key in Settings → «Функции ИИ», sending only selected excerpt + titles on explicit tap, hidden offline).
+- **Wave 4 (Android Home Screen Widget):**
+  - Added `LocalMedWidgetProvider` (standard `AppWidgetProvider` + light/dark `RemoteViews`, zero extra Gradle dependencies) with quick-launch shortcuts for Search, Medications, Calculators, and Notes routed safely in `MainActivity`.
+  - Wear OS / watchOS companion is recorded in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md) («Watch companion») for phased implementation (shared snapshot contract → Wear OS module → watchOS target).
 
 ## Release 0.6.127 — 2026-11-23
 

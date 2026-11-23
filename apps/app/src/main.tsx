@@ -58,6 +58,7 @@ import '@/styles/primary-depth.css';
 import '@/styles/readability.css';
 import '@/styles/scrollbars.css';
 import '@/styles/paper-dots.css';
+import '@/styles/short-landscape.css';
 
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');

@@ -4,4 +4,10 @@
     <string name="title_activity_main">MiniMed</string>
     <string name="package_name">dev.localmed.search</string>
     <string name="custom_url_scheme">dev.localmed.search</string>
+    <string name="widget_minimed_label">MiniMed — быстрый доступ</string>
+    <string name="widget_minimed_description">Поиск, препараты, калькуляторы и заметки с главного экрана</string>
+    <string name="widget_search_hint">Поиск в MiniMed…</string>
+    <string name="widget_action_drugs">Препараты</string>
+    <string name="widget_action_calculators">Калькуляторы</string>
+    <string name="widget_action_notes">Заметки</string>
 </resources>

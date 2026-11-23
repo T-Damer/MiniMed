@@ -459,6 +459,65 @@ function resolvedGroupIdentity(
   return typeof target === 'string' && target.trim() ? target : documentId;
 }
 
+const MEDICATION_DEDUP_SOURCE_TYPES = new Set([
+  'allmed_reference',
+  'official_drug_instruction',
+  'official_registry_summary',
+]);
+
+function isMedicationDeduplicableDocument(document: SearchDocumentDescriptor | undefined): boolean {
+  if (!document) return false;
+  if (MEDICATION_DEDUP_SOURCE_TYPES.has(document.sourceType)) return true;
+  return (
+    document.sourceType === 'core_catalog_pointer' &&
+    document.metadata?.['catalogFamily'] === 'medication'
+  );
+}
+
+/**
+ * Normalizes a drug trade/card title for duplicate detection: strips trademark marks (`®`, `™`),
+ * trailing parenthetical form/country qualifiers («Акинетон (таблетки)» → «акинетон»), and extra
+ * punctuation/whitespace so «Акинетон» and «Акинетон®» map to one canonical name.
+ */
+function canonicalMedicationGroupTitle(title: string): string {
+  const withoutMarks = title
+    .replace(/[®™©]/gu, '')
+    .replace(/\s*\([^)]*\)\s*$/u, '')
+    .trim();
+  return normalizeSurfaceText(withoutMarks).trim();
+}
+
+/**
+ * Completeness tier for medication cards that share the exact same canonical drug title.
+ * Full official instructions and full ЕСКЛП/registry records beat pointers and incomplete stubs.
+ */
+function medicationCompletenessRank(
+  group: SearchResultGroup,
+  document: SearchDocumentDescriptor | undefined,
+): number {
+  if (!document) return 0;
+  const contentMode = document.metadata?.['contentMode'];
+  const isPointer =
+    document.sourceType === 'core_catalog_pointer' ||
+    contentMode === 'module-pointer' ||
+    group.contentKind === 'pointer';
+  const isIncomplete =
+    document.metadata?.['incomplete'] === true ||
+    document.metadata?.['partial'] === true ||
+    document.metadata?.['stub'] === true;
+  if (isIncomplete) return 1;
+  if (document.sourceType === 'official_drug_instruction') return isPointer ? 3 : 6;
+  if (document.sourceType === 'official_registry_summary') {
+    return isPointer ? 3 : 5;
+  }
+  if (document.sourceType === 'core_catalog_pointer') return 3;
+  if (document.sourceType === 'allmed_reference') {
+    const snippetLength = group.results[0]?.snippet.trim().length ?? 0;
+    return snippetLength >= 60 ? 4 : 2;
+  }
+  return 2;
+}
+
 /**
  * A catalog pointer and the full record it points to (for example an ICD core-catalog pointer and
  * the matching mkb.db node) describe one concept under two document ids. Left ungrouped, both
@@ -468,6 +527,10 @@ function resolvedGroupIdentity(
  * every other signal (query relevance, exact-identity tie-breaks, terminology rank), so this pass
  * only drops a later duplicate — it never reorders and never changes which document represents the
  * concept, so an exact top-1 match can never be the one removed.
+ *
+ * For medication cards that share the exact same canonical trade name (e.g. «Акинетон» and
+ * «Акинетон®» across Allmed stubs and official instructions), duplicates collapse to one row at
+ * the earliest rank slot, preferring the most complete source record.
  */
 export function collapseGroupsByTargetDocument(
   groups: readonly SearchResultGroup[],
@@ -480,22 +543,62 @@ export function collapseGroupsByTargetDocument(
   groups.forEach((group, index) => {
     const substance = linkedSubstanceId(group.documentId, documentsById);
     if (substance === undefined) return;
-    const title = normalizeSurfaceText(group.title).trim();
+    const title = canonicalMedicationGroupTitle(group.title);
     const sameSubstance = groups.some(
       (other, otherIndex) =>
         otherIndex !== index &&
         identities[otherIndex] === substance &&
-        normalizeSurfaceText(other.title).trim() === title,
+        canonicalMedicationGroupTitle(other.title) === title,
     );
     if (sameSubstance) identities[index] = substance;
   });
-  const seen = new Set<string>();
-  return groups.filter((_group, index) => {
+
+  // First pass: collapse resolved target identities, never replacing an earlier exact identity.
+  const seenIdentities = new Set<string>();
+  const uniqueByIdentity: SearchResultGroup[] = [];
+  for (let index = 0; index < groups.length; index += 1) {
     const identity = identities[index] ?? '';
-    if (seen.has(identity)) return false;
-    seen.add(identity);
-    return true;
-  });
+    if (seenIdentities.has(identity)) continue;
+    seenIdentities.add(identity);
+    const group = groups[index];
+    if (group) uniqueByIdentity.push(group);
+  }
+
+  // Second pass: collapse duplicate medication cards with the same canonical trade name
+  // (e.g. «Акинетон», «Акинетон®», «Акинетон (таблетки)»), keeping the highest-ranked slot and
+  // upgrading to the more complete record (official instruction / full ЕСКЛП over incomplete stub).
+  const byMedicationTitle = new Map<string, number>();
+  const collapsed: SearchResultGroup[] = [];
+  for (const group of uniqueByIdentity) {
+    const document = documentsById.get(group.documentId);
+    if (!isMedicationDeduplicableDocument(document)) {
+      collapsed.push(group);
+      continue;
+    }
+    const titleKey = canonicalMedicationGroupTitle(group.title);
+    if (!titleKey) {
+      collapsed.push(group);
+      continue;
+    }
+    const existingSlot = byMedicationTitle.get(titleKey);
+    if (existingSlot === undefined) {
+      byMedicationTitle.set(titleKey, collapsed.length);
+      collapsed.push(group);
+      continue;
+    }
+    const existing = collapsed[existingSlot];
+    if (!existing) continue;
+    const existingRank = medicationCompletenessRank(
+      existing,
+      documentsById.get(existing.documentId),
+    );
+    const candidateRank = medicationCompletenessRank(group, document);
+    if (candidateRank > existingRank) {
+      collapsed[existingSlot] = group;
+    }
+  }
+
+  return collapsed;
 }
 
 /** The ЕСКЛП substance card a reference monograph is linked to, when it declares one. */

@@ -2064,266 +2064,275 @@ export function UserLibraryPage(props: {
         )}
       </Show>
       <AppContextMenu actions={pageActions()} hideButton class="user-library-page__area-context">
-        {/* The tab's hero header (components/PageHero.tsx): its row is back, the search and «+»,
+        <div class="user-library-page__controls">
+          {/* The tab's hero header (components/PageHero.tsx): its row is back, the search and «+»,
             and it shrinks into the bar; the folder path under it says where the doctor is. */}
-        <Page
-          class="user-library-page__heading"
-          hero={PAGE_HEROES.files}
-          titleFill
-          navigation={
-            <NavBack
-              class="knowledge-back-button"
-              aria-label={searchQuery().length > 0 ? 'Очистить поиск' : backTargetLabel()}
-              onClick={() =>
-                searchQuery().length > 0 ? setSearchQuery('') : goUpFolderHierarchy()
-              }
-              icon={<AppGlyph name={searchQuery().length > 0 ? 'close' : 'arrow-left'} />}
-            />
-          }
-          title={
-            <>
-              <Heading depth={1} class="sr-only">
-                {folderTrail().at(-1)?.title ?? 'Ваши файлы'}
-              </Heading>
-              <SearchField
-                class="route-search user-library-page__search"
-                value={searchQuery()}
-                onInput={setSearchQuery}
-                label="Поиск по текущей папке"
-                hideLabel
-                placeholder="Название или файл"
+          <Page
+            class="user-library-page__heading"
+            hero={PAGE_HEROES.files}
+            titleFill
+            navigation={
+              <NavBack
+                class="knowledge-back-button"
+                aria-label={searchQuery().length > 0 ? 'Очистить поиск' : backTargetLabel()}
+                onClick={() =>
+                  searchQuery().length > 0 ? setSearchQuery('') : goUpFolderHierarchy()
+                }
+                icon={<AppGlyph name={searchQuery().length > 0 ? 'close' : 'arrow-left'} />}
               />
-            </>
-          }
-          actions={
-            <AppContextMenu
-              actions={pageActions()}
-              class="user-library-page__page-actions"
-              buttonClass="user-library-page__add-button"
-              buttonIcon="plus"
-              buttonLabel="Действия со страницей"
-            >
-              <span class="user-library-page__add-anchor" aria-hidden="true" />
-            </AppContextMenu>
-          }
-        />
-
-        <div class="user-library-page__breadcrumb-row">
-          <nav class="user-library-breadcrumbs" aria-label="Папки библиотеки">
-            <button
-              type="button"
-              class="user-library-breadcrumbs__button"
-              classList={{
-                'user-library-breadcrumbs__button--active': currentFolderId() === null,
-                'user-library-breadcrumbs__button--drop': dragTarget() === null,
-              }}
-              data-user-library-drop-target="root"
-              aria-current={currentFolderId() === null ? 'page' : undefined}
-              onClick={() => openFolder(null)}
-              {...rootDrops}
-            >
-              <AppGlyph name="house" class="user-library-breadcrumbs__icon" />
-              <span
-                class="user-library-breadcrumbs__label"
-                classList={{ 'sr-only': folderTrail().length === 0 }}
+            }
+            title={
+              <>
+                <Heading depth={1} class="sr-only">
+                  {folderTrail().at(-1)?.title ?? 'Ваши файлы'}
+                </Heading>
+                <SearchField
+                  class="route-search user-library-page__search"
+                  value={searchQuery()}
+                  onInput={setSearchQuery}
+                  label="Поиск по текущей папке"
+                  hideLabel
+                  placeholder="Название или файл"
+                />
+              </>
+            }
+            actions={
+              <AppContextMenu
+                actions={pageActions()}
+                class="user-library-page__page-actions"
+                buttonClass="user-library-page__add-button"
+                buttonIcon="plus"
+                buttonLabel="Действия со страницей"
               >
-                Ваши файлы
-              </span>
-            </button>
-            <Show when={placeTitle()}>
-              {(title) => (
-                <>
-                  <span class="user-library-breadcrumbs__separator" aria-hidden="true">
-                    /
-                  </span>
-                  <span
-                    class="user-library-breadcrumbs__button user-library-breadcrumbs__button--active"
-                    aria-current="page"
-                  >
-                    <span class="user-library-breadcrumbs__label">{title()}</span>
-                  </span>
-                </>
-              )}
-            </Show>
-            <For each={folderTrail()}>
-              {(folder) => {
-                const drops = folderDropsFor(folder.id);
-                return (
+                <span class="user-library-page__add-anchor" aria-hidden="true" />
+              </AppContextMenu>
+            }
+          />
+
+          <div class="user-library-page__breadcrumb-row">
+            <nav class="user-library-breadcrumbs" aria-label="Папки библиотеки">
+              <button
+                type="button"
+                class="user-library-breadcrumbs__button"
+                classList={{
+                  'user-library-breadcrumbs__button--active': currentFolderId() === null,
+                  'user-library-breadcrumbs__button--drop': dragTarget() === null,
+                }}
+                data-user-library-drop-target="root"
+                aria-current={currentFolderId() === null ? 'page' : undefined}
+                onClick={() => openFolder(null)}
+                {...rootDrops}
+              >
+                <AppGlyph name="house" class="user-library-breadcrumbs__icon" />
+                <span
+                  class="user-library-breadcrumbs__label"
+                  classList={{ 'sr-only': folderTrail().length === 0 }}
+                >
+                  Ваши файлы
+                </span>
+              </button>
+              <Show when={placeTitle()}>
+                {(title) => (
                   <>
                     <span class="user-library-breadcrumbs__separator" aria-hidden="true">
                       /
                     </span>
-                    <button
-                      type="button"
-                      class="user-library-breadcrumbs__button"
-                      classList={{
-                        'user-library-breadcrumbs__button--active': currentFolderId() === folder.id,
-                        'user-library-breadcrumbs__button--drop': dragTarget() === folder.id,
-                      }}
-                      data-user-library-drop-target={folder.id}
-                      aria-current={currentFolderId() === folder.id ? 'page' : undefined}
-                      onClick={() => openFolder(folder.id)}
-                      {...drops}
+                    <span
+                      class="user-library-breadcrumbs__button user-library-breadcrumbs__button--active"
+                      aria-current="page"
                     >
-                      <span class="user-library-breadcrumbs__label" title={folder.title}>
-                        {breadcrumbLabel(folder.title)}
-                      </span>
-                    </button>
+                      <span class="user-library-breadcrumbs__label">{title()}</span>
+                    </span>
                   </>
-                );
-              }}
-            </For>
-          </nav>
-          <Show when={place().kind !== 'computer' && !sourceView()}>
-            <div class="user-library-page__breadcrumb-tools">
-              {sortMenu()}
-              {viewToggle()}
-            </div>
-          </Show>
-        </div>
-        <input
-          ref={(element) => {
-            fileInputElement = element;
-          }}
-          class="user-library-page__file-input"
-          type="file"
-          multiple
-          aria-label="Загрузить документы"
-          onChange={(event) => {
-            const input = event.currentTarget;
-            if (place().kind === 'computer') {
-              const file = input.files?.[0];
-              if (file) void openComputerFile(file);
-            } else {
-              void appendFiles(input.files);
-            }
-            input.value = '';
-          }}
-        />
-
-        <OverlayDialog
-          open={creatingFolder()}
-          title="Новая папка"
-          onClose={() => setCreatingFolder(false)}
-        >
-          <form
-            class="user-library-folder-create"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void submitCreateFolder();
-            }}
-          >
-            <input
-              type="text"
-              value={folderTitle()}
-              placeholder="Название папки"
-              aria-label="Название новой папки"
-              onInput={(event) => setFolderTitle(event.currentTarget.value)}
-            />
-            <div class="user-library-folder-create__actions">
-              <Button type="submit" variant="primary" disabled={!folderTitle().trim()}>
-                Создать
-              </Button>
-              <Button type="button" variant="quiet" onClick={() => setCreatingFolder(false)}>
-                Отмена
-              </Button>
-            </div>
-          </form>
-        </OverlayDialog>
-
-        <Show when={showPlaces()}>
-          <UserLibraryPlaces kinds={kindCounts()} onOpen={navigate} />
-          <div class="user-library-page__folders-summary">
-            <h2 class="list-group__heading user-library-page__folders-heading">Папки и файлы</h2>
-            <span class="user-library-page__document-count">
-              {documentCountLabel(documents().length)}
-            </span>
+                )}
+              </Show>
+              <For each={folderTrail()}>
+                {(folder) => {
+                  const drops = folderDropsFor(folder.id);
+                  return (
+                    <>
+                      <span class="user-library-breadcrumbs__separator" aria-hidden="true">
+                        /
+                      </span>
+                      <button
+                        type="button"
+                        class="user-library-breadcrumbs__button"
+                        classList={{
+                          'user-library-breadcrumbs__button--active':
+                            currentFolderId() === folder.id,
+                          'user-library-breadcrumbs__button--drop': dragTarget() === folder.id,
+                        }}
+                        data-user-library-drop-target={folder.id}
+                        aria-current={currentFolderId() === folder.id ? 'page' : undefined}
+                        onClick={() => openFolder(folder.id)}
+                        {...drops}
+                      >
+                        <span class="user-library-breadcrumbs__label" title={folder.title}>
+                          {breadcrumbLabel(folder.title)}
+                        </span>
+                      </button>
+                    </>
+                  );
+                }}
+              </For>
+            </nav>
+            <Show when={place().kind !== 'computer' && !sourceView()}>
+              <div class="user-library-page__breadcrumb-tools">
+                {sortMenu()}
+                {viewToggle()}
+              </div>
+            </Show>
           </div>
-        </Show>
-        <Show when={place().kind === 'computer'}>
-          <ComputerFolderView
-            onOpenFile={(file) => void openComputerFile(file)}
-            onPickFiles={() => {
-              if (!fileInputElement) return;
-              fileInputElement.accept = '';
-              fileInputElement.multiple = false;
-              fileInputElement.click();
+          <input
+            ref={(element) => {
+              fileInputElement = element;
+            }}
+            class="user-library-page__file-input"
+            type="file"
+            multiple
+            aria-label="Загрузить документы"
+            onChange={(event) => {
+              const input = event.currentTarget;
+              if (place().kind === 'computer') {
+                const file = input.files?.[0];
+                if (file) void openComputerFile(file);
+              } else {
+                void appendFiles(input.files);
+              }
+              input.value = '';
             }}
           />
-        </Show>
-        <Show when={sourceView() === 'conversation-recordings'}>
-          <section class="user-library-page__recordings" aria-label="Записи бесед">
-            <ConversationRecordingList />
-          </section>
-        </Show>
-        <Show when={place().kind !== 'computer' && !sourceView()}>
-          <Show
-            when={visibleEntries().length > 0}
-            fallback={
-              <Show
-                when={searchQuery().trim()}
-                fallback={
-                  <div class="user-library-page__empty-context">
-                    <button
-                      type="button"
-                      class="user-library-page__empty-state"
-                      aria-label="Добавьте файлы"
-                      onClick={openFilePicker}
-                    >
-                      <AppGlyph name="file-plus" class="user-library-page__empty-icon" />
-                      <strong class="user-library-page__empty-title">Добавьте файлы</strong>
-                    </button>
-                  </div>
-                }
-              >
-                <Show when={savedMatches().length === 0}>
-                  <p class="user-library-page__empty">Ничего не найдено по вашему запросу.</p>
-                </Show>
-              </Show>
-            }
+
+          <OverlayDialog
+            open={creatingFolder()}
+            title="Новая папка"
+            onClose={() => setCreatingFolder(false)}
           >
-            <div
-              class="user-library-page__list"
-              classList={{
-                'user-library-page__list--grid': viewMode() === 'grid',
-                'user-library-page__list--list': viewMode() === 'list',
+            <form
+              class="user-library-folder-create"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void submitCreateFolder();
               }}
             >
-              <Show
-                when={viewMode() === 'grid'}
-                fallback={
+              <input
+                type="text"
+                value={folderTitle()}
+                placeholder="Название папки"
+                aria-label="Название новой папки"
+                onInput={(event) => setFolderTitle(event.currentTarget.value)}
+              />
+              <div class="user-library-folder-create__actions">
+                <Button type="submit" variant="primary" disabled={!folderTitle().trim()}>
+                  Создать
+                </Button>
+                <Button type="button" variant="quiet" onClick={() => setCreatingFolder(false)}>
+                  Отмена
+                </Button>
+              </div>
+            </form>
+          </OverlayDialog>
+
+          <Show when={showPlaces()}>
+            <UserLibraryPlaces kinds={kindCounts()} onOpen={navigate} />
+          </Show>
+        </div>
+        <div class="user-library-page__items">
+          <Show when={showPlaces()}>
+            <div class="user-library-page__folders-summary">
+              <h2 class="list-group__heading user-library-page__folders-heading">Папки и файлы</h2>
+              <span class="user-library-page__document-count">
+                {documentCountLabel(documents().length)}
+              </span>
+            </div>
+          </Show>
+          <Show when={place().kind === 'computer'}>
+            <ComputerFolderView
+              onOpenFile={(file) => void openComputerFile(file)}
+              onPickFiles={() => {
+                if (!fileInputElement) return;
+                fileInputElement.accept = '';
+                fileInputElement.multiple = false;
+                fileInputElement.click();
+              }}
+            />
+          </Show>
+          <Show when={sourceView() === 'conversation-recordings'}>
+            <section class="user-library-page__recordings" aria-label="Записи бесед">
+              <ConversationRecordingList />
+            </section>
+          </Show>
+          <Show when={place().kind !== 'computer' && !sourceView()}>
+            <Show
+              when={visibleEntries().length > 0}
+              fallback={
+                <Show
+                  when={searchQuery().trim()}
+                  fallback={
+                    <div class="user-library-page__empty-context">
+                      <button
+                        type="button"
+                        class="user-library-page__empty-state"
+                        aria-label="Добавьте файлы"
+                        onClick={openFilePicker}
+                      >
+                        <AppGlyph name="file-plus" class="user-library-page__empty-icon" />
+                        <strong class="user-library-page__empty-title">Добавьте файлы</strong>
+                      </button>
+                    </div>
+                  }
+                >
+                  <Show when={savedMatches().length === 0}>
+                    <p class="user-library-page__empty">Ничего не найдено по вашему запросу.</p>
+                  </Show>
+                </Show>
+              }
+            >
+              <div
+                class="user-library-page__list"
+                classList={{
+                  'user-library-page__list--grid': viewMode() === 'grid',
+                  'user-library-page__list--list': viewMode() === 'list',
+                }}
+              >
+                <Show
+                  when={viewMode() === 'grid'}
+                  fallback={
+                    <LayoutVirtualizedGrid
+                      data={visibleEntries()}
+                      bufferSize={500}
+                      maxColumns={3}
+                      fitContainer
+                      preserveItemNodes
+                    >
+                      {(entry) => renderLibraryEntry(entry)}
+                    </LayoutVirtualizedGrid>
+                  }
+                >
                   <LayoutVirtualizedGrid
                     data={visibleEntries()}
                     bufferSize={500}
-                    maxColumns={3}
+                    maxColumns={6}
+                    minColumns={2}
+                    fitContainer
                     preserveItemNodes
                   >
                     {(entry) => renderLibraryEntry(entry)}
                   </LayoutVirtualizedGrid>
-                }
-              >
-                <LayoutVirtualizedGrid
-                  data={visibleEntries()}
-                  bufferSize={500}
-                  maxColumns={6}
-                  minColumns={2}
-                  preserveItemNodes
-                >
-                  {(entry) => renderLibraryEntry(entry)}
-                </LayoutVirtualizedGrid>
-              </Show>
-            </div>
+                </Show>
+              </div>
+            </Show>
           </Show>
-        </Show>
 
-        <Show when={savedMatches().length > 0}>
-          <section class="user-library-page__saved" aria-label="Избранное">
-            <h2 class="user-library-page__saved-heading">Избранное</h2>
-            <ul class="user-library-page__saved-list">
-              <For each={savedMatches()}>{(entry) => <SavedItemRow entry={entry} />}</For>
-            </ul>
-          </section>
-        </Show>
+          <Show when={savedMatches().length > 0}>
+            <section class="user-library-page__saved" aria-label="Избранное">
+              <h2 class="user-library-page__saved-heading">Избранное</h2>
+              <ul class="user-library-page__saved-list">
+                <For each={savedMatches()}>{(entry) => <SavedItemRow entry={entry} />}</For>
+              </ul>
+            </section>
+          </Show>
+        </div>
 
         <Show when={selectionMode()}>
           <div class="user-library-selection-bar" role="toolbar" aria-label="Выбранные файлы">

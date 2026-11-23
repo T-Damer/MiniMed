@@ -2,6 +2,8 @@ import { createEffect, createSignal, type JSX, onCleanup, onMount, Show } from '
 
 import { highlightSegments } from '@/features/anchoring/highlight-sync';
 import { type AnchorUnit, createQuoteSelector } from '@/features/anchoring/text-anchor';
+import { isAskAiAvailable } from '@/features/ask-ai/ask-ai-config';
+import { openAskAiForExcerpt } from '@/features/ask-ai/ask-ai-state';
 import {
   HIGHLIGHT_QUOTE_LIMIT,
   type HighlightPopupPlacement,
@@ -18,6 +20,7 @@ import {
   removeUserHighlight,
   USER_HIGHLIGHT_COLORS,
   type UserDocumentHighlight,
+  updateUserHighlightNote,
   userHighlightColor,
 } from '@/state/user-library-highlights';
 
@@ -408,6 +411,19 @@ export function UserDocumentHighlights(props: {
           x={popupValue().x}
           y={popupValue().y}
           placement={popupValue().placement}
+          initialHighlightNote={
+            popupValue().remove.length === 1 ? popupValue().remove[0]?.note : undefined
+          }
+          onSaveNote={
+            popupValue().remove.length === 1
+              ? async (note) => {
+                  const target = popupValue().remove[0];
+                  if (!target) return;
+                  await updateUserHighlightNote(target.id, note);
+                  setPopup(null);
+                }
+              : undefined
+          }
           note={
             popupValue().remove.length === 1
               ? highlightStatusNote(popupValue().remove[0] as UserDocumentHighlight)
@@ -419,6 +435,16 @@ export function UserDocumentHighlights(props: {
               ? () => {
                   const text = popupValue().lookup;
                   if (text) openReaderDictionary(text);
+                  document.getSelection()?.removeAllRanges();
+                  setPopup(null);
+                }
+              : undefined
+          }
+          onAskAi={
+            popupValue().lookup && isAskAiAvailable()
+              ? () => {
+                  const text = popupValue().lookup;
+                  if (text) openAskAiForExcerpt({ excerpt: text });
                   document.getSelection()?.removeAllRanges();
                   setPopup(null);
                 }

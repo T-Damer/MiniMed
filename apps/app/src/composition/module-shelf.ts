@@ -155,6 +155,7 @@ class ShelfShard {
   private ready: Promise<void> | undefined;
   private requestId = 0;
   private readonly pending = new Map<number, PendingRequest>();
+  private readonly batchParts = new Map<number, Map<number, unknown[]>>();
   private readonly entries = new Map<string, ShelfEntry>();
   private queued: QueuedCall[] = [];
   private idleTimer: ReturnType<typeof setTimeout> | undefined;
@@ -436,6 +437,7 @@ class ShelfShard {
     if (failed) this.failure = error;
     for (const pending of this.pending.values()) pending.reject(error);
     this.pending.clear();
+    this.batchParts.clear();
   }
 
   private start(): Promise<void> {
@@ -454,9 +456,36 @@ class ShelfShard {
       }
       const pending = this.pending.get(data.id);
       if (!pending) return;
+      if ('batchPart' in data) {
+        let partsForRequest = this.batchParts.get(data.id);
+        if (!partsForRequest) {
+          partsForRequest = new Map();
+          this.batchParts.set(data.id, partsForRequest);
+        }
+        let gathered = partsForRequest.get(data.batchPart.index);
+        if (!gathered) {
+          gathered = [];
+          partsForRequest.set(data.batchPart.index, gathered);
+        }
+        for (const row of data.batchPart.rows) gathered.push(row);
+        return;
+      }
       this.pending.delete(data.id);
-      if ('error' in data) pending.reject(new Error(data.error));
-      else pending.resolve(data.result);
+      const streamedParts = this.batchParts.get(data.id);
+      this.batchParts.delete(data.id);
+      if ('error' in data) {
+        pending.reject(new Error(data.error));
+        return;
+      }
+      if (streamedParts && Array.isArray(data.result)) {
+        const merged = (data.result as ShelfCallOutcome[]).map((outcome, index) => {
+          const rows = streamedParts.get(index);
+          return rows && 'value' in outcome ? { value: rows } : outcome;
+        });
+        pending.resolve(merged);
+        return;
+      }
+      pending.resolve(data.result);
     };
     worker.onerror = () => this.shutdown(new Error('The module shelf worker failed.'));
     const ready = this.request({ type: 'init', poolName: this.options.poolName }).then((names) => {

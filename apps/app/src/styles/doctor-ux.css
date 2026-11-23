@@ -1154,15 +1154,14 @@ html.app-chrome-hidden .document-overlay-paper::before {
 
 .document-inline-link,
 .document-inline-tool-link {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.22em;
+  /* Plain inline flow without leading icons keeps exact line breaks and scroll position
+     when deferred inline links activate after scroll settles (zero reflow). */
+  display: inline;
   white-space: normal;
   padding: 0;
   border: 0;
   color: var(--inline-link);
   background: transparent;
-  /* A <button> centres its text; a wrapped link reads from its icon like the text around it. */
   text-align: start;
   cursor: pointer;
   font: inherit;
@@ -1198,9 +1197,12 @@ html.app-chrome-hidden .document-overlay-paper::before {
 }
 
 .document-inline-link-frame {
-  display: inline-flex;
-  align-items: baseline;
-  max-inline-size: 100%;
+  display: inline;
+}
+
+.document-page,
+.document-overlay-paper {
+  overflow-anchor: auto;
 }
 
 .document-inline-preview__card {

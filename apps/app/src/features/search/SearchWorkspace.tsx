@@ -144,6 +144,7 @@ import {
   scopedSearchFoundNothing,
   searchOtherSections,
 } from '@/features/search/search-scope-fallback';
+import { narrowSearchResponseForScope } from '@/features/search/search-scope-switch';
 import { RESULT_TYPE_VISUALS, resultTypeVisual } from '@/features/search/searchResultKindVisuals';
 import { prepareTitleIndex, titleIndexFor } from '@/features/search/title-index';
 import { SemanticModelOffer } from '@/features/semantic/SemanticModelOffer';
@@ -1081,14 +1082,35 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       if (searchTimer) clearTimeout(searchTimer);
       setSearchQueued(false);
       if (analysisTimer) clearTimeout(analysisTimer);
-      // A subheader of the fallback list opens its section with the words just searched.
+      // A subheader of the fallback list opens its section with the words just searched; switching
+      // sections while an active query is typed also keeps that query and narrows existing results
+      // in place instead of wiping them (Wave 1.3).
+      const previousQuery = query();
+      const previousResponse = response();
       const carried = carryQuery;
       carryQuery = false;
-      const savedForQuery = carried && saved?.query !== query() ? undefined : saved;
-      setQuery(carried ? query() : (saved?.query ?? (clinicalToggle ? query() : (urlQuery ?? ''))));
-      setResponse(savedForQuery?.response);
-      setFallbackResult(savedForQuery?.fallback);
-      setDraftAnalysis(savedForQuery?.response?.analysis);
+      const keepActiveQuery = carried || searchableQuery(previousQuery).length >= 2;
+      const nextQuery = keepActiveQuery
+        ? previousQuery
+        : (saved?.query ?? (clinicalToggle ? previousQuery : (urlQuery ?? '')));
+      const savedMatchesNextQuery =
+        saved &&
+        searchableQuery(saved.query) === searchableQuery(nextQuery) &&
+        saved.response?.analysis.originalQuery === searchableQuery(nextQuery)
+          ? saved
+          : undefined;
+      const narrowedPreview =
+        !savedMatchesNextQuery && keepActiveQuery
+          ? narrowSearchResponseForScope(
+              previousResponse,
+              props.scope,
+              untrack(() => contextDocumentsById()),
+            )
+          : undefined;
+      setQuery(nextQuery);
+      setResponse(savedMatchesNextQuery?.response ?? narrowedPreview);
+      setFallbackResult(savedMatchesNextQuery?.fallback);
+      setDraftAnalysis((savedMatchesNextQuery?.response ?? narrowedPreview)?.analysis);
       setContext(undefined);
       setLoading(false);
       setError(undefined);
@@ -1880,668 +1902,678 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           'case-folder--with-welcome': Boolean(props.intro ?? props.toolStrip),
         }}
       >
-        <form
-          ref={(element) => props.onFieldElement?.(element)}
-          class="query-sheet"
-          onSubmit={(event) => {
-            event.preventDefault();
-            submitSearch();
-          }}
-        >
-          <label class="sr-only" for="clinical-query">
-            Поисковый запрос
-          </label>
-          <textarea
-            ref={(element) => {
-              textarea = element;
-              if (!props.compact) resizeTextarea(element);
+        <div class="search-workspace__controls">
+          <form
+            ref={(element) => props.onFieldElement?.(element)}
+            class="query-sheet"
+            onSubmit={(event) => {
+              event.preventDefault();
+              submitSearch();
             }}
-            id="clinical-query"
-            class="query-sheet__input"
-            classList={{ 'query-sheet__input--corrected': correction() !== null }}
-            rows={1}
-            data-testid="search-input"
-            data-search-ready={props.searchAllowed === false ? 'false' : 'true'}
-            data-search-focus-target="true"
-            aria-controls={toolPickerOpen() ? 'search-calculator-tools' : undefined}
-            aria-activedescendant={
-              toolPickerOpen() ? `search-calculator-tool-${toolPickerActive()}` : undefined
-            }
-            value={query()}
-            onInput={(event) => {
-              setCorrectionDismissed(true);
-              updateQuery(event.currentTarget.value);
-              resizeTextarea(event.currentTarget);
-              syncToolPicker(
-                event.currentTarget.value,
-                event.currentTarget.selectionStart ?? event.currentTarget.value.length,
-              );
-            }}
-            onKeyDown={handleKeyDown}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            onPointerDown={() => setCorrectionDismissed(true)}
-            placeholder={
-              props.placeholder ?? 'Например: 5 лет, мальчик, второй день кашляет и температурит…'
-            }
-            maxlength={20_000}
-            autocomplete="off"
-            enterkeyhint={props.scope === 'diagnosis' ? 'enter' : 'search'}
-            autocapitalize="sentences"
-            spellcheck={false}
-          />
-          <Show when={correction()}>
-            {(pieces) =>
-              textarea && (
-                <SearchCorrectionOverlay
-                  field={textarea}
-                  pieces={pieces()}
-                  onApply={applyCorrection}
-                />
-              )
-            }
-          </Show>
-          <Show when={query().length > 0}>
-            <button
-              class="query-sheet__clear"
-              type="button"
-              aria-label="Очистить запрос"
-              title="Очистить"
-              onClick={clearQuery}
-            >
-              <AppGlyph name="close" class="query-sheet__clear-icon" />
-            </button>
-          </Show>
-          <Show when={expanded()}>
-            <div class="query-actions">
-              <Show when={query().length > 16_000}>
-                <strong class="query-character-count">
-                  {query().length.toLocaleString('ru-RU')} / 20 000
-                </strong>
-              </Show>
-              <div
-                class="query-buttons"
-                classList={{ 'query-buttons--with-picker': modePicker.toArray().length > 0 }}
-              >
-                {modePicker()}
-                <Popover
-                  open={toolPickerOpen()}
-                  onOpenChange={setToolPickerOpen}
-                  placement="bottom-start"
-                  gutter={8}
-                  flip={false}
-                  slide
-                  fitViewport
-                  overflowPadding={8}
-                >
-                  <Popover.Anchor class="search-tool-picker" />
-                  <Popover.Portal>
-                    <Popover.Content
-                      class="search-tool-picker__menu"
-                      id="search-calculator-tools"
-                      role="listbox"
-                      aria-label="Калькуляторы"
-                      onOpenAutoFocus={(event) => event.preventDefault()}
-                      onFocusOutside={(event) => event.preventDefault()}
-                    >
-                      <p class="search-tool-picker__heading">Калькуляторы</p>
-                      <For each={toolSuggestions()}>
-                        {(definition, index) => (
-                          <button
-                            class="search-tool-picker__option"
-                            classList={{
-                              'search-tool-picker__option--active': toolPickerActive() === index(),
-                            }}
-                            id={`search-calculator-tool-${index()}`}
-                            type="button"
-                            role="option"
-                            aria-selected={toolPickerActive() === index()}
-                            onMouseDown={(event) => event.preventDefault()}
-                            onMouseEnter={() => setToolPickerActive(index())}
-                            onClick={() =>
-                              definition.state === 'available' &&
-                              selectCalculatorTool(definition.slug)
-                            }
-                          >
-                            <AppGlyph class="search-tool-picker__option-icon" name="calculator" />
-                            <span class="search-tool-picker__option-copy">
-                              <strong class="search-tool-picker__option-title">
-                                {definition.shortTitle}
-                              </strong>
-                              <span class="search-tool-picker__option-detail">
-                                {definition.title}
-                              </span>
-                            </span>
-                          </button>
-                        )}
-                      </For>
-                      <Show when={toolSuggestions().length === 0}>
-                        <p class="search-tool-picker__empty">Установленный калькулятор не найден</p>
-                      </Show>
-                    </Popover.Content>
-                  </Popover.Portal>
-                </Popover>
-                <div class="search-submit-reveal visible">
-                  <div class="search-submit-reveal__content search-submit-reveal__content--visible">
-                    <button
-                      class="search-button"
-                      data-testid="search-submit"
-                      data-haptic="medium"
-                      type="submit"
-                      aria-label={submitBusy() ? 'Ищем…' : 'Найти'}
-                      title={submitBusy() ? 'Ищем…' : 'Найти (Enter)'}
-                      aria-busy={submitBusy()}
-                      disabled={loading() || props.searchAllowed === false}
-                    >
-                      <AppGlyph
-                        name={submitBusy() ? 'refresh' : 'arrow-up'}
-                        class={`search-button__icon${submitBusy() ? ' search-button__icon--spinning' : ''}`}
-                      />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Show>
-          {props.fieldStatus}
-        </form>
-        <Show when={props.toolStrip}>
-          <div class="search-tool-strip">{props.toolStrip}</div>
-        </Show>
-        {/* The field leads the page; capabilities follow it and fold away once a search starts,
-            leaving results right under the field. The tool strip above stays. */}
-        <Show when={props.intro}>
-          <div
-            class="search-heading"
-            classList={{ 'search-heading--hidden': query().length > 0 || Boolean(response()) }}
-            inert={query().length > 0 || Boolean(response())}
           >
-            {props.intro}
-          </div>
-        </Show>
-
-        <Show when={ambiguousMeanings().length > 0}>
-          <SearchMeaningChoices
-            meanings={ambiguousMeanings()}
-            documentsById={contextDocumentsById()}
-            onOpen={(documentId) => openDocumentInArchive(documentId)}
-          />
-        </Show>
-
-        {/* Holds the analysis row's place from the first keystroke, so the results slot below does
-            not drop when the analysis arrives. */}
-        <Show when={props.scope === 'diagnosis' && !activeAnalysis() && analysisLoading()}>
-          <section class="query-index query-index--content-sized" aria-hidden="true">
-            <div class="analysis-details query-index__details">
-              <div class="analysis-details__summary query-index__summary">
-                <span class="query-index__summary-main">
-                  <span class="query-index__badge">Детали</span>
-                  <span class="query-index__text query-index__text--pending">
-                    Распознано 0 полей · показать детали
-                  </span>
-                </span>
-              </div>
-            </div>
-          </section>
-        </Show>
-
-        <Show when={props.scope === 'diagnosis' && activeAnalysis()}>
-          {(analysis) => (
-            <section class="query-index query-index--content-sized" aria-label="Разбор запроса">
-              <Show when={SHOW_SEARCH_SUGGESTIONS && analysis().suggestions.length > 0}>
-                <div class="index-row query-index__suggestions">
-                  <div class="index-label query-index__label">
-                    <span class="index-label__title">Полезно уточнить</span>
-                    <small class="index-label__hint">не блокирует диагнозы</small>
-                  </div>
-                  <div class="scroll-strip">
-                    <div ref={setSuggestionStrip} class="suggestion-strip">
-                      <For each={analysis().suggestions}>
-                        {(suggestion) => (
-                          <button
-                            class="suggestion-strip__button"
-                            type="button"
-                            title={suggestion.detail}
-                            onClick={() => insertSuggestion(suggestion)}
-                          >
-                            <span class="suggestion-strip__marker">+</span> {suggestion.label}
-                          </button>
-                        )}
-                      </For>
-                    </div>
-                    <ScrollStripArrows target={suggestionStrip} label="подсказки" />
-                  </div>
-                </div>
-              </Show>
-
-              <Show when={analysis().warnings.length > 0}>
-                <div class="query-warning-list">
-                  <For each={analysis().warnings}>
-                    {(warning) => <p class="query-warning-list__item">{warning}</p>}
-                  </For>
-                </div>
-              </Show>
-
-              <details class="analysis-details query-index__details">
-                <summary class="analysis-details__summary query-index__summary">
-                  <span class="query-index__summary-main">
-                    <span class="query-index__badge">Детали</span>
-                    <span class="query-index__text">
-                      {analysisLoading()
-                        ? 'Обновляем разбор…'
-                        : `Распознано ${analysis().facts.length} ${pluralRu(
-                            analysis().facts.length,
-                            'поле',
-                            'поля',
-                            'полей',
-                          )} · показать детали`}
-                    </span>
-                  </span>
-                </summary>
-                <Show when={response()}>
-                  {(searchResponse) => (
-                    <div class="result-summary result-summary--analysis">
-                      <div class="result-summary__cell">
-                        <span class="result-summary__label">РЕЗУЛЬТАТЫ</span>
-                        <strong class="result-summary__value">
-                          {resultCount()}{' '}
-                          {pluralRu(resultCount(), 'фрагмент', 'фрагмента', 'фрагментов')}
-                        </strong>
-                      </div>
-                      <div class="result-summary__cell">
-                        <span class="result-summary__label">ДОКУМЕНТЫ</span>
-                        <strong class="result-summary__value">{visibleGroups().length}</strong>
-                      </div>
-                      <div class="result-summary__cell">
-                        <span class="result-summary__label">ВРЕМЯ</span>
-                        <strong class="result-summary__value">
-                          {searchResponse().elapsedMs.toFixed(1)} мс
-                        </strong>
-                      </div>
-                      <div class="result-summary__cell">
-                        <span class="result-summary__label">РЕЖИМ</span>
-                        <strong class="result-summary__value" data-testid="search-mode">
-                          {SEARCH_MODE_LABELS[searchResponse().modeUsed]}
-                        </strong>
-                      </div>
-                    </div>
-                  )}
-                </Show>
-                <div class="fact-strip">
-                  <Show when={analysis().intent}>
-                    {(intent) => (
-                      <span
-                        class="fact-tag query-mode-tag"
-                        title={`Уверенность ${Math.round(intent().confidence * 100)}%`}
-                      >
-                        <small class="fact-tag__label">режим поиска</small>
-                        {INTENT_LABELS[intent().primary]}
-                      </span>
-                    )}
-                  </Show>
-                  <For each={analysis().facts}>
-                    {(fact) => (
-                      <span
-                        class="fact-tag"
-                        classList={{
-                          'fact-tag--negative': fact.polarity === 'negative',
-                        }}
-                        title={fact.label}
-                      >
-                        <small class="fact-tag__label">{FACT_LABELS[fact.kind]}</small>
-                        {factDisplayValue(fact)}
-                      </span>
-                    )}
-                  </For>
-                  <Show when={analysis().facts.length === 0}>
-                    <span class="empty-index">Свободный текст сохранён без изменений.</span>
-                  </Show>
-                </div>
-                <div class="branch-ledger">
-                  <span class="branch-ledger__label">Поисковые ветки</span>
-                  <For each={analysis().branches}>
-                    {(branch, index) => (
-                      <span class="branch-ticket">
-                        {String(index() + 1).padStart(2, '0')} · {branch.label}
-                      </span>
-                    )}
-                  </For>
-                </div>
-              </details>
-            </section>
-          )}
-        </Show>
-
-        <Show when={inlineCalculatorDefinition()}>
-          {(calculator) => (
-            <section class="search-inline-calculator" aria-label="Калькулятор в поиске">
-              <header class="search-inline-calculator__header">
-                <div class="search-inline-calculator__heading">
-                  <p class="search-inline-calculator__kicker">
-                    {explicitCalculator() ? 'Выбран через @' : 'Инструмент поиска'}
-                  </p>
-                  <h2 class="search-inline-calculator__title">{calculator().shortTitle}</h2>
-                  <p class="search-inline-calculator__summary">{calculator().summary}</p>
-                </div>
-                <Button
-                  class="search-inline-calculator__open-page"
-                  type="button"
-                  variant="secondary"
-                  onClick={() => openCalculatorPage(calculator().id, inlineCalculatorValues())}
-                >
-                  Открыть отдельно
-                </Button>
-              </header>
-              <Suspense
-                fallback={
-                  <p class="search-inline-calculator__loading" role="status">
-                    Открываем калькулятор…
-                  </p>
-                }
+            <label class="sr-only" for="clinical-query">
+              Поисковый запрос
+            </label>
+            <textarea
+              ref={(element) => {
+                textarea = element;
+                if (!props.compact) resizeTextarea(element);
+              }}
+              id="clinical-query"
+              class="query-sheet__input"
+              classList={{ 'query-sheet__input--corrected': correction() !== null }}
+              rows={1}
+              data-testid="search-input"
+              data-search-ready={props.searchAllowed === false ? 'false' : 'true'}
+              data-search-focus-target="true"
+              aria-controls={toolPickerOpen() ? 'search-calculator-tools' : undefined}
+              aria-activedescendant={
+                toolPickerOpen() ? `search-calculator-tool-${toolPickerActive()}` : undefined
+              }
+              value={query()}
+              onInput={(event) => {
+                setCorrectionDismissed(true);
+                updateQuery(event.currentTarget.value);
+                resizeTextarea(event.currentTarget);
+                syncToolPicker(
+                  event.currentTarget.value,
+                  event.currentTarget.selectionStart ?? event.currentTarget.value.length,
+                );
+              }}
+              onKeyDown={handleKeyDown}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              onPointerDown={() => setCorrectionDismissed(true)}
+              placeholder={
+                props.placeholder ?? 'Например: 5 лет, мальчик, второй день кашляет и температурит…'
+              }
+              maxlength={20_000}
+              autocomplete="off"
+              enterkeyhint={props.scope === 'diagnosis' ? 'enter' : 'search'}
+              autocapitalize="sentences"
+              spellcheck={false}
+            />
+            <Show when={correction()}>
+              {(pieces) =>
+                textarea && (
+                  <SearchCorrectionOverlay
+                    field={textarea}
+                    pieces={pieces()}
+                    onApply={applyCorrection}
+                  />
+                )
+              }
+            </Show>
+            <Show when={query().length > 0}>
+              <button
+                class="query-sheet__clear"
+                type="button"
+                aria-label="Очистить запрос"
+                title="Очистить"
+                onClick={clearQuery}
               >
-                <SearchInlineCalculatorWorkspace
-                  definition={calculator()}
-                  initialValues={inlineCalculatorValues()}
-                />
-              </Suspense>
-            </section>
-          )}
-        </Show>
-
-        <Show when={props.scope === 'diagnosis'}>
-          <ClinicalAnalysisNote
-            stage={clinicalStage({
-              analysing: analysisLoading(),
-              searching: loading(),
-              refreshing: refreshing(),
-            })}
-          />
-        </Show>
-
-        <Show
-          when={
-            SHOW_SEARCH_SUGGESTIONS &&
-            (props.showExamples ?? !props.catalog) &&
-            props.searchAllowed !== false &&
-            !response() &&
-            query().length === 0 &&
-            (props.examples ?? EXAMPLES_BY_SCOPE[props.scope]).length > 0
-          }
-        >
-          <SearchExamples
-            examples={props.examples ?? EXAMPLES_BY_SCOPE[props.scope]}
-            onSelect={(example) => {
-              updateQuery(example, false);
-              void runSearch(example, true);
-            }}
-          />
-        </Show>
-
-        {props.catalog}
-
-        <PersonalNoteMatches query={searchableQuery(query())} scope={props.scope} />
-
-        <Show when={error() === SEARCH_QUERY_EMPTY_ERROR}>
-          {/* Markup around words («<img src=x onerror=…>») is text the search read and found nothing in. */}
-          <Show
-            when={/[\p{L}\p{N}]/u.test(query()) ? props.emptyResults : undefined}
-            fallback={
-              <QueryEmptyState message="Недостаточно данных для поиска. Уточните запрос." />
-            }
-          >
-            {(emptyResults) => emptyResults()(searchableQuery(query()))}
-          </Show>
-        </Show>
-        <Show when={error() !== SEARCH_QUERY_EMPTY_ERROR ? error() : undefined}>
-          {(message) => (
-            <div class="error-card search-error" role="alert" data-testid="search-error">
-              <span class="search-error__text">{message()}</span>
-              <Show when={isCoreReadFailure(message())}>
-                <Button
-                  type="button"
-                  variant="icon"
-                  class="search-error__retry"
-                  data-testid="search-error-retry"
-                  aria-label="Повторить поиск"
-                  icon={<AppGlyph name="refresh" class="search-error__icon" />}
-                  onClick={() => void runSearch(query(), false, { apply: true })}
-                />
-              </Show>
-            </div>
-          )}
-        </Show>
-
-        <Show when={props.scope !== 'personal' && (response() || loading())}>
-          <SearchMoreBelow
-            pending={
-              (loading() && retainedTitles().length > 0) || refinePending() || meaningPending()
-            }
-            track={() => [response(), retainedTitles()]}
-          />
-        </Show>
-        <div
-          class="search-results-slot"
-          data-testid={props.scope !== 'personal' && response() ? 'search-results' : undefined}
-        >
-          <Show when={retainedTitles().length > 0}>
-            <div class="search-results-slot__titles" data-testid="search-instant-titles">
-              <ListGroup class="search-results-section">
-                <For each={retainedTitles()}>{titleCard}</For>
-              </ListGroup>
-            </div>
-          </Show>
-          <Show when={skeletonMounted() && retainedTitles().length === 0}>
-            <SearchResultsSkeleton leaving={!resultsPending()} />
-          </Show>
-          <Show when={response()}>
-            {(_searchResponse) => (
-              <div class="search-results-slot__content search-results-slot__reveal">
-                <Show when={!identitiesLate()}>{rewriteNote()}</Show>
-
-                <Show when={props.scope !== 'personal' ? response()?.sourceScope : undefined}>
-                  {(source) => (
-                    <SearchSourceNote scope={source()} onSearchEverywhere={searchEverywhere} />
-                  )}
+                <AppGlyph name="close" class="query-sheet__clear-icon" />
+              </button>
+            </Show>
+            <Show when={expanded()}>
+              <div class="query-actions">
+                <Show when={query().length > 16_000}>
+                  <strong class="query-character-count">
+                    {query().length.toLocaleString('ru-RU')} / 20 000
+                  </strong>
                 </Show>
-
-                <Show when={sourceListing().length > 0 ? props.core : undefined}>
-                  {(core) => (
-                    <DocumentLibrary
-                      core={core()}
-                      embedded
-                      hideGraphControl
-                      query=""
-                      documents={sourceListing()}
-                    />
-                  )}
-                </Show>
-
-                <Show when={interactionQuery()}>
-                  {(asked) => <InteractionSuggestionCard names={asked().names} />}
-                </Show>
-
-                <Show when={interactionQuery() ? undefined : comparisonQuery()}>
-                  {(asked) => <ComparisonSuggestionCard core={props.core} names={asked().names} />}
-                </Show>
-
-                <Show
-                  when={
-                    props.scope === 'all' &&
-                    response()?.descriptionRecommendations?.status === 'model-missing'
-                  }
+                <div
+                  class="query-buttons"
+                  classList={{ 'query-buttons--with-picker': modePicker.toArray().length > 0 }}
                 >
-                  <SemanticModelOffer onInstalled={() => void runSearch(query(), true)} />
-                </Show>
-
-                <Show when={interactionQuery() ? undefined : doseQuery()}>
-                  {(asked) => (
-                    <DoseCard
-                      core={props.core}
-                      query={asked()}
-                      onContentChanged={props.onContentChanged}
-                    />
-                  )}
-                </Show>
-
-                <Show when={interactionQuery() ? undefined : safetyQuery()}>
-                  {(asked) => (
-                    <MedicationSafetyCard
-                      core={props.core}
-                      query={asked()}
-                      onContentChanged={props.onContentChanged}
-                    />
-                  )}
-                </Show>
-
-                <Show when={requestedInlineCalculator() ? undefined : calculatorSuggestion()}>
-                  {(suggestion) => (
-                    <CalculatorSuggestionCard
-                      suggestion={suggestion()}
-                      schemas={calculatorSchemas()}
-                      onCalculate={showCalculatorInline}
-                    />
-                  )}
-                </Show>
-
-                <Show when={props.scope !== 'personal'}>
-                  <Show when={!identitiesLate()}>{drugClassCard()}</Show>
-                  <Show when={!identitiesLate()}>{identityCard()}</Show>
-                  <div class="results-list">
-                    <Show
-                      when={scopeFallback()}
-                      fallback={
-                        <>
-                          <Show when={resultSections().named.length > 0}>
-                            <ListGroup class="search-results-section">
-                              <For each={resultSections().named}>
-                                {(cluster) => clusterCard(cluster)}
-                              </For>
-                            </ListGroup>
-                          </Show>
-                          <Show when={resultSections().inText.length > 0}>
-                            <ListGroup
-                              class="search-results-section"
-                              heading={
-                                <span data-testid="search-results-in-text">
-                                  {foundInTextLabel()}
-                                </span>
+                  {modePicker()}
+                  <Popover
+                    open={toolPickerOpen()}
+                    onOpenChange={setToolPickerOpen}
+                    placement="bottom-start"
+                    gutter={8}
+                    flip={false}
+                    slide
+                    fitViewport
+                    overflowPadding={8}
+                  >
+                    <Popover.Anchor class="search-tool-picker" />
+                    <Popover.Portal>
+                      <Popover.Content
+                        class="search-tool-picker__menu"
+                        id="search-calculator-tools"
+                        role="listbox"
+                        aria-label="Калькуляторы"
+                        onOpenAutoFocus={(event) => event.preventDefault()}
+                        onFocusOutside={(event) => event.preventDefault()}
+                      >
+                        <p class="search-tool-picker__heading">Калькуляторы</p>
+                        <For each={toolSuggestions()}>
+                          {(definition, index) => (
+                            <button
+                              class="search-tool-picker__option"
+                              classList={{
+                                'search-tool-picker__option--active':
+                                  toolPickerActive() === index(),
+                              }}
+                              id={`search-calculator-tool-${index()}`}
+                              type="button"
+                              role="option"
+                              aria-selected={toolPickerActive() === index()}
+                              onMouseDown={(event) => event.preventDefault()}
+                              onMouseEnter={() => setToolPickerActive(index())}
+                              onClick={() =>
+                                definition.state === 'available' &&
+                                selectCalculatorTool(definition.slug)
                               }
                             >
-                              <For each={resultSections().inText}>
-                                {(cluster) => clusterCard(cluster, true)}
-                              </For>
-                            </ListGroup>
-                          </Show>
-                          <Show when={identitiesLate()}>
-                            {rewriteNote()}
-                            {drugClassCard()}
-                            {identityCard()}
-                          </Show>
-                          <Show when={resultSections().added.length > 0}>
-                            <ListGroup
-                              class="search-results-section"
-                              heading={<span data-testid="search-results-added">Ещё найдено</span>}
-                            >
-                              <For each={resultSections().added}>
-                                {(cluster) => clusterCard(cluster)}
-                              </For>
-                            </ListGroup>
-                          </Show>
-                        </>
-                      }
-                    >
-                      {(fallback) => (
-                        <SearchScopeFallbackList
-                          fallback={fallback()}
-                          selectedChunkId={context()?.focusChunkId}
-                          action={(group) => props.groupAction?.(group)}
-                          qualifier={(group) =>
-                            repeatedResultTitles(
-                              fallback().sections.flatMap((section) =>
-                                section.groups.map((entry) => entry.title),
-                              ),
-                            ).has(group.title)
-                              ? resultQualifier(contextDocumentsById().get(group.documentId))
-                              : undefined
-                          }
-                          onOpenDocument={openDocumentInArchive}
-                          onOpenSection={openFallbackSection}
+                              <AppGlyph class="search-tool-picker__option-icon" name="calculator" />
+                              <span class="search-tool-picker__option-copy">
+                                <strong class="search-tool-picker__option-title">
+                                  {definition.shortTitle}
+                                </strong>
+                                <span class="search-tool-picker__option-detail">
+                                  {definition.title}
+                                </span>
+                              </span>
+                            </button>
+                          )}
+                        </For>
+                        <Show when={toolSuggestions().length === 0}>
+                          <p class="search-tool-picker__empty">
+                            Установленный калькулятор не найден
+                          </p>
+                        </Show>
+                      </Popover.Content>
+                    </Popover.Portal>
+                  </Popover>
+                  <div class="search-submit-reveal visible">
+                    <div class="search-submit-reveal__content search-submit-reveal__content--visible">
+                      <button
+                        class="search-button"
+                        data-testid="search-submit"
+                        data-haptic="medium"
+                        type="submit"
+                        aria-label={submitBusy() ? 'Ищем…' : 'Найти'}
+                        title={submitBusy() ? 'Ищем…' : 'Найти (Enter)'}
+                        aria-busy={submitBusy()}
+                        disabled={loading() || props.searchAllowed === false}
+                      >
+                        <AppGlyph
+                          name={submitBusy() ? 'refresh' : 'arrow-up'}
+                          class={`search-button__icon${submitBusy() ? ' search-button__icon--spinning' : ''}`}
                         />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Show>
+            {props.fieldStatus}
+          </form>
+          <Show when={props.toolStrip}>
+            <div class="search-tool-strip">{props.toolStrip}</div>
+          </Show>
+          {/* The field leads the page; capabilities follow it and fold away once a search starts,
+            leaving results right under the field. The tool strip above stays. */}
+          <Show when={props.intro}>
+            <div
+              class="search-heading"
+              classList={{ 'search-heading--hidden': query().length > 0 || Boolean(response()) }}
+              inert={query().length > 0 || Boolean(response())}
+            >
+              {props.intro}
+            </div>
+          </Show>
+
+          <Show when={ambiguousMeanings().length > 0}>
+            <SearchMeaningChoices
+              meanings={ambiguousMeanings()}
+              documentsById={contextDocumentsById()}
+              onOpen={(documentId) => openDocumentInArchive(documentId)}
+            />
+          </Show>
+
+          {/* Holds the analysis row's place from the first keystroke, so the results slot below does
+            not drop when the analysis arrives. */}
+          <Show when={props.scope === 'diagnosis' && !activeAnalysis() && analysisLoading()}>
+            <section class="query-index query-index--content-sized" aria-hidden="true">
+              <div class="analysis-details query-index__details">
+                <div class="analysis-details__summary query-index__summary">
+                  <span class="query-index__summary-main">
+                    <span class="query-index__badge">Детали</span>
+                    <span class="query-index__text query-index__text--pending">
+                      Распознано 0 полей · показать детали
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </section>
+          </Show>
+
+          <Show when={props.scope === 'diagnosis' && activeAnalysis()}>
+            {(analysis) => (
+              <section class="query-index query-index--content-sized" aria-label="Разбор запроса">
+                <Show when={SHOW_SEARCH_SUGGESTIONS && analysis().suggestions.length > 0}>
+                  <div class="index-row query-index__suggestions">
+                    <div class="index-label query-index__label">
+                      <span class="index-label__title">Полезно уточнить</span>
+                      <small class="index-label__hint">не блокирует диагнозы</small>
+                    </div>
+                    <div class="scroll-strip">
+                      <div ref={setSuggestionStrip} class="suggestion-strip">
+                        <For each={analysis().suggestions}>
+                          {(suggestion) => (
+                            <button
+                              class="suggestion-strip__button"
+                              type="button"
+                              title={suggestion.detail}
+                              onClick={() => insertSuggestion(suggestion)}
+                            >
+                              <span class="suggestion-strip__marker">+</span> {suggestion.label}
+                            </button>
+                          )}
+                        </For>
+                      </div>
+                      <ScrollStripArrows target={suggestionStrip} label="подсказки" />
+                    </div>
+                  </div>
+                </Show>
+
+                <Show when={analysis().warnings.length > 0}>
+                  <div class="query-warning-list">
+                    <For each={analysis().warnings}>
+                      {(warning) => <p class="query-warning-list__item">{warning}</p>}
+                    </For>
+                  </div>
+                </Show>
+
+                <details class="analysis-details query-index__details">
+                  <summary class="analysis-details__summary query-index__summary">
+                    <span class="query-index__summary-main">
+                      <span class="query-index__badge">Детали</span>
+                      <span class="query-index__text">
+                        {analysisLoading()
+                          ? 'Обновляем разбор…'
+                          : `Распознано ${analysis().facts.length} ${pluralRu(
+                              analysis().facts.length,
+                              'поле',
+                              'поля',
+                              'полей',
+                            )} · показать детали`}
+                      </span>
+                    </span>
+                  </summary>
+                  <Show when={response()}>
+                    {(searchResponse) => (
+                      <div class="result-summary result-summary--analysis">
+                        <div class="result-summary__cell">
+                          <span class="result-summary__label">РЕЗУЛЬТАТЫ</span>
+                          <strong class="result-summary__value">
+                            {resultCount()}{' '}
+                            {pluralRu(resultCount(), 'фрагмент', 'фрагмента', 'фрагментов')}
+                          </strong>
+                        </div>
+                        <div class="result-summary__cell">
+                          <span class="result-summary__label">ДОКУМЕНТЫ</span>
+                          <strong class="result-summary__value">{visibleGroups().length}</strong>
+                        </div>
+                        <div class="result-summary__cell">
+                          <span class="result-summary__label">ВРЕМЯ</span>
+                          <strong class="result-summary__value">
+                            {searchResponse().elapsedMs.toFixed(1)} мс
+                          </strong>
+                        </div>
+                        <div class="result-summary__cell">
+                          <span class="result-summary__label">РЕЖИМ</span>
+                          <strong class="result-summary__value" data-testid="search-mode">
+                            {SEARCH_MODE_LABELS[searchResponse().modeUsed]}
+                          </strong>
+                        </div>
+                      </div>
+                    )}
+                  </Show>
+                  <div class="fact-strip">
+                    <Show when={analysis().intent}>
+                      {(intent) => (
+                        <span
+                          class="fact-tag query-mode-tag"
+                          title={`Уверенность ${Math.round(intent().confidence * 100)}%`}
+                        >
+                          <small class="fact-tag__label">режим поиска</small>
+                          {INTENT_LABELS[intent().primary]}
+                        </span>
                       )}
                     </Show>
+                    <For each={analysis().facts}>
+                      {(fact) => (
+                        <span
+                          class="fact-tag"
+                          classList={{
+                            'fact-tag--negative': fact.polarity === 'negative',
+                          }}
+                          title={fact.label}
+                        >
+                          <small class="fact-tag__label">{FACT_LABELS[fact.kind]}</small>
+                          {factDisplayValue(fact)}
+                        </span>
+                      )}
+                    </For>
+                    <Show when={analysis().facts.length === 0}>
+                      <span class="empty-index">Свободный текст сохранён без изменений.</span>
+                    </Show>
                   </div>
-                  <Show when={!scopeFallback() && titleExtras().length > 0}>
-                    <SearchTitleExtras
-                      documents={titleExtras()}
-                      onOpen={(documentId) => openDocumentInArchive(documentId)}
-                    />
-                  </Show>
-                </Show>
+                  <div class="branch-ledger">
+                    <span class="branch-ledger__label">Поисковые ветки</span>
+                    <For each={analysis().branches}>
+                      {(branch, index) => (
+                        <span class="branch-ticket">
+                          {String(index() + 1).padStart(2, '0')} · {branch.label}
+                        </span>
+                      )}
+                    </For>
+                  </div>
+                </details>
+              </section>
+            )}
+          </Show>
 
-                <Show
-                  when={
-                    !loading() &&
-                    visibleGroups().length === 0 &&
-                    retainedTitles().length === 0 &&
-                    !scopeFallback() &&
-                    !response()?.identities?.length &&
-                    !response()?.sourceScope &&
-                    props.scope !== 'personal'
-                      ? props.emptyResults
-                      : undefined
+          <Show when={inlineCalculatorDefinition()}>
+            {(calculator) => (
+              <section class="search-inline-calculator" aria-label="Калькулятор в поиске">
+                <header class="search-inline-calculator__header">
+                  <div class="search-inline-calculator__heading">
+                    <p class="search-inline-calculator__kicker">
+                      {explicitCalculator() ? 'Выбран через @' : 'Инструмент поиска'}
+                    </p>
+                    <h2 class="search-inline-calculator__title">{calculator().shortTitle}</h2>
+                    <p class="search-inline-calculator__summary">{calculator().summary}</p>
+                  </div>
+                  <Button
+                    class="search-inline-calculator__open-page"
+                    type="button"
+                    variant="secondary"
+                    onClick={() => openCalculatorPage(calculator().id, inlineCalculatorValues())}
+                  >
+                    Открыть отдельно
+                  </Button>
+                </header>
+                <Suspense
+                  fallback={
+                    <p class="search-inline-calculator__loading" role="status">
+                      Открываем калькулятор…
+                    </p>
                   }
                 >
-                  {(emptyResults) => emptyResults()(searchableQuery(query()))}
-                </Show>
+                  <SearchInlineCalculatorWorkspace
+                    definition={calculator()}
+                    initialValues={inlineCalculatorValues()}
+                  />
+                </Suspense>
+              </section>
+            )}
+          </Show>
 
-                <Show when={pendingResponse()}>
-                  {(pending) => (
-                    <div class="search-refresh-offer" role="status">
-                      <span class="search-refresh-offer__text">Есть новые результаты</span>
-                      <Button
-                        type="button"
-                        variant="primary"
-                        class="search-refresh-offer__button"
-                        data-testid="search-refresh-apply"
-                        icon={<AppGlyph name="refresh" class="search-refresh-offer__icon" />}
-                        onClick={() => {
-                          setResponse(pending());
-                          setPendingResponse(undefined);
-                        }}
-                      >
-                        Обновить
-                      </Button>
-                    </div>
-                  )}
+          <Show when={props.scope === 'diagnosis'}>
+            <ClinicalAnalysisNote
+              stage={clinicalStage({
+                analysing: analysisLoading(),
+                searching: loading(),
+                refreshing: refreshing(),
+              })}
+            />
+          </Show>
+
+          <Show
+            when={
+              SHOW_SEARCH_SUGGESTIONS &&
+              (props.showExamples ?? !props.catalog) &&
+              props.searchAllowed !== false &&
+              !response() &&
+              query().length === 0 &&
+              (props.examples ?? EXAMPLES_BY_SCOPE[props.scope]).length > 0
+            }
+          >
+            <SearchExamples
+              examples={props.examples ?? EXAMPLES_BY_SCOPE[props.scope]}
+              onSelect={(example) => {
+                updateQuery(example, false);
+                void runSearch(example, true);
+              }}
+            />
+          </Show>
+        </div>
+        <div class="search-workspace__results">
+          {props.catalog}
+
+          <PersonalNoteMatches query={searchableQuery(query())} scope={props.scope} />
+
+          <Show when={error() === SEARCH_QUERY_EMPTY_ERROR}>
+            {/* Markup around words («<img src=x onerror=…>») is text the search read and found nothing in. */}
+            <Show
+              when={/[\p{L}\p{N}]/u.test(query()) ? props.emptyResults : undefined}
+              fallback={
+                <QueryEmptyState message="Недостаточно данных для поиска. Уточните запрос." />
+              }
+            >
+              {(emptyResults) => emptyResults()(searchableQuery(query()))}
+            </Show>
+          </Show>
+          <Show when={error() !== SEARCH_QUERY_EMPTY_ERROR ? error() : undefined}>
+            {(message) => (
+              <div class="error-card search-error" role="alert" data-testid="search-error">
+                <span class="search-error__text">{message()}</span>
+                <Show when={isCoreReadFailure(message())}>
+                  <Button
+                    type="button"
+                    variant="icon"
+                    class="search-error__retry"
+                    data-testid="search-error-retry"
+                    aria-label="Повторить поиск"
+                    icon={<AppGlyph name="refresh" class="search-error__icon" />}
+                    onClick={() => void runSearch(query(), false, { apply: true })}
+                  />
                 </Show>
               </div>
             )}
           </Show>
-        </div>
 
-        <Show
-          when={
-            props.scope === 'guidelines' &&
-            titleQuery() &&
-            response() &&
-            !loading() &&
-            !refinePending() &&
-            !meaningPending()
-          }
-        >
-          <a
-            class="search-registry-link"
-            href={CLINICAL_REGISTRY_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            referrerPolicy="no-referrer"
+          <Show when={props.scope !== 'personal' && (response() || loading())}>
+            <SearchMoreBelow
+              pending={
+                (loading() && retainedTitles().length > 0) || refinePending() || meaningPending()
+              }
+              track={() => [response(), retainedTitles()]}
+            />
+          </Show>
+          <div
+            class="search-results-slot"
+            data-testid={props.scope !== 'personal' && response() ? 'search-results' : undefined}
           >
-            <AppGlyph name="arrow-square-out" class="search-registry-link__icon" />
-            Поиск в реестре Минздрава
-          </a>
-        </Show>
+            <Show when={retainedTitles().length > 0}>
+              <div class="search-results-slot__titles" data-testid="search-instant-titles">
+                <ListGroup class="search-results-section">
+                  <For each={retainedTitles()}>{titleCard}</For>
+                </ListGroup>
+              </div>
+            </Show>
+            <Show when={skeletonMounted() && retainedTitles().length === 0}>
+              <SearchResultsSkeleton leaving={!resultsPending()} />
+            </Show>
+            <Show when={response()}>
+              {(_searchResponse) => (
+                <div class="search-results-slot__content search-results-slot__reveal">
+                  <Show when={!identitiesLate()}>{rewriteNote()}</Show>
 
-        {props.catalogAfterResults}
+                  <Show when={props.scope !== 'personal' ? response()?.sourceScope : undefined}>
+                    {(source) => (
+                      <SearchSourceNote scope={source()} onSearchEverywhere={searchEverywhere} />
+                    )}
+                  </Show>
+
+                  <Show when={sourceListing().length > 0 ? props.core : undefined}>
+                    {(core) => (
+                      <DocumentLibrary
+                        core={core()}
+                        embedded
+                        hideGraphControl
+                        query=""
+                        documents={sourceListing()}
+                      />
+                    )}
+                  </Show>
+
+                  <Show when={interactionQuery()}>
+                    {(asked) => <InteractionSuggestionCard names={asked().names} />}
+                  </Show>
+
+                  <Show when={interactionQuery() ? undefined : comparisonQuery()}>
+                    {(asked) => (
+                      <ComparisonSuggestionCard core={props.core} names={asked().names} />
+                    )}
+                  </Show>
+
+                  <Show
+                    when={
+                      props.scope === 'all' &&
+                      response()?.descriptionRecommendations?.status === 'model-missing'
+                    }
+                  >
+                    <SemanticModelOffer onInstalled={() => void runSearch(query(), true)} />
+                  </Show>
+
+                  <Show when={interactionQuery() ? undefined : doseQuery()}>
+                    {(asked) => (
+                      <DoseCard
+                        core={props.core}
+                        query={asked()}
+                        onContentChanged={props.onContentChanged}
+                      />
+                    )}
+                  </Show>
+
+                  <Show when={interactionQuery() ? undefined : safetyQuery()}>
+                    {(asked) => (
+                      <MedicationSafetyCard
+                        core={props.core}
+                        query={asked()}
+                        onContentChanged={props.onContentChanged}
+                      />
+                    )}
+                  </Show>
+
+                  <Show when={requestedInlineCalculator() ? undefined : calculatorSuggestion()}>
+                    {(suggestion) => (
+                      <CalculatorSuggestionCard
+                        suggestion={suggestion()}
+                        schemas={calculatorSchemas()}
+                        onCalculate={showCalculatorInline}
+                      />
+                    )}
+                  </Show>
+
+                  <Show when={props.scope !== 'personal'}>
+                    <Show when={!identitiesLate()}>{drugClassCard()}</Show>
+                    <Show when={!identitiesLate()}>{identityCard()}</Show>
+                    <div class="results-list">
+                      <Show
+                        when={scopeFallback()}
+                        fallback={
+                          <>
+                            <Show when={resultSections().named.length > 0}>
+                              <ListGroup class="search-results-section">
+                                <For each={resultSections().named}>
+                                  {(cluster) => clusterCard(cluster)}
+                                </For>
+                              </ListGroup>
+                            </Show>
+                            <Show when={resultSections().inText.length > 0}>
+                              <ListGroup
+                                class="search-results-section"
+                                heading={
+                                  <span data-testid="search-results-in-text">
+                                    {foundInTextLabel()}
+                                  </span>
+                                }
+                              >
+                                <For each={resultSections().inText}>
+                                  {(cluster) => clusterCard(cluster, true)}
+                                </For>
+                              </ListGroup>
+                            </Show>
+                            <Show when={identitiesLate()}>
+                              {rewriteNote()}
+                              {drugClassCard()}
+                              {identityCard()}
+                            </Show>
+                            <Show when={resultSections().added.length > 0}>
+                              <ListGroup
+                                class="search-results-section"
+                                heading={
+                                  <span data-testid="search-results-added">Ещё найдено</span>
+                                }
+                              >
+                                <For each={resultSections().added}>
+                                  {(cluster) => clusterCard(cluster)}
+                                </For>
+                              </ListGroup>
+                            </Show>
+                          </>
+                        }
+                      >
+                        {(fallback) => (
+                          <SearchScopeFallbackList
+                            fallback={fallback()}
+                            selectedChunkId={context()?.focusChunkId}
+                            action={(group) => props.groupAction?.(group)}
+                            qualifier={(group) =>
+                              repeatedResultTitles(
+                                fallback().sections.flatMap((section) =>
+                                  section.groups.map((entry) => entry.title),
+                                ),
+                              ).has(group.title)
+                                ? resultQualifier(contextDocumentsById().get(group.documentId))
+                                : undefined
+                            }
+                            onOpenDocument={openDocumentInArchive}
+                            onOpenSection={openFallbackSection}
+                          />
+                        )}
+                      </Show>
+                    </div>
+                    <Show when={!scopeFallback() && titleExtras().length > 0}>
+                      <SearchTitleExtras
+                        documents={titleExtras()}
+                        onOpen={(documentId) => openDocumentInArchive(documentId)}
+                      />
+                    </Show>
+                  </Show>
+
+                  <Show
+                    when={
+                      !loading() &&
+                      visibleGroups().length === 0 &&
+                      retainedTitles().length === 0 &&
+                      !scopeFallback() &&
+                      !response()?.identities?.length &&
+                      !response()?.sourceScope &&
+                      props.scope !== 'personal'
+                        ? props.emptyResults
+                        : undefined
+                    }
+                  >
+                    {(emptyResults) => emptyResults()(searchableQuery(query()))}
+                  </Show>
+
+                  <Show when={pendingResponse()}>
+                    {(pending) => (
+                      <div class="search-refresh-offer" role="status">
+                        <span class="search-refresh-offer__text">Есть новые результаты</span>
+                        <Button
+                          type="button"
+                          variant="primary"
+                          class="search-refresh-offer__button"
+                          data-testid="search-refresh-apply"
+                          icon={<AppGlyph name="refresh" class="search-refresh-offer__icon" />}
+                          onClick={() => {
+                            setResponse(pending());
+                            setPendingResponse(undefined);
+                          }}
+                        >
+                          Обновить
+                        </Button>
+                      </div>
+                    )}
+                  </Show>
+                </div>
+              )}
+            </Show>
+          </div>
+
+          <Show
+            when={
+              props.scope === 'guidelines' &&
+              titleQuery() &&
+              response() &&
+              !loading() &&
+              !refinePending() &&
+              !meaningPending()
+            }
+          >
+            <a
+              class="search-registry-link"
+              href={CLINICAL_REGISTRY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              referrerPolicy="no-referrer"
+            >
+              <AppGlyph name="arrow-square-out" class="search-registry-link__icon" />
+              Поиск в реестре Минздрава
+            </a>
+          </Show>
+
+          {props.catalogAfterResults}
+        </div>
       </div>
 
       <Show when={context()}>

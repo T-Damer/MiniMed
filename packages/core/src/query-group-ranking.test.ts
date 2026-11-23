@@ -899,6 +899,73 @@ describe('collapseGroupsByTargetDocument', () => {
       expect(collapseGroupsByTargetDocument(groups, documentsById)).toEqual(groups);
     });
   });
+
+  describe('duplicate trade-name medication cards', () => {
+    const documentsById = new Map([
+      [
+        'drug.allmed.akineton-stub',
+        {
+          id: 'drug.allmed.akineton-stub',
+          sourceType: 'allmed_reference',
+          metadata: { linkedMnnDocumentId: 'esklp.mnn.бипериден', incomplete: true },
+        },
+      ],
+      [
+        'drug.allmed.akineton-2',
+        {
+          id: 'drug.allmed.akineton-2',
+          sourceType: 'allmed_reference',
+          metadata: { linkedMnnDocumentId: 'esklp.mnn.бипериден' },
+        },
+      ],
+      [
+        'grls.instruction.akineton',
+        {
+          id: 'grls.instruction.akineton',
+          sourceType: 'official_drug_instruction',
+          metadata: { linkedMnnDocumentId: 'esklp.mnn.бипериден' },
+        },
+      ],
+      [
+        'esklp.mnn.бипериден',
+        {
+          id: 'esklp.mnn.бипериден',
+          sourceType: 'official_registry_summary',
+          metadata: {},
+        },
+      ],
+    ]);
+
+    it('collapses trademark and dosage-form variants («Акинетон», «Акинетон®») and prefers the complete instruction', () => {
+      const groups = [
+        group('drug.allmed.akineton-stub', 'Акинетон®', 4, [
+          result('drug.allmed.akineton-stub', 'Акинетон®', 'Краткая запись.'),
+        ]),
+        group('drug.allmed.akineton-2', 'Акинетон (таблетки)', 3.5, [
+          result(
+            'drug.allmed.akineton-2',
+            'Акинетон (таблетки)',
+            'Бипериден, антихолинергическое средство центрального действия для лечения паркинсонизма.',
+          ),
+        ]),
+        group('grls.instruction.akineton', 'Акинетон', 3.2, [
+          result(
+            'grls.instruction.akineton',
+            'Акинетон',
+            'Показания к применению: болезнь Паркинсона, экстрапирамидные симптомы.',
+          ),
+        ]),
+        group('esklp.mnn.бипериден', 'БИПЕРИДЕН', 2.8),
+      ];
+
+      const collapsed = collapseGroupsByTargetDocument(groups, documentsById);
+
+      expect(collapsed.map((entry) => entry.documentId)).toEqual([
+        'grls.instruction.akineton',
+        'esklp.mnn.бипериден',
+      ]);
+    });
+  });
 });
 
 it('ranks a verbatim source phrase above documents matching individual words in their titles', () => {

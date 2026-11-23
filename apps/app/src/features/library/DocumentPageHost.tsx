@@ -23,7 +23,10 @@ import {
   displayDocumentTitle,
   resolveReadableDocumentId,
 } from '@/features/library/document-display';
-import { shouldReloadOfficialDocument } from '@/features/library/document-page-load';
+import {
+  isSameDocumentReadRoute,
+  shouldReloadOfficialDocument,
+} from '@/features/library/document-page-load';
 import {
   type DocumentNavigateOptions,
   documentReaderBackTarget,
@@ -64,6 +67,8 @@ import {
 } from '@/features/medications/instruction-offer';
 import {
   consumeMedicationProductContext,
+  hasQueuedMedicationProduct,
+  isSameMedicationProduct,
   medicationProductFromHistory,
   rememberMedicationProduct,
 } from '@/features/medications/medication-navigation';
@@ -105,6 +110,8 @@ import {
   peekContentModuleRuntime,
 } from '@/features/modules/module-runtime-service';
 import { canStepBack } from '@/state/app-back';
+import { getClinicalTabsEnabled } from '@/state/app-preferences';
+import { updateClinicalTabMeta } from '@/state/clinical-tabs';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { canonicalDocumentId, isSameDocumentIdentity } from '@/state/document-identity';
 import {
@@ -493,6 +500,21 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       queuedMedicationProduct ??
       medicationProductFromHistory(window.history.state, documentId) ??
       undefined;
+    const sameDocumentAndIdentity =
+      !shouldReloadOfficialDocument(
+        loadedOfficialRequestId ?? document()?.id,
+        documentId,
+        loadingDocumentId,
+      ) &&
+      !queuedMedicationProduct &&
+      requestedIdentityKey === identityKey;
+    const productChanged = !isSameMedicationProduct(medicationProduct(), selectedMedicationProduct);
+    setInitialAnchor(parsed.section ?? null);
+
+    if (sameDocumentAndIdentity && !productChanged) {
+      return;
+    }
+
     readingModeChosen = false;
     setMedicationProduct(selectedMedicationProduct);
     setMedicationReadingMode(
@@ -505,17 +527,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       substanceInstructionGeneration += 1;
       setSubstanceInstruction(undefined);
     }
-    setInitialAnchor(parsed.section ?? null);
 
-    if (
-      !shouldReloadOfficialDocument(
-        loadedOfficialRequestId ?? document()?.id,
-        documentId,
-        loadingDocumentId,
-      ) &&
-      !queuedMedicationProduct &&
-      requestedIdentityKey === identityKey
-    ) {
+    if (sameDocumentAndIdentity) {
       return;
     }
 
@@ -562,6 +575,9 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       const first = document() === undefined;
       setDocument(value);
       setPendingTitle(undefined);
+      if (getClinicalTabsEnabled()) {
+        updateClinicalTabMeta('official', value.id, { title: displayDocumentTitle(value) });
+      }
       if (first) {
         performance.mark('minimed:reader:text');
         perfMark('reader.text', { sections: value.sections.length });
@@ -1430,6 +1446,19 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     migrateLegacyOverlaySearch();
     const parsed = parseDocumentReadRoute(window.location.hash);
     const shown = route();
+    // Dismissing an OverlayDialog or SheetPopover pops a history layer on the exact same document
+    // hash: skip redundant signal writes, trail churn and reader reloads when nothing changed.
+    if (parsed && shown && isSameDocumentReadRoute(shown, parsed)) {
+      if (parsed.kind === 'user') return;
+      const historyProduct =
+        medicationProductFromHistory(window.history.state, parsed.documentId) ?? undefined;
+      if (
+        !hasQueuedMedicationProduct(parsed.documentId) &&
+        isSameMedicationProduct(medicationProduct(), historyProduct)
+      ) {
+        return;
+      }
+    }
     if (parsed && (shown?.kind !== parsed.kind || shown.documentId !== parsed.documentId)) {
       // Another document starts at its top: the page keeps the scroll of the one before it, which
       // the short page of a loading document clamps to a few pixels below its title row. A
@@ -1529,6 +1558,9 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
                 {...(trail() ? { trail: trail() } : {})}
                 onNavigate={navigateTrail}
                 onTitle={(title) => {
+                  if (getClinicalTabsEnabled()) {
+                    updateClinicalTabMeta('user', documentId, { title });
+                  }
                   const currentTrail = trail();
                   if (!currentTrail) return;
                   setTrail(updateCurrentCrumbTitle(currentTrail, title));

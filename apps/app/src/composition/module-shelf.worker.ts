@@ -33,6 +33,30 @@ const stores = new Map<string, SqliteMedicalStore>();
 /** Imports and sweeps change the pool's file table; one at a time. */
 let writeQueue: Promise<unknown> = Promise.resolve();
 
+/** Max rows per streamed `batchPart` message so large listings never freeze `Worker.onmessage`. */
+const SHELF_RESULT_PAGE_ROWS = 512;
+
+function yieldTask(): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 0);
+  });
+}
+
+async function streamBatchValue(
+  id: number,
+  index: number,
+  rows: readonly unknown[],
+): Promise<readonly unknown[]> {
+  for (let start = 0; start < rows.length; start += SHELF_RESULT_PAGE_ROWS) {
+    reply({
+      id,
+      batchPart: { index, rows: rows.slice(start, start + SHELF_RESULT_PAGE_ROWS) },
+    });
+    if (start + SHELF_RESULT_PAGE_ROWS < rows.length) await yieldTask();
+  }
+  return [];
+}
+
 function reply(response: ShelfResponse): void {
   self.postMessage(response);
 }
@@ -169,9 +193,16 @@ async function handle(message: ShelfRequest): Promise<unknown> {
       return { openFiles: stores.size, heapBytes: await sqliteWasmHeapBytes() };
     case 'batch': {
       const outcomes: ShelfCallOutcome[] = [];
-      for (const call of message.calls) {
+      for (let index = 0; index < message.calls.length; index += 1) {
+        const call = message.calls[index];
+        if (!call) continue;
         try {
-          outcomes.push({ value: await callStore(call) });
+          const value = await callStore(call);
+          if (Array.isArray(value) && value.length > SHELF_RESULT_PAGE_ROWS) {
+            outcomes.push({ value: await streamBatchValue(message.id, index, value) });
+          } else {
+            outcomes.push({ value });
+          }
         } catch (cause) {
           outcomes.push({
             error: cause instanceof Error ? cause.message : 'The module store call failed.',

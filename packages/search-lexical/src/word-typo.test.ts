@@ -163,4 +163,16 @@ describe('real misspellings (roadmap item 24)', () => {
       cost: 0.5,
     });
   });
+
+  it('treats mobile near-key «о» ↔ «щ» slips as half an edit', () => {
+    const mobileNames = buildNameVocabulary(['акинетон', 'амоксициллин', 'рисперидон']);
+    expect(correctWord('акинетщн', mobileNames)).toMatchObject({
+      corrected: 'акинетон',
+      cost: 0.5,
+    });
+    expect(correctWord('рисперидщн', mobileNames)).toMatchObject({
+      corrected: 'рисперидон',
+      cost: 0.5,
+    });
+  });
 });
