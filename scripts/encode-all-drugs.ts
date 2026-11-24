@@ -30,7 +30,7 @@ import {
 } from 'node:fs';
 import { basename, join, relative } from 'node:path';
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 type ServerMode = 'atomic' | 'batched';
 
@@ -61,7 +61,7 @@ function parseArgs(argv: readonly string[]): CliOptions {
   let draftMax = Number(process.env['INKLING_DRAFT_MAX'] ?? '6');
   let limit: number | null = null;
   let onlyIds: string[] | null = null;
-  let maxChars = Number(process.env['INKLING_MAX_CHARS'] ?? '4600');
+  let maxChars = Number(process.env['INKLING_MAX_CHARS'] ?? '4500');
   let maxTokens = Number(process.env['INKLING_MAX_TOKENS'] ?? '1950');
   let includeAllmed = true;
   let manageServer = true;
@@ -89,7 +89,7 @@ function parseArgs(argv: readonly string[]): CliOptions {
     else if (arg === '--max-tokens' && argv[i + 1]) maxTokens = Number(argv[++i]);
     else if (arg === '--skip-allmed') includeAllmed = false;
     else if (arg === '--no-manage-server') manageServer = false;
-    else if (arg === '--upgrade-v1') upgradeV1 = true;
+    else if (arg === '--upgrade-v1' || arg === '--upgrade-old') upgradeV1 = true;
   }
 
   return {
@@ -289,16 +289,21 @@ function discoverDrugCorpus(includeAllmed: boolean): DrugDocEntry[] {
 }
 
 /**
- * Schema v2 hybrid typed drug properties schema:
- * - Compact `regimens[]` (15 tight fields, max 6) stays fast (~450–700 completion tokens) and avoids
- *   GBNF optional-key bloat while adding `state` (mild/moderate/severe/critical/acute/rehab/...)
- *   and `interval_h` plus `neonate` pop and `amp`/`vial` units.
- * - Rare/rich structures live in dedicated top-level arrays (`iv_protocols[]`, `stages[]`,
- *   `pd_targets[]`, `incompat_iv[]`, `doc_flaws[]`) that emit `[]` (2 tokens) for simple oral drugs,
- *   while capturing Cytoflavin-style IV dilution/rate/duration tables, staged step-down ladders,
- *   receptor targets/zones, and source document flaws.
+ * Schema v3 Two-Pass extraction:
+ * - Pass 1 (`PASS1_DOSING_SCHEMA`): identity, strengths, indications, regimens (by clinical
+ *   state/severity + adult/child/neonate/elderly + interval_h), IV dilution/infusion tables
+ *   (`iv_protocols[]`), stepped therapy ladders (`stages[]`), food/missed_dose/taper/storage/shelf.
+ * - Pass 2 (`PASS2_SAFETY_SCHEMA`): special populations (children min_age/max_age/min_kg,
+ *   elderly adjustment + age cutoff, pregnancy + exact avoided trimesters, lactation, renal eGFR
+ *   cutoffs, hepatic Child-Pugh cutoff), alcohol/driving, contraindications (hard AVOID),
+ *   caution_in («С осторожностью» — special conditions), avoid_with, incompat_iv, monitoring,
+ *   common_adverse, red_flags (stop immediately), overdose_antidote, PK (t½/Tmax/BBB/CYP), and
+ *   PD targets/effects.
+ *
+ * Splitting into two focused passes prevents section truncation inside the 4,096-token budget,
+ * eliminates `finish_reason: "limit"`, and captures the full clinical & patient-handout dataset.
  */
-const DRUG_SPARSE_SCHEMA = {
+const PASS1_DOSING_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   required: [
@@ -310,24 +315,14 @@ const DRUG_SPARSE_SCHEMA = {
     'food',
     'rx',
     'strengths',
-    'min_age_y',
-    'max_age_y',
-    'pregnancy',
-    'lactation',
-    'driving',
-    'renal_adj',
-    'hepatic_adj',
     'storage_max_c',
-    'pk',
-    'pd_targets',
+    'shelf_open_d',
+    'missed_dose',
+    'taper',
+    'indications',
     'regimens',
     'iv_protocols',
     'stages',
-    'indications',
-    'contraindications',
-    'avoid_with',
-    'incompat_iv',
-    'monitoring',
     'doc_flaws',
   ],
   properties: {
@@ -385,72 +380,14 @@ const DRUG_SPARSE_SCHEMA = {
         },
       },
     },
-    min_age_y: { type: ['number', 'null'] },
-    max_age_y: { type: ['number', 'null'] },
-    pregnancy: {
-      type: ['string', 'null'],
-      enum: ['allowed', 'caution', 'trimester_restricted', 'contraindicated', null],
-    },
-    lactation: {
-      type: ['string', 'null'],
-      enum: ['allowed', 'caution', 'contraindicated', null],
-    },
-    driving: {
-      type: ['string', 'null'],
-      enum: ['none', 'caution', 'avoid', null],
-    },
-    renal_adj: {
-      type: ['string', 'null'],
-      enum: ['none', 'reduce', 'contraindicated', null],
-    },
-    hepatic_adj: {
-      type: ['string', 'null'],
-      enum: ['none', 'reduce', 'contraindicated', null],
-    },
     storage_max_c: { type: ['number', 'null'] },
-    pk: {
-      type: ['object', 'null'],
-      additionalProperties: false,
-      properties: {
-        t_half_min_h: { type: 'number' },
-        t_half_max_h: { type: 'number' },
-        tmax_min_h: { type: 'number' },
-        tmax_max_h: { type: 'number' },
-        bioavail_pct: { type: 'number' },
-        protein_bind_pct: { type: 'number' },
-        renal_excr_pct: { type: 'number' },
-        bbb: { type: 'string', enum: ['high', 'moderate', 'low', 'minimal'] },
-        cyp: { type: 'array', maxItems: 5, items: { type: 'string', maxLength: 16 } },
-        cyp_inh: { type: 'array', maxItems: 4, items: { type: 'string', maxLength: 16 } },
-        cyp_ind: { type: 'array', maxItems: 4, items: { type: 'string', maxLength: 16 } },
-        active_metabolite: { type: 'boolean' },
-      },
+    shelf_open_d: { type: ['number', 'null'] },
+    missed_dose: {
+      type: ['string', 'null'],
+      enum: ['skip', 'take_soon', 'ask_doctor', null],
     },
-    pd_targets: {
-      type: 'array',
-      maxItems: 5,
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        required: ['target', 'action', 'zone'],
-        properties: {
-          target: { type: 'string', maxLength: 36 },
-          action: {
-            type: 'string',
-            enum: [
-              'antagonist',
-              'agonist',
-              'partial_agonist',
-              'inhibitor',
-              'modulator',
-              'blocker',
-              'other',
-            ],
-          },
-          zone: { type: ['string', 'null'], maxLength: 48 },
-        },
-      },
-    },
+    taper: { type: ['boolean', 'null'] },
+    indications: { type: 'array', maxItems: 6, items: { type: 'string', maxLength: 60 } },
     regimens: {
       type: 'array',
       maxItems: 6,
@@ -475,7 +412,7 @@ const DRUG_SPARSE_SCHEMA = {
           'dur_max_d',
         ],
         properties: {
-          ind: { type: 'string', maxLength: 60 },
+          ind: { type: 'string', maxLength: 56 },
           state: {
             type: ['string', 'null'],
             enum: [
@@ -589,14 +526,9 @@ const DRUG_SPARSE_SCHEMA = {
         },
       },
     },
-    indications: { type: 'array', maxItems: 6, items: { type: 'string', maxLength: 64 } },
-    contraindications: { type: 'array', maxItems: 6, items: { type: 'string', maxLength: 64 } },
-    avoid_with: { type: 'array', maxItems: 6, items: { type: 'string', maxLength: 64 } },
-    incompat_iv: { type: 'array', maxItems: 4, items: { type: 'string', maxLength: 48 } },
-    monitoring: { type: 'array', maxItems: 4, items: { type: 'string', maxLength: 56 } },
     doc_flaws: {
       type: 'array',
-      maxItems: 3,
+      maxItems: 2,
       items: {
         type: 'object',
         additionalProperties: false,
@@ -614,24 +546,207 @@ const DRUG_SPARSE_SCHEMA = {
               'other',
             ],
           },
-          where: { type: 'string', maxLength: 40 },
-          note: { type: 'string', maxLength: 72 },
+          where: { type: 'string', maxLength: 36 },
+          note: { type: 'string', maxLength: 64 },
         },
       },
     },
   },
 } as const;
 
-const SYSTEM_PROMPT =
-  'Ты экстрактор строго типизированных свойств лекарств. Выводи КОМПАКТНЫЙ JSON в одну строку без переносов и отступов. Извлекай ТОЛЬКО факты, явно указанные в тексте; ничего не выдумывай. Для отсутствующих значений ставь null или [].\n' +
-  'Правила: atc = код АТХ; rx = true/false; strengths = ТОЛЬКО дозировка выпуска; pk = null если нет раздела Фармакокинетика (bbb указывай ТОЛЬКО если в тексте прямо упомянут ГЭБ); pd_targets = [] если в тексте не названы конкретные рецепторы/мишени.\n' +
-  'regimens = до 6 ключевых схем: d_min/d_max = доза в единицах u (напр. 10-20 мл -> d_min:10, d_max:20, u:"ml"); max_day = ТОЛЬКО макс. суточная доза (НЕ число дней курса!); dur_min_d/dur_max_d = длительность курса в днях; interval_h = интервал в часах (НЕ пиши часы в interval_d!); interval_d = интервал в днях (напр. раз в 7 дней); state = тяжесть/период (mild/moderate/severe/critical/acute/rehab/maintenance/prophylaxis/perioperative) если указана, иначе null; pop:"neonate" для новорождённых.\n' +
-  'iv_protocols = до 3 схем разведения/инфузии ТОЛЬКО для в/в препаратов (растворитель, объём мл, скорость, длительность мин, drip/pump/bolus, от чего зависит скорость); для не-в/в препаратов ставь []. stages = ТОЛЬКО при ступенчатой терапии (в/в -> таблетки или повторный курс); иначе []. incompat_iv = несовместимые в растворе препараты, иначе [].\n' +
-  'doc_flaws = ТОЛЬКО реальные дефекты исходного документа (битый OCR с искажёнными буквами, сломанная таблица, перепутанные заголовки, противоречивые дозы); неполный конец фрагмента — НЕ дефект, ставь []. Все строки пиши коротко (2–5 слов).';
+const PASS2_SAFETY_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: [
+    'min_age_y',
+    'max_age_y',
+    'child_min_kg',
+    'elderly',
+    'elderly_age_y',
+    'pregnancy',
+    'preg_avoid_tri',
+    'lactation',
+    'renal_adj',
+    'renal_red_egfr',
+    'renal_contra_egfr',
+    'hepatic_adj',
+    'hepatic_cp_contra',
+    'alcohol',
+    'driving',
+    'contraindications',
+    'caution_in',
+    'avoid_with',
+    'incompat_iv',
+    'monitoring',
+    'common_adverse',
+    'red_flags',
+    'overdose_antidote',
+    'pk',
+    'pd_targets',
+    'pd_effects',
+    'doc_flaws',
+  ],
+  properties: {
+    min_age_y: { type: ['number', 'null'] },
+    max_age_y: { type: ['number', 'null'] },
+    child_min_kg: { type: ['number', 'null'] },
+    elderly: {
+      type: ['string', 'null'],
+      enum: ['normal', 'reduce', 'caution', 'avoid', null],
+    },
+    elderly_age_y: { type: ['number', 'null'] },
+    pregnancy: {
+      type: ['string', 'null'],
+      enum: ['allowed', 'caution', 'trimester_restricted', 'contraindicated', null],
+    },
+    preg_avoid_tri: {
+      type: 'array',
+      maxItems: 3,
+      items: { type: 'integer', enum: [1, 2, 3] },
+    },
+    lactation: {
+      type: ['string', 'null'],
+      enum: ['allowed', 'caution', 'contraindicated', null],
+    },
+    renal_adj: {
+      type: ['string', 'null'],
+      enum: ['none', 'reduce', 'contraindicated', null],
+    },
+    renal_red_egfr: { type: ['number', 'null'] },
+    renal_contra_egfr: { type: ['number', 'null'] },
+    hepatic_adj: {
+      type: ['string', 'null'],
+      enum: ['none', 'reduce', 'contraindicated', null],
+    },
+    hepatic_cp_contra: {
+      type: ['string', 'null'],
+      enum: ['A', 'B', 'C', null],
+    },
+    alcohol: {
+      type: ['string', 'null'],
+      enum: ['allowed', 'caution', 'avoid', null],
+    },
+    driving: {
+      type: ['string', 'null'],
+      enum: ['none', 'caution', 'avoid', null],
+    },
+    contraindications: { type: 'array', maxItems: 6, items: { type: 'string', maxLength: 56 } },
+    caution_in: { type: 'array', maxItems: 6, items: { type: 'string', maxLength: 56 } },
+    avoid_with: { type: 'array', maxItems: 6, items: { type: 'string', maxLength: 56 } },
+    incompat_iv: { type: 'array', maxItems: 4, items: { type: 'string', maxLength: 48 } },
+    monitoring: { type: 'array', maxItems: 4, items: { type: 'string', maxLength: 52 } },
+    common_adverse: { type: 'array', maxItems: 5, items: { type: 'string', maxLength: 44 } },
+    red_flags: { type: 'array', maxItems: 4, items: { type: 'string', maxLength: 48 } },
+    overdose_antidote: { type: ['string', 'null'], maxLength: 48 },
+    pk: {
+      type: ['object', 'null'],
+      additionalProperties: false,
+      properties: {
+        t_half_min_h: { type: 'number' },
+        t_half_max_h: { type: 'number' },
+        tmax_min_h: { type: 'number' },
+        tmax_max_h: { type: 'number' },
+        bioavail_pct: { type: 'number' },
+        protein_bind_pct: { type: 'number' },
+        renal_excr_pct: { type: 'number' },
+        bbb: { type: 'string', enum: ['high', 'moderate', 'low', 'minimal'] },
+        cyp: { type: 'array', maxItems: 5, items: { type: 'string', maxLength: 16 } },
+        cyp_inh: { type: 'array', maxItems: 4, items: { type: 'string', maxLength: 16 } },
+        cyp_ind: { type: 'array', maxItems: 4, items: { type: 'string', maxLength: 16 } },
+        active_metabolite: { type: 'boolean' },
+      },
+    },
+    pd_targets: {
+      type: 'array',
+      maxItems: 5,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['target', 'action', 'zone'],
+        properties: {
+          target: { type: 'string', maxLength: 36 },
+          action: {
+            type: 'string',
+            enum: [
+              'antagonist',
+              'agonist',
+              'partial_agonist',
+              'inhibitor',
+              'modulator',
+              'blocker',
+              'other',
+            ],
+          },
+          zone: { type: ['string', 'null'], maxLength: 44 },
+        },
+      },
+    },
+    pd_effects: { type: 'array', maxItems: 4, items: { type: 'string', maxLength: 36 } },
+    doc_flaws: {
+      type: 'array',
+      maxItems: 2,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['kind', 'where', 'note'],
+        properties: {
+          kind: {
+            type: 'string',
+            enum: [
+              'ocr_garbled',
+              'broken_table',
+              'bad_headers',
+              'contradictory',
+              'wrong_encoding',
+              'other',
+            ],
+          },
+          where: { type: 'string', maxLength: 36 },
+          note: { type: 'string', maxLength: 64 },
+        },
+      },
+    },
+  },
+} as const;
 
-function prepareDrugExcerpt(
+const PASS1_SYSTEM_PROMPT =
+  'Ты экстрактор дозировок и схем применения лекарств. Выводи КОМПАКТНЫЙ JSON в одну строку. Извлекай ТОЛЬКО факты из текста; отсутствующие значения -> null или [].\n' +
+  'Правила: atc = код АТХ; rx = true/false; strengths = ТОЛЬКО дозировка выпуска; shelf_open_d = срок годности после вскрытия в днях (если указан); missed_dose = что делать при пропуске дозы (skip/take_soon/ask_doctor); taper = true если нужна постепенная отмена.\n' +
+  'regimens = до 6 ключевых схем: d_min/d_max = доза в единицах u (напр. 10-20 мл -> d_min:10, d_max:20, u:"ml"); max_day = ТОЛЬКО макс. суточная доза (НЕ дни курса!); dur_min_d/dur_max_d = длительность в днях; interval_h = интервал в часах (НЕ пиши часы в interval_d!); state = тяжесть/период (mild/moderate/severe/critical/acute/rehab/maintenance/prophylaxis/perioperative); pop:"neonate" для новорождённых.\n' +
+  'iv_protocols = до 3 схем разведения/инфузии ТОЛЬКО для в/в препаратов (иначе []). stages = ТОЛЬКО при ступенчатой терапии в/в->таблетки или повторном курсе (иначе []). doc_flaws = ТОЛЬКО реальный брак текста (битый OCR, сломанная таблица, противоречивые цифры); иначе [].';
+
+const PASS2_SYSTEM_PROMPT =
+  'Ты экстрактор безопасности, особых групп, побочных эффектов и ФК/ФД лекарств. Выводи КОМПАКТНЫЙ JSON в одну строку. Извлекай ТОЛЬКО факты из текста; отсутствующие -> null или [].\n' +
+  'Особые группы: min_age_y (0 для новорождённых, 18 если противопоказан детям), child_min_kg (мин. масса ребёнка в кг если указана), elderly (normal/reduce/caution/avoid) + elderly_age_y (60/65/75), pregnancy + preg_avoid_tri (массив запрещённых триместров [1],[2],[3] если ограничено по триместрам, иначе []), lactation.\n' +
+  'Почки/печень: renal_adj + renal_red_egfr (порог СКФ/КК снижения дозы) + renal_contra_egfr (порог противопоказания, напр. 30 или 60); hepatic_adj + hepatic_cp_contra ("A"/"B"/"C" по Чайлд-Пью если указано).\n' +
+  'Безопасность: contraindications = жёсткие противопоказания; caution_in = «С осторожностью» / особые состояния (подагра, диабет, ХСН, эпилепсия, ЯБЖ и др.); avoid_with = нежелательные комбинации; incompat_iv = несовместимость в растворе; monitoring = что контролировать; common_adverse = частые побочные; red_flags = симптомы немедленной отмены (анафилаксия, отёк Квинке, сыпь/ССД, агранулоцитоз); overdose_antidote = специфический антидот если назван.\n' +
+  'ФК/ФД: pk = null если нет Фармакокинетики (bbb только при явном упоминании ГЭБ); pd_targets = конкретные рецепторы/мишени с зоной действия (иначе []); pd_effects = 1–4 коротких эффекта (седативный, гипотензивный и т.п.). doc_flaws = ТОЛЬКО реальный брак OCR/таблиц/заголовков; иначе [].';
+
+interface ExcerptSlot {
+  readonly name: string;
+  readonly headingPattern: RegExp;
+  readonly inlinePattern: RegExp;
+  readonly stopPattern?: RegExp;
+  readonly cap: number;
+  readonly skipIfCaptured?: string;
+}
+
+function trimToSentence(text: string, maxLen: number): string {
+  if (text.length <= maxLen) return text.trim();
+  const cut = text.slice(0, maxLen);
+  const lastPeriod = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('.\n'), cut.lastIndexOf('; '));
+  if (lastPeriod > maxLen * 0.55) {
+    return cut.slice(0, lastPeriod + 1).trim();
+  }
+  const lastSpace = cut.lastIndexOf(' ');
+  return (lastSpace > maxLen * 0.7 ? cut.slice(0, lastSpace) : cut).trim();
+}
+
+function extractSectionsBySlots(
   raw: string,
+  slots: readonly ExcerptSlot[],
   maxChars: number,
+  extras: readonly { readonly tag: string; readonly regex: RegExp }[],
 ): { excerpt: string; sectionsUsed: string[] } {
   const fmMatch = /^---\n([\s\S]*?)\n---\s*/u.exec(raw);
   const fmLines = fmMatch?.[1]
@@ -657,7 +772,7 @@ function prepareDrugExcerpt(
   const headings = [...body.matchAll(/^#{1,3} .+$/gmu)];
   if (headings.length === 0) {
     const combined = fmLines ? `${fmLines}\n\n${body}` : body;
-    return { excerpt: combined.slice(0, maxChars), sectionsUsed: ['head'] };
+    return { excerpt: trimToSentence(combined, maxChars), sectionsUsed: ['head'] };
   }
 
   const sections = headings.map((m, idx) => {
@@ -665,104 +780,6 @@ function prepareDrugExcerpt(
     const end = headings[idx + 1]?.index ?? body.length;
     return { heading: m[0], text: body.slice(start, end).trim() };
   });
-
-  // High-signal clinical section slots: matches structured headings when the PDF has >2 headings,
-  // and always falls back to inline regex extraction for flat-heading GRLS PDFs (e.g. 1 heading).
-  // IMPORTANT: On EAEU patient leaflets (Листок-вкладыш), `# 3. Применение препарата` often says
-  // only «Лечащий врач подберёт дозу», while the real doctor dosing table sits at the bottom under
-  // `## Режим дозирования` («Следующие сведения предназначены исключительно для медицинских
-  // работников»). Putting `dosing_clinical` BEFORE `dosing_patient` guarantees we capture real doses.
-  const slots: readonly {
-    readonly name: string;
-    readonly headingPattern: RegExp;
-    readonly inlinePattern: RegExp;
-    readonly stopPattern?: RegExp;
-    readonly cap: number;
-    readonly skipIfCaptured?: string;
-  }[] = [
-    {
-      name: 'composition',
-      headingPattern:
-        /общая информация|карточка препарата|состав|лекарственная форма|инструкция|торговое наименование/iu,
-      inlinePattern: /(?:Торговое наименование|Состав|Лекарственная форма)/iu,
-      stopPattern: /Фармакодинамика|Показания к применению|Перед приемом препарата/iu,
-      cap: 520,
-    },
-    {
-      name: 'dosing',
-      headingPattern: /режим дозирования|способ применения и дозы/iu,
-      inlinePattern: /(?:Режим дозирования|Способ применения и дозы)/iu,
-      stopPattern: /Побочное действие|Нежелательные реакции|Передозировка/iu,
-      cap: 2400,
-    },
-    {
-      name: 'dosing_leaflet',
-      headingPattern: /при[её]м препарата|применение препарата/iu,
-      inlinePattern: /(?:3\.\s*При[её]м препарата|3\.\s*Применение препарата|Рекомендуемая доза)/iu,
-      stopPattern: /Побочное действие|Возможные нежелательные реакции|Передозировка/iu,
-      cap: 1600,
-      skipIfCaptured: 'dosing',
-    },
-    {
-      name: 'indications',
-      headingPattern: /показания|что из себя представляет/iu,
-      inlinePattern: /Показания к применению/iu,
-      stopPattern: /Противопоказания/iu,
-      cap: 460,
-    },
-    {
-      name: 'contraindications',
-      headingPattern: /противопоказания/iu,
-      inlinePattern: /Противопоказания/iu,
-      stopPattern:
-        /С осторожностью|Применение при беременности|Особые указания|Способ применения/iu,
-      cap: 600,
-    },
-    {
-      name: 'pregnancy',
-      headingPattern:
-        /беременность|грудное вскармливание|фертильность|применение при беременности/iu,
-      inlinePattern:
-        /(?:Применение при беременности|Беременность и грудное вскармливание|Беременность,\s*грудное)/iu,
-      stopPattern: /Способ применения|Управление транспорт|Влияние на способность/iu,
-      cap: 360,
-    },
-    {
-      name: 'pd',
-      headingPattern: /фармакодинамик|механизм действия/iu,
-      inlinePattern: /(?:Фармакодинамика|Механизм действия)/iu,
-      stopPattern: /Фармакокинетика|Показания к применению/iu,
-      cap: 380,
-    },
-    {
-      name: 'pk',
-      headingPattern: /фармакокинет/iu,
-      inlinePattern: /Фармакокинетика/iu,
-      stopPattern: /Показания к применению|Противопоказания/iu,
-      cap: 460,
-    },
-    {
-      name: 'interactions',
-      headingPattern: /взаимодействие|другие препараты/iu,
-      inlinePattern: /(?:Взаимодействие с другими лекарственными|Другие препараты и препарат)/iu,
-      stopPattern: /Особые указания|Влияние на способность|Форма выпуска/iu,
-      cap: 400,
-    },
-    {
-      name: 'driving',
-      headingPattern: /управление транспорт|влияние на способность/iu,
-      inlinePattern: /(?:Влияние на способность управлять|Управление транспортными средствами)/iu,
-      stopPattern: /Форма выпуска|Условия хранения|Срок годности/iu,
-      cap: 200,
-    },
-    {
-      name: 'storage',
-      headingPattern: /хранение|условия хранения/iu,
-      inlinePattern: /(?:Условия хранения|5\.?\s*Хранение)/iu,
-      stopPattern: /Срок годности|Условия отпуска|Производитель|Владелец/iu,
-      cap: 180,
-    },
-  ];
 
   const picked: string[] = [];
   const sectionsUsed: string[] = [];
@@ -783,18 +800,15 @@ function prepareDrugExcerpt(
         let text = sec.text;
         const boilerIdx = text.indexOf('Перед приемом препарата полностью прочитайте');
         if (boilerIdx > 0) text = text.slice(0, boilerIdx).trim();
-        const sliceCap = Math.min(slot.cap, budget);
-        if (text.length > sliceCap) {
-          const cut = text.slice(0, sliceCap);
-          const lastSpace = cut.lastIndexOf(' ');
-          text = lastSpace > sliceCap * 0.7 ? cut.slice(0, lastSpace).trim() : cut.trim();
+        text = trimToSentence(text, Math.min(slot.cap, budget));
+        if (text.length > 0) {
+          picked.push(text);
+          sectionsUsed.push(slot.name);
+          capturedSlots.add(slot.name);
+          budget -= text.length + 2;
+          matched = true;
+          break;
         }
-        picked.push(text);
-        sectionsUsed.push(slot.name);
-        capturedSlots.add(slot.name);
-        budget -= text.length + 2;
-        matched = true;
-        break;
       }
     }
     if (!matched) {
@@ -807,7 +821,7 @@ function prepareDrugExcerpt(
             slice = slice.slice(0, m[0].length + stopMatch.index);
           }
         }
-        slice = slice.trim();
+        slice = trimToSentence(slice, Math.min(slot.cap, budget));
         if (slice.length > 0) {
           picked.push(slice);
           sectionsUsed.push(`inline:${slot.name}`);
@@ -818,30 +832,159 @@ function prepareDrugExcerpt(
     }
   }
 
-  // Always check for ATC code, IV incompatibility, & Rx/OTC dispensing status anywhere in body.
-  const atcMatch = body.match(/Код АТХ[:\s]+([A-Z]\d{2}[A-Z]{0,2}\d{0,2})/iu)?.[0];
-  if (atcMatch && !picked.some((p) => p.includes(atcMatch))) {
-    picked.push(atcMatch);
-  }
-  const incompatMatch = body.match(/Несовместимость[\s\S]{0,200}/iu)?.[0]?.trim();
-  if (incompatMatch && !picked.some((p) => p.includes('Несовместимость'))) {
-    picked.push(incompatMatch);
-  }
-  const rxMatch = body.match(/(?:Категория отпуска|Условия отпуска)[\s\S]{0,100}/iu)?.[0]?.trim();
-  if (rxMatch && !picked.some((p) => p.includes(rxMatch.slice(0, 25)))) {
-    picked.push(rxMatch);
+  for (const extra of extras) {
+    const match = body.match(extra.regex)?.[0]?.trim();
+    if (match && !picked.some((p) => p.includes(match.slice(0, 24)))) {
+      picked.push(match);
+    }
   }
 
   if (picked.length === 0) {
-    picked.push(body.slice(0, Math.max(400, budget)));
+    picked.push(trimToSentence(body, Math.max(400, budget)));
     sectionsUsed.push('fallback_head');
   }
 
   const combined = fmLines ? `${fmLines}\n\n${picked.join('\n\n')}` : picked.join('\n\n');
   return {
-    excerpt: combined.length > maxChars ? combined.slice(0, maxChars) : combined,
+    excerpt: combined.length > maxChars ? trimToSentence(combined, maxChars) : combined,
     sectionsUsed,
   };
+}
+
+const PASS1_SLOTS: readonly ExcerptSlot[] = [
+  {
+    name: 'composition',
+    headingPattern:
+      /общая информация|карточка препарата|состав|лекарственная форма|инструкция|торговое наименование/iu,
+    inlinePattern: /(?:Торговое наименование|Состав|Лекарственная форма)/iu,
+    stopPattern: /Фармакодинамика|Показания к применению|Перед приемом препарата/iu,
+    cap: 520,
+  },
+  {
+    name: 'dosing',
+    headingPattern: /режим дозирования|способ применения и дозы/iu,
+    inlinePattern: /(?:Режим дозирования|Способ применения и дозы)/iu,
+    stopPattern: /Побочное действие|Нежелательные реакции|Передозировка/iu,
+    cap: 2500,
+  },
+  {
+    name: 'dosing_leaflet',
+    headingPattern: /при[её]м препарата|применение препарата/iu,
+    inlinePattern: /(?:3\.\s*При[её]м препарата|3\.\s*Применение препарата|Рекомендуемая доза)/iu,
+    stopPattern: /Побочное действие|Возможные нежелательные реакции|Передозировка/iu,
+    cap: 1800,
+    skipIfCaptured: 'dosing',
+  },
+  {
+    name: 'indications',
+    headingPattern: /показания|что из себя представляет/iu,
+    inlinePattern: /Показания к применению/iu,
+    stopPattern: /Противопоказания/iu,
+    cap: 550,
+  },
+  {
+    name: 'storage',
+    headingPattern: /хранение|условия хранения|срок годности/iu,
+    inlinePattern: /(?:Условия хранения|5\.?\s*Хранение|Срок годности)/iu,
+    stopPattern: /Условия отпуска|Производитель|Владелец/iu,
+    cap: 320,
+  },
+];
+
+const PASS2_SLOTS: readonly ExcerptSlot[] = [
+  {
+    name: 'contraindications',
+    headingPattern: /противопоказания/iu,
+    inlinePattern: /Противопоказания/iu,
+    stopPattern: /С осторожностью|Применение при беременности|Особые указания|Способ применения/iu,
+    cap: 580,
+  },
+  {
+    name: 'caution',
+    headingPattern: /с осторожностью|особые указания|меры предосторожности/iu,
+    inlinePattern: /(?:С осторожностью|Особые указания и меры предосторожности|Особые указания)/iu,
+    stopPattern: /Применение при беременности|Способ применения|Побочное действие|Взаимодействие/iu,
+    cap: 650,
+  },
+  {
+    name: 'special_pops',
+    headingPattern:
+      /особые группы пациентов|дети и подростки|применение у детей|пожилого возраста|почечной недостаточностью/iu,
+    inlinePattern: /(?:Особые группы пациентов|Дети и подростки|Лица пожилого возраста)/iu,
+    stopPattern: /Нежелательные реакции|Побочное действие|Передозировка/iu,
+    cap: 550,
+  },
+  {
+    name: 'pregnancy',
+    headingPattern: /беременность|грудное вскармливание|фертильность|применение при беременности/iu,
+    inlinePattern:
+      /(?:Применение при беременности|Беременность и грудное вскармливание|Беременность,\s*грудное)/iu,
+    stopPattern: /Способ применения|Управление транспорт|Влияние на способность/iu,
+    cap: 420,
+  },
+  {
+    name: 'interactions',
+    headingPattern: /взаимодействие|другие препараты/iu,
+    inlinePattern: /(?:Взаимодействие с другими лекарственными|Другие препараты и препарат)/iu,
+    stopPattern: /Особые указания|Влияние на способность|Форма выпуска|Несовместимость/iu,
+    cap: 420,
+  },
+  {
+    name: 'adverse',
+    headingPattern: /побочное действие|нежелательные реакции/iu,
+    inlinePattern: /(?:Побочное действие|Возможные нежелательные реакции|Нежелательные реакции)/iu,
+    stopPattern: /Передозировка|Сообщение о нежелательных|5\.?\s*Хранение/iu,
+    cap: 520,
+  },
+  {
+    name: 'overdose',
+    headingPattern: /передозировка/iu,
+    inlinePattern: /Передозировка/iu,
+    stopPattern: /Взаимодействие|Особые указания|Форма выпуска/iu,
+    cap: 260,
+  },
+  {
+    name: 'pd',
+    headingPattern: /фармакодинамик|механизм действия/iu,
+    inlinePattern: /(?:Фармакодинамика|Механизм действия)/iu,
+    stopPattern: /Фармакокинетика|Показания к применению/iu,
+    cap: 420,
+  },
+  {
+    name: 'pk',
+    headingPattern: /фармакокинет/iu,
+    inlinePattern: /Фармакокинетика/iu,
+    stopPattern: /Показания к применению|Противопоказания/iu,
+    cap: 460,
+  },
+  {
+    name: 'driving',
+    headingPattern: /управление транспорт|влияние на способность/iu,
+    inlinePattern: /(?:Влияние на способность управлять|Управление транспортными средствами)/iu,
+    stopPattern: /Форма выпуска|Условия хранения|Срок годности/iu,
+    cap: 200,
+  },
+];
+
+function prepareDosingExcerpt(
+  raw: string,
+  maxChars: number,
+): { excerpt: string; sectionsUsed: string[] } {
+  return extractSectionsBySlots(raw, PASS1_SLOTS, maxChars, [
+    { tag: 'atc', regex: /Код АТХ[:\s]+([A-Z]\d{2}[A-Z]{0,2}\d{0,2})/iu },
+    { tag: 'rx', regex: /(?:Категория отпуска|Условия отпуска)[\s\S]{0,100}/iu },
+    { tag: 'missed', regex: /Если Вы забыли[\s\S]{0,180}/iu },
+  ]);
+}
+
+function prepareSafetyExcerpt(
+  raw: string,
+  maxChars: number,
+): { excerpt: string; sectionsUsed: string[] } {
+  return extractSectionsBySlots(raw, PASS2_SLOTS, maxChars, [
+    { tag: 'incompat', regex: /Несовместимость[\s\S]{0,200}/iu },
+    { tag: 'alcohol', regex: /(?:алкогол|этанол|спиртн)[\s\S]{0,140}/iu },
+  ]);
 }
 
 interface DetectedDocFlaw {
@@ -858,6 +1001,7 @@ interface DetectedDocFlaw {
  */
 function detectDeterministicDocFlaws(
   raw: string,
+  dosingExcerpt: string,
   sectionsUsed: readonly string[],
 ): DetectedDocFlaw[] {
   const flaws: DetectedDocFlaw[] = [];
@@ -956,19 +1100,18 @@ function detectDeterministicDocFlaws(
   const hasDosingSlot = sectionsUsed.some(
     (s) => s === 'dosing' || s === 'inline:dosing' || s === 'full',
   );
-  if (!hasDosingSlot && sectionsUsed.includes('dosing_leaflet')) {
+  const hasAnyNumericDose =
+    /\d+(?:[.,]\d+)?\s*(?:мг|мкг|мл|г\b|ед|ме\b|таб|капс|кап|амп|фл|супп|доз)/iu.test(
+      dosingExcerpt,
+    );
+  if (!hasDosingSlot && !hasAnyNumericDose) {
     flaws.push({
       source: 'deterministic',
       kind: 'missing_dosing',
       where: 'dosing',
-      note: 'Only patient leaflet section found (no clinical «Режим дозирования»)',
-    });
-  } else if (!hasDosingSlot && !sectionsUsed.includes('dosing_leaflet')) {
-    flaws.push({
-      source: 'deterministic',
-      kind: 'missing_dosing',
-      where: 'dosing',
-      note: 'No dosing section detected in document',
+      note: sectionsUsed.includes('dosing_leaflet')
+        ? 'Patient leaflet has no numeric doses (boilerplate-only)'
+        : 'No dosing section with numeric doses detected',
     });
   }
 
@@ -986,8 +1129,9 @@ function collectNumbers(
   out: { path: string; num: number }[] = [],
 ): { path: string; num: number }[] {
   if (typeof value === 'number' && Number.isFinite(value)) {
-    // Logical stage order (1, 2, 3) is structural, not a literal number copied from prose.
-    if (!pathPrefix.endsWith('.step')) {
+    // Logical stage order (1, 2, 3) and pregnancy trimesters (often written as Roman I/II/III or
+    // Russian words «первый/третий триместр») are structural enums, not literal prose numbers.
+    if (!pathPrefix.endsWith('.step') && !pathPrefix.startsWith('preg_avoid_tri[')) {
       out.push({ path: pathPrefix, num: value });
     }
   } else if (Array.isArray(value)) {
@@ -1287,24 +1431,28 @@ class ManagedInklingServer {
   }
 }
 
-async function encodeSingleDrug(
+interface CompletionCallResult {
+  readonly parsed: Record<string, unknown> | null;
+  readonly parseError: string | null;
+  readonly rawContent: string;
+  readonly finishReason: string;
+  readonly elapsedSec: number;
+  readonly promptTokens: number | null;
+  readonly completionTokens: number | null;
+  readonly decodeTokS: number | null;
+  readonly draftAcceptPct: number | null;
+}
+
+async function runSchemaPass(
   baseUrl: string,
-  doc: DrugDocEntry,
-  maxChars: number,
+  systemPrompt: string,
+  userPrompt: string,
+  jsonSchema: unknown,
   maxTokens: number,
   cachePrompt: boolean,
-): Promise<{
-  readonly record: Record<string, unknown>;
-  readonly verification: VerificationResult;
-  readonly flaws: readonly DetectedDocFlaw[];
-  readonly elapsedSec: number;
-}> {
-  const raw = readFileSync(doc.path, 'utf8');
-  const { excerpt, sectionsUsed } = prepareDrugExcerpt(raw, maxChars);
-
-  const userPrompt = `Извлеки строго типизированные свойства препарата (дозировки по состояниям/тяжести, в/в разведение и скорость инфузии, ступенчатость, ограничения, ФК/ГЭБ, ФД/рецепторы и дефекты исходного текста при их наличии) из текста:\n\n${excerpt}`;
+): Promise<CompletionCallResult> {
   const prompt =
-    `<|message_system|><|content_text|>${SYSTEM_PROMPT}<|end_message|>` +
+    `<|message_system|><|content_text|>${systemPrompt}<|end_message|>` +
     `<|message_user|><|content_text|>${userPrompt}<|end_message|>` +
     `<|message_model|><|content_thinking|><|end_message|>` +
     `<|message_model|><|content_text|>`;
@@ -1319,7 +1467,7 @@ async function encodeSingleDrug(
       temperature: 0,
       n_predict: maxTokens,
       cache_prompt: cachePrompt,
-      json_schema: DRUG_SPARSE_SCHEMA,
+      json_schema: jsonSchema,
       stop: ['<|end_message|>'],
     }),
   });
@@ -1345,43 +1493,18 @@ async function encodeSingleDrug(
   const elapsedSec = Number(((performance.now() - startedAt) / 1000).toFixed(2));
   const rawContent = (payload.content ?? '').trim();
 
-  let parsed: unknown = null;
+  let parsed: Record<string, unknown> | null = null;
   let parseError: string | null = null;
   try {
-    parsed = JSON.parse(rawContent);
+    const obj = JSON.parse(rawContent);
+    if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+      parsed = obj as Record<string, unknown>;
+    } else {
+      parseError = 'Expected JSON object';
+    }
   } catch (err) {
     parseError = err instanceof Error ? err.message : String(err);
   }
-
-  // Verify against the full document text (not just excerpt) so numbers from frontmatter/metadata
-  // or unit equivalents are checked fairly, while still catching hallucinated numbers.
-  const verification = verifyExtractedRecord(parsed, raw);
-  const detFlaws = detectDeterministicDocFlaws(raw, sectionsUsed);
-  const llmFlawsRaw =
-    parsed &&
-    typeof parsed === 'object' &&
-    Array.isArray((parsed as Record<string, unknown>)['doc_flaws'])
-      ? ((parsed as Record<string, unknown>)['doc_flaws'] as {
-          kind?: string;
-          where?: string;
-          note?: string;
-        }[])
-      : [];
-  const llmFlaws: DetectedDocFlaw[] = llmFlawsRaw
-    .filter(
-      (f) =>
-        f &&
-        typeof f.kind === 'string' &&
-        typeof f.note === 'string' &&
-        !/обрез|обрыв\s+текст|выборк/iu.test(f.note),
-    )
-    .map((f) => ({
-      source: 'llm' as const,
-      kind: f.kind ?? 'other',
-      where: f.where ?? 'body',
-      note: f.note ?? '',
-    }));
-  const allFlaws: readonly DetectedDocFlaw[] = [...detFlaws, ...llmFlaws];
 
   const draftAcceptPct =
     payload.timings?.draft_n && payload.timings.draft_n > 0
@@ -1389,6 +1512,104 @@ async function encodeSingleDrug(
           (((payload.timings.draft_n_accepted ?? 0) / payload.timings.draft_n) * 100).toFixed(1),
         )
       : null;
+
+  return {
+    parsed,
+    parseError,
+    rawContent,
+    finishReason: payload.stop_type ?? 'stop',
+    elapsedSec,
+    promptTokens: payload.tokens_evaluated ?? null,
+    completionTokens: payload.tokens_predicted ?? null,
+    decodeTokS: payload.timings?.predicted_per_second
+      ? Number(payload.timings.predicted_per_second.toFixed(1))
+      : null,
+    draftAcceptPct,
+  };
+}
+
+function extractLlmFlaws(parsed: Record<string, unknown> | null): DetectedDocFlaw[] {
+  if (!parsed || !Array.isArray(parsed['doc_flaws'])) return [];
+  return (parsed['doc_flaws'] as { kind?: string; where?: string; note?: string }[])
+    .filter(
+      (f) =>
+        f &&
+        typeof f.kind === 'string' &&
+        typeof f.note === 'string' &&
+        !/обрез|обрыв|выборк|truncat|cut\s+off|mid-sentence|неполн\S*\s+фрагмент/iu.test(f.note),
+    )
+    .map((f) => ({
+      source: 'llm' as const,
+      kind: f.kind ?? 'other',
+      where: f.where ?? 'body',
+      note: f.note ?? '',
+    }));
+}
+
+async function encodeSingleDrug(
+  baseUrl: string,
+  doc: DrugDocEntry,
+  maxChars: number,
+  maxTokens: number,
+  cachePrompt: boolean,
+): Promise<{
+  readonly record: Record<string, unknown>;
+  readonly verification: VerificationResult;
+  readonly flaws: readonly DetectedDocFlaw[];
+  readonly elapsedSec: number;
+}> {
+  const raw = readFileSync(doc.path, 'utf8');
+  const pass1Excerpt = prepareDosingExcerpt(raw, maxChars);
+  const pass2Excerpt = prepareSafetyExcerpt(raw, maxChars);
+
+  const pass1 = await runSchemaPass(
+    baseUrl,
+    PASS1_SYSTEM_PROMPT,
+    `Извлеки дозировки, показания, в/в протоколы и ступенчатые схемы из текста:\n\n${pass1Excerpt.excerpt}`,
+    PASS1_DOSING_SCHEMA,
+    maxTokens,
+    cachePrompt,
+  );
+  const pass2 = await runSchemaPass(
+    baseUrl,
+    PASS2_SYSTEM_PROMPT,
+    `Извлеки особые группы (дети, беременность/триместры, лактация, пожилые, почки/СКФ, печень/Чайлд-Пью), «С осторожностью», противопоказания, побочные/красные флаги, антидот и ФК/ФД из текста:\n\n${pass2Excerpt.excerpt}`,
+    PASS2_SAFETY_SCHEMA,
+    maxTokens,
+    cachePrompt,
+  );
+
+  const combinedSections = [
+    ...new Set([...pass1Excerpt.sectionsUsed, ...pass2Excerpt.sectionsUsed]),
+  ];
+  const detFlaws = detectDeterministicDocFlaws(raw, pass1Excerpt.excerpt, combinedSections);
+  const rawLlmFlaws = [...extractLlmFlaws(pass1.parsed), ...extractLlmFlaws(pass2.parsed)];
+  const seenFlawKey = new Set<string>();
+  const allFlaws: DetectedDocFlaw[] = [];
+  for (const flaw of [...detFlaws, ...rawLlmFlaws]) {
+    const key = `${flaw.kind}::${flaw.where.toLowerCase()}::${flaw.note.toLowerCase()}`;
+    if (seenFlawKey.has(key)) continue;
+    seenFlawKey.add(key);
+    allFlaws.push(flaw);
+  }
+
+  let merged: Record<string, unknown> | null = null;
+  if (pass1.parsed && pass2.parsed) {
+    const { doc_flaws: _f1, ...dosingData } = pass1.parsed;
+    const { doc_flaws: _f2, ...safetyData } = pass2.parsed;
+    merged = { ...dosingData, ...safetyData };
+  }
+
+  const parseError =
+    [
+      pass1.parseError ? `p1:${pass1.parseError}` : null,
+      pass2.parseError ? `p2:${pass2.parseError}` : null,
+    ]
+      .filter(Boolean)
+      .join('; ') || null;
+
+  const verification = verifyExtractedRecord(merged, raw);
+  const elapsedSec = Number((pass1.elapsedSec + pass2.elapsedSec).toFixed(2));
 
   const record: Record<string, unknown> = {
     schema_version: SCHEMA_VERSION,
@@ -1401,26 +1622,34 @@ async function encodeSingleDrug(
     meta_inn: doc.inn || null,
     meta_trade_name: doc.tradeName || null,
     meta_dosage_form: doc.dosageForm || null,
-    sections_used: sectionsUsed,
-    excerpt_chars: excerpt.length,
+    sections_used: combinedSections,
+    excerpt_chars: pass1Excerpt.excerpt.length + pass2Excerpt.excerpt.length,
     encoded_at: new Date().toISOString(),
     model: 'Inkling-2-Mini-AD-IQ2_M',
-    finish_reason: payload.stop_type ?? 'stop',
+    finish_reason:
+      pass1.finishReason === 'limit' || pass2.finishReason === 'limit'
+        ? `p1:${pass1.finishReason},p2:${pass2.finishReason}`
+        : 'eos',
     parse_error: parseError,
     ...(parseError
-      ? { raw_preview: `${rawContent.slice(0, 600)} ... ${rawContent.slice(-400)}` }
+      ? {
+          raw_preview: {
+            p1: pass1.parseError ? pass1.rawContent.slice(-300) : null,
+            p2: pass2.parseError ? pass2.rawContent.slice(-300) : null,
+          },
+        }
       : {}),
-    data: parsed,
+    data: merged,
     doc_flaws: allFlaws,
     verification,
     stats: {
       elapsed_sec: elapsedSec,
-      prompt_tokens: payload.tokens_evaluated ?? null,
-      completion_tokens: payload.tokens_predicted ?? null,
-      decode_tok_s: payload.timings?.predicted_per_second
-        ? Number(payload.timings.predicted_per_second.toFixed(1))
-        : null,
-      draft_accept_pct: draftAcceptPct,
+      p1_sec: pass1.elapsedSec,
+      p2_sec: pass2.elapsedSec,
+      prompt_tokens: (pass1.promptTokens ?? 0) + (pass2.promptTokens ?? 0),
+      completion_tokens: (pass1.completionTokens ?? 0) + (pass2.completionTokens ?? 0),
+      decode_tok_s: pass1.decodeTokS ?? pass2.decodeTokS,
+      draft_accept_pct: pass1.draftAcceptPct ?? pass2.draftAcceptPct,
     },
   };
 

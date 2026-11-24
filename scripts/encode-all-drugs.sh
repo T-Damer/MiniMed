@@ -32,8 +32,21 @@ case "$CMD" in
     if [ "$#" -eq 0 ]; then
       set -- --mode atomic --workers 2 --budget-gib 16 --draft-max 3
     fi
-    nohup bun scripts/encode-all-drugs.ts --out "$OUT_DIR" "$@" >> "$LOG_FILE" 2>&1 < /dev/null &
-    echo $! > "$PID_FILE"
+    python3 -c '
+import os, subprocess, sys
+out, log_path, pid_path = sys.argv[1], sys.argv[2], sys.argv[3]
+args = sys.argv[4:]
+log = open(log_path, "ab")
+p = subprocess.Popen(
+    ["bun", "scripts/encode-all-drugs.ts", "--out", out, *args],
+    stdin=subprocess.DEVNULL,
+    stdout=log,
+    stderr=log,
+    start_new_session=True,
+)
+with open(pid_path, "w") as f:
+    f.write(f"{p.pid}\n")
+' "$OUT_DIR" "$LOG_FILE" "$PID_FILE" "$@"
     echo "Started drug encoder PID $(cat "$PID_FILE") ($*)"
     echo "Log:      $LOG_FILE"
     echo "Progress: $PROGRESS_FILE"
