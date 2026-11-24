@@ -167,7 +167,7 @@ import {
   type ModulePointerResolution,
   parseModulePointerMetadata,
 } from '@/features/modules/module-pointer-install';
-import { notesDrugComparisonPath } from '@/features/notes/notes-routing';
+import { notesDrugComparisonPath, notesDrugInteractionsPath } from '@/features/notes/notes-routing';
 import { DrugRecipeSheet } from '@/features/prescription/DrugRecipeSheet';
 import { ReaderSelectionLookup } from '@/features/reader-dictionary/ReaderSelectionLookup';
 import { noteRecommendationOpened } from '@/features/reference/doctor-profile-feeds';
@@ -1301,42 +1301,104 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   // (owner 2026-10-20: nothing but the name on the title row).
   const [recipeOpen, setRecipeOpen] = createSignal(false);
   const [infoOpen, setInfoOpen] = createSignal(false);
+  const drugComparePath = (): string | null => {
+    const screen = drugScreen();
+    if (screen?.links.compare) {
+      const compare = screen.links.compare;
+      return notesDrugComparisonPath(
+        [],
+        [compare.product ? `${compare.slug}|${compare.product}` : compare.slug],
+      );
+    }
+    const doc = props.document;
+    if (!doc) return null;
+    if (
+      screen ||
+      doc.sourceType === 'allmed_reference' ||
+      doc.sourceType === 'official_drug_instruction'
+    ) {
+      const name =
+        textOf(doc.metadata['inn']) ??
+        props.medicationProduct?.inn ??
+        screen?.header.title ??
+        displayDocumentTitle(doc);
+      return name ? notesDrugComparisonPath([name]) : null;
+    }
+    return null;
+  };
+
+  const drugInteractionsPath = (): string | null => {
+    const screen = drugScreen();
+    if (screen?.links.compare) {
+      return notesDrugInteractionsPath([], [screen.links.compare.slug]);
+    }
+    const doc = props.document;
+    if (!doc) return null;
+    if (
+      screen ||
+      doc.sourceType === 'allmed_reference' ||
+      doc.sourceType === 'official_drug_instruction'
+    ) {
+      const name =
+        textOf(doc.metadata['inn']) ??
+        props.medicationProduct?.inn ??
+        screen?.header.title ??
+        displayDocumentTitle(doc);
+      return name ? notesDrugInteractionsPath([name]) : null;
+    }
+    return null;
+  };
+
   const drugMenuActions = (): readonly AppContextMenuAction[] => {
     const screen = drugScreen();
-    if (!screen) return [];
-    const compare = screen.links.compare;
+    const comparePath = drugComparePath();
+    const interactionsPath = drugInteractionsPath();
+    if (!screen && !comparePath && !interactionsPath) return [];
     return [
-      {
-        id: 'drug-recipe',
-        label: 'Рецепт',
-        icon: 'prescription' as const,
-        testId: 'drug-recipe-button',
-        // After the menu has closed and returned focus, or the sheet would close with it.
-        onSelect: () => window.setTimeout(() => setRecipeOpen(true), 0),
-      },
-      ...(compare
+      ...(screen
+        ? [
+            {
+              id: 'drug-recipe',
+              label: 'Рецепт',
+              icon: 'prescription' as const,
+              testId: 'drug-recipe-button',
+              // After the menu has closed and returned focus, or the sheet would close with it.
+              onSelect: () => window.setTimeout(() => setRecipeOpen(true), 0),
+            },
+          ]
+        : []),
+      ...(comparePath
         ? [
             {
               id: 'drug-compare',
               label: 'Сравнить с…',
               icon: 'text-columns' as const,
               testId: 'drug-compare-link',
-              onSelect: () =>
-                props.onNavigate(
-                  notesDrugComparisonPath(
-                    [],
-                    [compare.product ? `${compare.slug}|${compare.product}` : compare.slug],
-                  ),
-                ),
+              onSelect: () => props.onNavigate(comparePath),
             },
           ]
         : []),
-      {
-        id: 'drug-share',
-        label: 'Поделиться',
-        icon: 'share' as const,
-        onSelect: () => shareDrug(screen.header),
-      },
+      ...(interactionsPath
+        ? [
+            {
+              id: 'drug-interactions',
+              label: 'Взаимодействия…',
+              icon: 'arrows-down-up' as const,
+              testId: 'drug-interactions-link',
+              onSelect: () => props.onNavigate(interactionsPath),
+            },
+          ]
+        : []),
+      ...(screen
+        ? [
+            {
+              id: 'drug-share',
+              label: 'Поделиться',
+              icon: 'share' as const,
+              onSelect: () => shareDrug(screen.header),
+            },
+          ]
+        : []),
     ];
   };
 
@@ -1761,14 +1823,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                           />
                         }
                       />
-                      <Suspense>
-                        <DrugPinnedFacts
-                          inn={
-                            textOf(documentValue().metadata['inn']) ?? props.medicationProduct?.inn
-                          }
-                          fallbackTitle={screen().header.title}
-                        />
-                      </Suspense>
                       <Show when={linksReady()}>
                         <DrugQuickLinks
                           links={screen().links}
@@ -1837,6 +1891,13 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                             displayDocumentTitle(documentValue()),
                           ],
                         }}
+                        allmedDocuments={[
+                          ...(props.drugSupplements ?? []).map((item) => item.document),
+                          ...(props.supplementalPanels ?? []).map((item) => item.document),
+                          ...(documentValue().sourceType === 'allmed_reference'
+                            ? [documentValue()]
+                            : []),
+                        ]}
                         open={recipeOpen()}
                         onClose={() => setRecipeOpen(false)}
                       />
@@ -1850,6 +1911,46 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
 
                 <Show when={documentValue().sourceType === 'official_drug_instruction'}>
                   <DrugConditionRow document={documentValue()} />
+                </Show>
+
+                <Show when={drugScreen() || documentValue().sourceType === 'allmed_reference'}>
+                  <Suspense>
+                    <DrugPinnedFacts
+                      inn={textOf(documentValue().metadata['inn']) ?? props.medicationProduct?.inn}
+                      fallbackTitle={
+                        drugScreen()?.header.title ?? displayDocumentTitle(documentValue())
+                      }
+                      candidates={[
+                        textOf(props.medicationSource?.metadata['inn']),
+                        textOf(documentValue().metadata['standardizedInn']),
+                        drugScreen()?.links.substance?.label,
+                        props.medicationProduct?.tradeName,
+                        displayDocumentTitle(documentValue()),
+                      ]}
+                      clinicalMedicationLinks={props.clinicalMedicationLinks}
+                      onOpenRecommendation={(link) =>
+                        openDocumentOverlay(link.pointerDocumentId, link.sourceAnchor, {
+                          preferSummary: true,
+                        })
+                      }
+                      onCompare={
+                        drugComparePath()
+                          ? () => {
+                              const path = drugComparePath();
+                              if (path) props.onNavigate(path);
+                            }
+                          : undefined
+                      }
+                      onInteractions={
+                        drugInteractionsPath()
+                          ? () => {
+                              const path = drugInteractionsPath();
+                              if (path) props.onNavigate(path);
+                            }
+                          : undefined
+                      }
+                    />
+                  </Suspense>
                 </Show>
 
                 <Show when={isIcd11Document(documentValue())}>

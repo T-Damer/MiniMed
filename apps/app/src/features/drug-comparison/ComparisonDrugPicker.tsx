@@ -11,6 +11,7 @@ import {
 } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { AsciiSpinner } from '@/components/AsciiSpinner';
 import { ListGroup, ListRow } from '@/components/ListRow';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
@@ -94,30 +95,45 @@ export function ComparisonDrugPicker(props: {
   const [query, setQuery] = createSignal('');
   const [found, setFound] = createSignal<readonly FoundDrug[]>([]);
   const [searched, setSearched] = createSignal('');
+  const [searching, setSearching] = createSignal(false);
   createEffect(() => {
     if (!props.open) {
       setQuery('');
       setFound([]);
       setSearched('');
+      setSearching(false);
     }
   });
   createEffect(() => {
     const text = query().trim();
     const core = props.core;
-    if (text.length < 2 || !core) {
+    if (text.length < 2) {
       setFound([]);
       setSearched('');
+      setSearching(false);
       return;
     }
+    setSearching(true);
     const handle = setTimeout(() => {
-      void findDrugs(core, text).then((drugs) => {
-        if (untrack(() => query().trim()) !== text) return;
-        setFound(drugs);
-        setSearched(text);
-      });
+      void findDrugs(core, text)
+        .then((drugs) => {
+          if (untrack(() => query().trim()) !== text) return;
+          setFound(drugs);
+          setSearched(text);
+        })
+        .finally(() => {
+          if (untrack(() => query().trim()) === text) setSearching(false);
+        });
     }, SEARCH_DEBOUNCE_MS);
     onCleanup(() => clearTimeout(handle));
   });
+  const popularDrugs = createMemo<readonly FoundDrug[]>(() =>
+    [...props.index.asset.cards]
+      .filter((card) => !card.n.includes('+') && card.r > 0)
+      .sort((left, right) => right.r - left.r)
+      .slice(0, 24)
+      .map((card) => ({ slug: card.s, label: cardTitle(card), product: null })),
+  );
   const suggestions = createMemo(() => {
     const result = sameGroupSuggestions(props.index, props.chosenCards, props.names);
     if (!result) return null;
@@ -149,7 +165,23 @@ export function ComparisonDrugPicker(props: {
         <Show
           when={typing()}
           fallback={
-            <Show when={suggestions()}>
+            <Show
+              when={suggestions()}
+              fallback={
+                <Show when={popularDrugs().length > 0}>
+                  <ComparisonDrugRows
+                    index={props.index}
+                    names={props.names}
+                    drugs={popularDrugs()}
+                    heading="Частые препараты"
+                    label="Частые препараты"
+                    chosen={props.chosen}
+                    full={props.full}
+                    onPick={props.onPick}
+                  />
+                </Show>
+              }
+            >
               {(list) => (
                 <ComparisonDrugRows
                   index={props.index}
@@ -168,7 +200,14 @@ export function ComparisonDrugPicker(props: {
           <Show
             when={found().length > 0}
             fallback={
-              <Show when={searched() !== '' && searched() === query().trim()}>
+              <Show
+                when={!searching() && searched() !== '' && searched() === query().trim()}
+                fallback={
+                  <p class="drug-comparison-picker__empty" role="status">
+                    <AsciiSpinner /> Ищем препараты…
+                  </p>
+                }
+              >
                 <p class="drug-comparison-picker__empty" role="status">
                   Ничего не найдено
                 </p>

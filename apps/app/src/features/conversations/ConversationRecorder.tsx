@@ -16,6 +16,7 @@ import { Portal } from 'solid-js/web';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { AsciiSpinner } from '@/components/AsciiSpinner';
+import { BOTTOM_LEFT_CONTROLS_HOST_ID } from '@/components/FloatingActionButton';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { PatientPickerRow } from '@/components/PatientPickerRow';
 import { AsrModelCard } from '@/features/asr/AsrModelCard';
@@ -51,13 +52,24 @@ import './conversation-recorder.css';
  */
 function RecorderFab(): JSX.Element {
   const time = (): string => formatRecordingDuration(conversationSession.elapsedMs());
+  const [leftDock, setLeftDock] = createSignal<HTMLElement | undefined>(
+    typeof document === 'undefined'
+      ? undefined
+      : (document.getElementById(BOTTOM_LEFT_CONTROLS_HOST_ID) ?? undefined),
+  );
+  onMount(() => {
+    setLeftDock(document.getElementById(BOTTOM_LEFT_CONTROLS_HOST_ID) ?? undefined);
+  });
   return (
     <Show when={conversationSession.recorder()}>
-      <Portal>
+      <Portal mount={leftDock() ?? document.body}>
         <button
           type="button"
           class="recorder-fab"
-          classList={{ 'recorder-fab--hidden': conversationSession.windowOpen() }}
+          classList={{
+            'recorder-fab--hidden': conversationSession.windowOpen(),
+            'recorder-fab--docked': Boolean(leftDock()),
+          }}
           disabled={conversationSession.windowOpen()}
           aria-label={`${conversationSession.paused() ? 'Запись на паузе' : 'Идёт запись беседы'}, ${time()}. Открыть запись`}
           title="Открыть запись"

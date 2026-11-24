@@ -2,6 +2,7 @@ import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js'
 import { Portal } from 'solid-js/web';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
+import { BOTTOM_LEFT_CONTROLS_HOST_ID } from '@/components/FloatingActionButton';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { visitRoute } from '@/state/app-back';
 import {
@@ -11,11 +12,12 @@ import {
   type ClinicalTabsState,
   closeClinicalTab,
   closeOtherClinicalTabs,
+  hotClinicalTabIds,
   loadClinicalTabsState,
   subscribeClinicalTabs,
   syncRouteToClinicalTabs,
   togglePinClinicalTab,
-  updateActiveClinicalTabTitle,
+  updateActiveClinicalTabSnapshot,
 } from '@/state/clinical-tabs';
 
 import '@/features/tabs/clinical-tabs.css';
@@ -52,9 +54,9 @@ function tabKindLabel(kind: ClinicalTabKind): string {
     case 'user':
       return 'Личный файл';
     case 'diary':
-      return 'Дневники';
+      return 'Дневник';
     case 'patients':
-      return 'Пациенты';
+      return 'Пациент';
     case 'notes':
       return 'Заметки';
     case 'calculator':
@@ -71,32 +73,84 @@ function tabKindLabel(kind: ClinicalTabKind): string {
 }
 
 /**
+ * Captures a lightweight frozen text snapshot (zero layout reads) from the currently visible view
+ * so each tab card in the grid displays what the doctor left on that screen.
+ */
+function captureVisibleScreenSnapshot(): {
+  readonly title?: string;
+  readonly subtitle?: string;
+  readonly preview?: readonly string[];
+} {
+  const root = document.querySelector<HTMLElement>(
+    '.app-view--document-read.active, .app-view.active',
+  );
+  if (!root) return {};
+  const title = root.querySelector<HTMLElement>('h1')?.textContent?.replace(/\s+/gu, ' ').trim();
+  const subtitle = root
+    .querySelector<HTMLElement>(
+      '.drug-header__meta, .page__description, .patient-card__meta, .document-overlay-subtitle',
+    )
+    ?.textContent?.replace(/\s+/gu, ' ')
+    .trim();
+  const lines: string[] = [];
+  const seen = new Set<string>(title ? [title] : []);
+  const nodes = Array.from(
+    root.querySelectorAll<HTMLElement>(
+      'h2, h3, p, .result-group__title, .patient-workspace__event-title, .drug-links__line',
+    ),
+  );
+  for (const node of nodes) {
+    if (lines.length >= 4) break;
+    const text = node.textContent?.replace(/\s+/gu, ' ').trim();
+    if (!text || text.length < 4 || seen.has(text)) continue;
+    seen.add(text);
+    lines.push(text.length > 96 ? `${text.slice(0, 95)}…` : text);
+  }
+  return {
+    ...(title ? { title } : {}),
+    ...(subtitle ? { subtitle: subtitle.slice(0, 80) } : {}),
+    ...(lines.length > 0 ? { preview: lines } : {}),
+  };
+}
+
+/**
  * Opt-in Clinical Tabs («Вкладки»): a single round water-drop satellite button emerging to the
- * left of the bottom navigation bar once 2+ screens/tools are open. Never obscures page headers
- * or bottom-right floating actions; tapping opens the card-grid tab switcher.
+ * left of the bottom navigation bar once 2+ clinical screens are open. Tapping opens a 2-column
+ * visual grid of cards showing each tab's frozen page snapshot and memory state.
  */
 export function ClinicalTabsBar(props: { readonly currentHash: string }): JSX.Element {
   const [state, setState] = createSignal<ClinicalTabsState>(loadClinicalTabsState());
   const [switcherOpen, setSwitcherOpen] = createSignal(false);
+  const [leftDock, setLeftDock] = createSignal<HTMLElement | undefined>(
+    typeof document === 'undefined'
+      ? undefined
+      : (document.getElementById(BOTTOM_LEFT_CONTROLS_HOST_ID) ?? undefined),
+  );
+
+  const captureCurrent = (): void => {
+    const snap = captureVisibleScreenSnapshot();
+    if (snap.title || snap.subtitle || snap.preview) {
+      updateActiveClinicalTabSnapshot(snap);
+    }
+  };
 
   onMount(() => {
+    setLeftDock(document.getElementById(BOTTOM_LEFT_CONTROLS_HOST_ID) ?? undefined);
     let titleTimer: number | undefined;
-    const syncHeading = (): void => {
+    const scheduleCapture = (): void => {
       window.clearTimeout(titleTimer);
-      titleTimer = window.setTimeout(() => {
-        const heading = document
-          .querySelector<HTMLElement>('.app-view.active h1, .app-view--document-read.active h1')
-          ?.textContent?.trim();
-        if (heading) updateActiveClinicalTabTitle(heading);
-      }, 120);
+      titleTimer = window.setTimeout(captureCurrent, 220);
     };
     const syncCurrent = (hash: string): void => {
       setState(syncRouteToClinicalTabs(hash));
-      syncHeading();
+      scheduleCapture();
     };
     syncCurrent(props.currentHash);
     const unsubscribe = subscribeClinicalTabs((next) => setState(next));
-    const onHash = (): void => syncCurrent(window.location.hash);
+    const onHash = (): void => {
+      captureCurrent();
+      syncCurrent(window.location.hash);
+    };
     window.addEventListener('hashchange', onHash);
     window.addEventListener('popstate', onHash);
     onCleanup(() => {
@@ -106,6 +160,11 @@ export function ClinicalTabsBar(props: { readonly currentHash: string }): JSX.El
       window.removeEventListener('popstate', onHash);
     });
   });
+
+  const openSwitcher = (): void => {
+    captureCurrent();
+    setSwitcherOpen(true);
+  };
 
   const openTab = (tab: ClinicalTabSnapshot): void => {
     activateClinicalTab(tab.id);
@@ -134,25 +193,28 @@ export function ClinicalTabsBar(props: { readonly currentHash: string }): JSX.El
     }
   };
 
+  const hotIds = (): ReadonlySet<string> => new Set(hotClinicalTabIds(state()));
   const visible = () => state().tabs.length >= 2;
 
   return (
     <Show when={visible()}>
-      <Portal>
+      <Portal mount={leftDock() ?? document.body}>
         <button
           type="button"
           class="clinical-tabs-drop"
+          classList={{ 'clinical-tabs-drop--docked': Boolean(leftDock()) }}
           data-testid="clinical-tabs-button"
           aria-label={`Открытые вкладки (${state().tabs.length})`}
           title={`Вкладки (${state().tabs.length})`}
-          onClick={() => setSwitcherOpen(true)}
+          onClick={openSwitcher}
         >
           <AppGlyph name="browsers" class="clinical-tabs-drop__icon" />
           <span class="clinical-tabs-drop__badge" aria-hidden="true">
             {state().tabs.length}
           </span>
         </button>
-
+      </Portal>
+      <Portal>
         <OverlayDialog
           open={switcherOpen()}
           title={`Вкладки (${state().tabs.length})`}
@@ -182,48 +244,81 @@ export function ClinicalTabsBar(props: { readonly currentHash: string }): JSX.El
               <For each={state().tabs}>
                 {(tab) => {
                   const isActive = () => tab.id === state().activeTabId;
+                  const isFrozen = () => !hotIds().has(tab.id);
                   return (
                     <li
-                      class="clinical-tabs-card"
-                      classList={{ 'clinical-tabs-card--active': isActive() }}
+                      class={`clinical-tabs-card clinical-tabs-card--kind-${tab.kind}`}
+                      classList={{
+                        'clinical-tabs-card--active': isActive(),
+                        'clinical-tabs-card--frozen': isFrozen(),
+                      }}
                     >
-                      <button
-                        type="button"
-                        class="clinical-tabs-card__open"
-                        aria-current={isActive() ? 'page' : undefined}
-                        onClick={() => openTab(tab)}
-                      >
-                        <span class="clinical-tabs-card__meta">
+                      <div class="clinical-tabs-card__chrome">
+                        <span class="clinical-tabs-card__chrome-id">
                           <AppGlyph name={tabGlyph(tab.kind)} class="clinical-tabs-card__icon" />
                           <span class="clinical-tabs-card__kind">{tabKindLabel(tab.kind)}</span>
                         </span>
+                        <Show when={tab.kind !== 'search'}>
+                          <div class="clinical-tabs-card__tools">
+                            <button
+                              type="button"
+                              class="clinical-tabs-card__tool"
+                              classList={{
+                                'clinical-tabs-card__tool--pinned': Boolean(tab.pinned),
+                              }}
+                              aria-label={tab.pinned ? 'Открепить вкладку' : 'Закрепить вкладку'}
+                              aria-pressed={Boolean(tab.pinned)}
+                              onClick={() => togglePinClinicalTab(tab.id)}
+                            >
+                              <AppGlyph name="push-pin" class="clinical-tabs-card__tool-icon" />
+                            </button>
+                            <button
+                              type="button"
+                              class="clinical-tabs-card__tool"
+                              aria-label={`Закрыть «${tab.title}»`}
+                              onClick={(event) => handleCloseTab(event, tab)}
+                            >
+                              <AppGlyph name="close" class="clinical-tabs-card__tool-icon" />
+                            </button>
+                          </div>
+                        </Show>
+                      </div>
+                      <button
+                        type="button"
+                        class="clinical-tabs-card__preview"
+                        aria-current={isActive() ? 'page' : undefined}
+                        onClick={() => openTab(tab)}
+                      >
                         <span class="clinical-tabs-card__title">{tab.title}</span>
                         <Show when={tab.subtitle}>
                           {(sub) => <span class="clinical-tabs-card__subtitle">{sub()}</span>}
                         </Show>
-                      </button>
-                      <Show when={tab.kind !== 'search'}>
-                        <div class="clinical-tabs-card__tools">
-                          <button
-                            type="button"
-                            class="clinical-tabs-card__tool"
-                            classList={{ 'clinical-tabs-card__tool--pinned': Boolean(tab.pinned) }}
-                            aria-label={tab.pinned ? 'Открепить вкладку' : 'Закрепить вкладку'}
-                            aria-pressed={Boolean(tab.pinned)}
-                            onClick={() => togglePinClinicalTab(tab.id)}
+                        <div class="clinical-tabs-card__snapshot" aria-hidden="true">
+                          <Show
+                            when={tab.preview && tab.preview.length > 0}
+                            fallback={
+                              <div class="clinical-tabs-card__skeleton">
+                                <span class="clinical-tabs-card__skeleton-bar clinical-tabs-card__skeleton-bar--wide" />
+                                <span class="clinical-tabs-card__skeleton-bar" />
+                                <span class="clinical-tabs-card__skeleton-bar clinical-tabs-card__skeleton-bar--short" />
+                              </div>
+                            }
                           >
-                            <AppGlyph name="push-pin" class="clinical-tabs-card__tool-icon" />
-                          </button>
-                          <button
-                            type="button"
-                            class="clinical-tabs-card__tool"
-                            aria-label={`Закрыть «${tab.title}»`}
-                            onClick={(event) => handleCloseTab(event, tab)}
-                          >
-                            <AppGlyph name="close" class="clinical-tabs-card__tool-icon" />
-                          </button>
+                            <For each={tab.preview}>
+                              {(line) => <span class="clinical-tabs-card__line">{line}</span>}
+                            </For>
+                          </Show>
                         </div>
-                      </Show>
+                        <span
+                          class="clinical-tabs-card__state"
+                          classList={{
+                            'clinical-tabs-card__state--active': isActive(),
+                            'clinical-tabs-card__state--frozen': isFrozen(),
+                          }}
+                        >
+                          {isActive() ? 'Открыта' : isFrozen() ? 'Снимок' : 'В памяти'}
+                        </span>
+                      </button>
                     </li>
                   );
                 }}

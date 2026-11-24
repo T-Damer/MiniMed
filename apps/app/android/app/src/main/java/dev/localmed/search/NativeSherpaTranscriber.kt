@@ -3,13 +3,13 @@ package dev.localmed.search
 import com.k2fsa.sherpa.onnx.FastClusteringConfig
 import com.k2fsa.sherpa.onnx.FeatureConfig
 import com.k2fsa.sherpa.onnx.OfflineModelConfig
-import com.k2fsa.sherpa.onnx.OfflineNemoEncDecCtcModelConfig
 import com.k2fsa.sherpa.onnx.OfflineRecognizer
 import com.k2fsa.sherpa.onnx.OfflineRecognizerConfig
 import com.k2fsa.sherpa.onnx.OfflineSpeakerDiarization
 import com.k2fsa.sherpa.onnx.OfflineSpeakerDiarizationConfig
 import com.k2fsa.sherpa.onnx.OfflineSpeakerSegmentationModelConfig
 import com.k2fsa.sherpa.onnx.OfflineSpeakerSegmentationPyannoteModelConfig
+import com.k2fsa.sherpa.onnx.OfflineTransducerModelConfig
 import com.k2fsa.sherpa.onnx.SpeakerEmbeddingExtractorConfig
 import java.io.File
 import java.io.IOException
@@ -141,12 +141,14 @@ internal object NativeSherpaTranscriber {
     }
 
     /**
-     * GigaAM v3 (NeMo CTC with punctuation, greedy search): the speech model alone, no speaker
-     * split. The caller owns the recognizer and releases it.
+     * GigaAM v3 (NeMo RNN-T transducer with punctuation and text normalization, greedy search):
+     * the speech model alone, no speaker split. The caller owns the recognizer and releases it.
      */
     fun createRecognizer(modelDirectory: File): OfflineRecognizer {
-        val asrModel = requiredModel(modelDirectory, "gigaam-v3-punct.int8.onnx")
-        val tokens = requiredModel(modelDirectory, "gigaam-v3-punct.tokens.txt")
+        val encoder = requiredModel(modelDirectory, "gigaam-v3-rnnt-punct.encoder.int8.onnx")
+        val decoder = requiredModel(modelDirectory, "gigaam-v3-rnnt-punct.decoder.onnx")
+        val joiner = requiredModel(modelDirectory, "gigaam-v3-rnnt-punct.joiner.onnx")
+        val tokens = requiredModel(modelDirectory, "gigaam-v3-rnnt-punct.tokens.txt")
         return OfflineRecognizer(
             config =
                 OfflineRecognizerConfig(
@@ -158,10 +160,13 @@ internal object NativeSherpaTranscriber {
                         ),
                     modelConfig =
                         OfflineModelConfig(
-                            nemo =
-                                OfflineNemoEncDecCtcModelConfig(
-                                    model = asrModel.absolutePath,
+                            transducer =
+                                OfflineTransducerModelConfig(
+                                    encoder = encoder.absolutePath,
+                                    decoder = decoder.absolutePath,
+                                    joiner = joiner.absolutePath,
                                 ),
+                            modelType = "nemo_transducer",
                             numThreads = NUM_THREADS,
                             tokens = tokens.absolutePath,
                         ),

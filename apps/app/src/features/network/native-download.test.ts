@@ -33,7 +33,25 @@ describe('native download file ownership', () => {
       return 'installed';
     });
     expect(result).toBe('installed');
+    expect(plugin.download).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headers: { 'Accept-Encoding': 'identity' },
+      }),
+    );
     expect(plugin.stop).toHaveBeenCalledWith({ id });
+  });
+
+  it('preserves an explicit caller Accept-Encoding header without duplicating it', async () => {
+    const { run, plugin } = setup();
+    await run(
+      { ...request, headers: { 'accept-encoding': 'br', Authorization: 'Bearer x' } },
+      async () => 'ok',
+    );
+    expect(plugin.download).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headers: { 'accept-encoding': 'br', Authorization: 'Bearer x' },
+      }),
+    );
   });
 
   it('does not consume a completed response with a mismatched on-disk length', async () => {

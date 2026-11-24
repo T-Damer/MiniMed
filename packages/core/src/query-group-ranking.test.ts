@@ -965,6 +965,102 @@ describe('collapseGroupsByTargetDocument', () => {
         'esklp.mnn.бипериден',
       ]);
     });
+
+    it('collapses multiple single-INN GRLS/EAEU/manufacturer variants of «Изониазид» into one card while preserving combinations', () => {
+      const izoniazidDocs = new Map<
+        string,
+        Pick<MedicalDocumentSummary, 'id' | 'title' | 'sourceType' | 'metadata'>
+      >([
+        [
+          'esklp.mnn.izoniazid',
+          {
+            id: 'esklp.mnn.izoniazid',
+            title: 'ИЗОНИАЗИД',
+            sourceType: 'official_registry_summary',
+            metadata: { contentMode: 'esklp-mnn', standardizedInn: 'ИЗОНИАЗИД' },
+          },
+        ],
+        [
+          'drug.rf.1.instruction',
+          {
+            id: 'drug.rf.1.instruction',
+            title: 'Изониазид: инструкция по медицинскому применению',
+            sourceType: 'official_drug_instruction',
+            metadata: {
+              inn: 'Изониазид',
+              tradeName: 'Изониазид',
+              documentKind: 'national-instruction',
+            },
+          },
+        ],
+        [
+          'drug.rf.2.instruction',
+          {
+            id: 'drug.rf.2.instruction',
+            title: 'Изониазид: листок-вкладыш',
+            sourceType: 'official_drug_instruction',
+            metadata: { inn: 'Изониазид', tradeName: 'Изониазид', documentKind: 'leaflet' },
+          },
+        ],
+        [
+          'drug.rf.3.instruction',
+          {
+            id: 'drug.rf.3.instruction',
+            title: 'Изониазид-АКОС: общая характеристика лекарственного препарата (ОХЛП)',
+            sourceType: 'official_drug_instruction',
+            metadata: { inn: 'Изониазид', tradeName: 'Изониазид-АКОС', documentKind: 'ohlp' },
+          },
+        ],
+        [
+          'drug.rf.4.instruction',
+          {
+            id: 'drug.rf.4.instruction',
+            title: 'Изониазид-Ферейн: инструкция по медицинскому применению',
+            sourceType: 'official_drug_instruction',
+            metadata: {
+              inn: 'Изониазид',
+              tradeName: 'Изониазид-Ферейн',
+              documentKind: 'national-instruction',
+            },
+          },
+        ],
+        [
+          'esklp.mnn.izoniazid-rifampicin',
+          {
+            id: 'esklp.mnn.izoniazid-rifampicin',
+            title: 'ИЗОНИАЗИД + РИФАМПИЦИН',
+            sourceType: 'official_registry_summary',
+            metadata: {
+              contentMode: 'esklp-mnn',
+              standardizedInn: 'ИЗОНИАЗИД + РИФАМПИЦИН',
+            },
+          },
+        ],
+      ]);
+
+      const groups = [
+        group('drug.rf.1.instruction', 'Изониазид: инструкция по медицинскому применению', 9),
+        group('drug.rf.2.instruction', 'Изониазид: листок-вкладыш', 8.5),
+        group('esklp.mnn.izoniazid', 'ИЗОНИАЗИД', 8.2),
+        group(
+          'drug.rf.3.instruction',
+          'Изониазид-АКОС: общая характеристика лекарственного препарата (ОХЛП)',
+          7.5,
+        ),
+        group(
+          'drug.rf.4.instruction',
+          'Изониазид-Ферейн: инструкция по медицинскому применению',
+          7.1,
+        ),
+        group('esklp.mnn.izoniazid-rifampicin', 'ИЗОНИАЗИД + РИФАМПИЦИН', 6.5),
+      ];
+
+      const collapsed = collapseGroupsByTargetDocument(groups, izoniazidDocs);
+      expect(collapsed.map((entry) => entry.documentId)).toEqual([
+        'esklp.mnn.izoniazid',
+        'esklp.mnn.izoniazid-rifampicin',
+      ]);
+    });
   });
 });
 

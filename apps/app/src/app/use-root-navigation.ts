@@ -13,6 +13,7 @@ import { medicalImageViewerActive } from '@/features/library/document-reading-mo
 import { visitRoute } from '@/state/app-back';
 import { isDocumentReadRoute } from '@/state/document-route';
 import { currentHistoryEntry, installHistoryEntryTracking } from '@/state/history-entries';
+import { motionRate } from '@/state/motion';
 import { perfLogOn, perfSpan } from '@/state/perf-log';
 import { extendReaderChromeHold, READER_CHROME_HOLD_EVENT } from '@/state/reader-chrome-hold';
 import { readerChromePinned } from '@/state/reader-chrome-pin';
@@ -176,7 +177,7 @@ export function useRootNavigation() {
         moveToRootView(next);
         // The tab's own first screen: layers pushed on it are stepped over, else it replaces.
         visitRoute(`#/${next}`, '', 'replace');
-        window.scrollTo({ top: 0, behavior: 'instant' });
+        window.scrollTo({ top: 0, behavior: motionRate() === 0 ? 'auto' : 'smooth' });
         return;
       }
       snapshotCurrentRoute();
@@ -224,14 +225,6 @@ export function useRootNavigation() {
     });
   };
 
-  const readScrollTop = (event?: Event): number => {
-    const target = event?.target;
-    if (target instanceof HTMLElement && target.matches('.user-document-reader--fullscreen')) {
-      return target.scrollTop;
-    }
-    return window.scrollY;
-  };
-
   /**
    * The reader's controls follow a deliberate scroll, not every pixel (owner 2026-11-06: the bar
    * hid oddly). Distance is summed per direction: a downward run of `CHROME_HIDE_DISTANCE` hides
@@ -241,6 +234,8 @@ export function useRootNavigation() {
   let scrollRun = 0;
   let chromeToggledAt = Number.NEGATIVE_INFINITY;
   let endCheck: number | undefined;
+  let scrollFrame: number | undefined;
+  let pendingScrollTarget: EventTarget | null | undefined;
   /** The end of the page brings the controls back; read once per frame, where layout is due anyway. */
   const scheduleEndCheck = (target: EventTarget | null | undefined): void => {
     if (endCheck !== undefined) return;
@@ -258,10 +253,7 @@ export function useRootNavigation() {
       }
     });
   };
-  const handleScroll = (event?: Event): void => {
-    const scrollTop = readScrollTop(event);
-    const direction = scrollTop - lastScrollTop;
-    lastScrollTop = scrollTop;
+  const processScroll = (target: EventTarget | null | undefined): void => {
     const canHideChrome =
       documentReadActive() && !medicalImageViewerActive() && !readerChromePinned();
     if (!canHideChrome || performance.now() < chromeHoldUntil) {
@@ -269,6 +261,12 @@ export function useRootNavigation() {
       if (chromeHidden()) setChromeHidden(false);
       return;
     }
+    const scrollTop =
+      target instanceof HTMLElement && target.matches('.user-document-reader--fullscreen')
+        ? target.scrollTop
+        : window.scrollY;
+    const direction = scrollTop - lastScrollTop;
+    lastScrollTop = scrollTop;
     if (direction === 0) return;
     if (performance.now() - chromeToggledAt < CHROME_SETTLE_MS) {
       scrollRun = 0;
@@ -281,7 +279,28 @@ export function useRootNavigation() {
     } else if (scrollTop > CHROME_HIDE_AFTER && scrollRun >= CHROME_HIDE_DISTANCE) {
       setChromeHidden(true);
     }
-    if (chromeHidden() && direction > 0) scheduleEndCheck(event?.target);
+    if (chromeHidden() && direction > 0) scheduleEndCheck(target);
+  };
+  const handleScroll = (event?: Event): void => {
+    // Non-reader screens never hide chrome on scroll: skip reading scrollY synchronously.
+    if (!documentReadActive()) return;
+    // Document capture and window bubble both receive document scrolls; handle document once.
+    if (event?.currentTarget === document && event.target === document) return;
+    if (
+      event?.currentTarget === document &&
+      !(
+        event.target instanceof HTMLElement &&
+        event.target.matches('.user-document-reader--fullscreen')
+      )
+    ) {
+      return;
+    }
+    pendingScrollTarget = event?.target;
+    if (scrollFrame !== undefined) return;
+    scrollFrame = requestAnimationFrame(() => {
+      scrollFrame = undefined;
+      processScroll(pendingScrollTarget);
+    });
   };
 
   const handleChromeHold = (event: Event): void => {
@@ -399,6 +418,7 @@ export function useRootNavigation() {
     document.documentElement.classList.remove('app-chrome-hidden');
     if (settleTimer) clearTimeout(settleTimer);
     if (endCheck !== undefined) cancelAnimationFrame(endCheck);
+    if (scrollFrame !== undefined) cancelAnimationFrame(scrollFrame);
   });
 
   return {

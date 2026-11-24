@@ -27,24 +27,31 @@
   line-clamp: 2;
 }
 
-/* Actions on top of the card: a grid of tiles, three in a row on a phone. */
+/* Actions on top of the card: a balanced grid of tiles, three in a row on a phone. */
 .patient-actions {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
+  gap: 0.55rem;
+}
+
+@media (min-width: 44rem) {
+  .patient-actions {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
 }
 
 .patient-actions__tile {
   display: grid;
-  min-height: 4.75rem;
+  min-height: 4.9rem;
   align-content: center;
   justify-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   border: 1px solid var(--theme-border);
   border-radius: 1rem;
-  padding: 0.6rem 0.35rem;
+  padding: 0.65rem 0.4rem;
   background: var(--theme-surface-raised);
   color: var(--theme-text);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 4%);
   cursor: pointer;
   font: inherit;
   text-align: center;
@@ -55,16 +62,22 @@
 
 .patient-actions__tile--open {
   border-color: var(--theme-accent);
+  background: color-mix(in srgb, var(--theme-accent) 9%, var(--theme-surface-raised));
   outline: 2px solid var(--theme-accent);
   outline-offset: -2px;
 }
 
 .patient-actions__icon {
   display: grid;
-  width: 2rem;
-  height: 2rem;
+  width: 2.1rem;
+  height: 2.1rem;
   place-items: center;
   border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-accent) 14%, var(--theme-surface));
+  color: var(--theme-accent-text, var(--theme-accent));
+}
+
+.patient-actions__tile--open .patient-actions__icon {
   background: var(--theme-accent);
   color: var(--theme-accent-contrast, var(--theme-surface-raised));
 }
@@ -334,13 +347,42 @@
 
 .patient-workspace__event {
   display: grid;
-  gap: 0.3rem;
-  padding: 0.75rem 1rem;
+  gap: 0.32rem;
+  padding: 0.85rem 1rem;
+  border-left: 3px solid color-mix(in srgb, var(--theme-accent) 55%, var(--theme-border));
 }
 
 .patient-workspace__timeline {
   display: grid;
-  gap: 0.6rem;
+  gap: 0.65rem;
+}
+
+.patient-workspace__timeline-head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.patient-workspace__timeline-count {
+  display: inline-grid;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.4rem;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--theme-accent-soft);
+  color: var(--theme-accent-text, var(--theme-accent));
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.patient-workspace__events-empty.ui-empty-state {
+  min-height: 14rem;
+  padding: 1.75rem 1rem;
+  border: 1px dashed var(--theme-border);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--theme-surface-raised) 65%, transparent);
 }
 
 .patient-workspace__section-title {

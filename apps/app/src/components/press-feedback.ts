@@ -161,14 +161,19 @@ function release(press: Press): void {
   if (current === press) current = undefined;
   window.clearTimeout(press.releaseTimer);
   const { element, animation } = press;
-  element.removeAttribute(PRESSED_ATTRIBUTE);
-  if (!animation) return;
+  if (!animation) {
+    element.removeAttribute(PRESSED_ATTRIBUTE);
+    return;
+  }
   if (!element.isConnected) {
+    element.removeAttribute(PRESSED_ATTRIBUTE);
     animation.cancel();
     return;
   }
+  // Read computed scale before removing the attribute so release never forces synchronous layout.
   const computed = getComputedStyle(element).scale;
   const from = computed === 'none' ? 1 : Number.parseFloat(computed) || 1;
+  element.removeAttribute(PRESSED_ATTRIBUTE);
   animation.cancel();
   const back = element.animate(springBackKeyframes(from, press.peak), {
     duration: PRESS_OUT_MS,
@@ -183,6 +188,7 @@ function onPointerDown(event: PointerEvent): void {
   const element = event.target.closest<HTMLElement>(PRESSABLE);
   if (!element || element.matches(NOT_PRESSABLE) || element.closest(NOT_PRESSABLE)) return;
   if (current) release(current);
+  // Read geometry and styles BEFORE setting data-pressed so we never trigger write→read layout thrash.
   const box = element.getBoundingClientRect();
   const scale = pressScale(box.width, box.height, window.innerWidth, window.innerHeight);
   const ledged = element.matches(LEDGED);
@@ -192,23 +198,21 @@ function onPointerDown(event: PointerEvent): void {
     : getComputedStyle(element).backgroundImage === 'none'
       ? 'shade'
       : '';
+  const shouldAnimate = !ledged && scale !== null && moving();
+  const peak = shouldAnimate
+    ? Math.min(
+        scale === ROW_SCALE ? ROW_OVERSHOOT : CONTROL_OVERSHOOT,
+        maxUnclippedScale(box, clipBox(element)),
+      )
+    : 1;
   element.setAttribute(PRESSED_ATTRIBUTE, look);
-  const animation =
-    ledged || scale === null || !moving()
-      ? undefined
-      : element.animate([{ scale: '1' }, { scale: String(scale) }], {
-          duration: PRESS_IN_MS,
-          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-          fill: 'forwards',
-        });
-  // Measured at full size, before the press shrinks it: the room the spring back may use.
-  const peak =
-    animation && scale !== null
-      ? Math.min(
-          scale === ROW_SCALE ? ROW_OVERSHOOT : CONTROL_OVERSHOOT,
-          maxUnclippedScale(box, clipBox(element)),
-        )
-      : 1;
+  const animation = shouldAnimate
+    ? element.animate([{ scale: '1' }, { scale: String(scale) }], {
+        duration: PRESS_IN_MS,
+        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+        fill: 'forwards',
+      })
+    : undefined;
   current = {
     element,
     pointerId: event.pointerId,

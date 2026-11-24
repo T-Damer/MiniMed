@@ -11,7 +11,7 @@ import {
   Suspense,
 } from 'solid-js';
 import { Dynamic, Portal } from 'solid-js/web';
-import { Toaster } from 'solid-sonner';
+import { Toaster, toast } from 'solid-sonner';
 import { AppBottomNav } from '@/app/AppBottomNav';
 import { BootScreen } from '@/app/BootScreen';
 import { afterBootReveal, firstScreenPainted, revealFromBootSurface } from '@/app/boot-surface';
@@ -69,7 +69,11 @@ import {
   profileTabFor,
 } from '@/state/app-profile';
 import { parseDocumentReadRoute } from '@/state/document-route';
-import { createFloatingWindows } from '@/state/floating-windows';
+import {
+  createFloatingWindows,
+  OPEN_FLOATING_WINDOW_EVENT,
+  type OpenFloatingWindowDetail,
+} from '@/state/floating-windows';
 import { restoreLastPage, trackLastPage } from '@/state/last-page';
 import {
   ROUTE_WINDOW_REQUEST_EVENT,
@@ -349,10 +353,23 @@ export function App(): JSX.Element {
         event.preventDefault();
       }
     };
+    const handleOpenFloatingWindow = (event: Event): void => {
+      if (embeddedFloatingWindow) return;
+      const detail = (event as CustomEvent<OpenFloatingWindowDetail>).detail;
+      if (!detail?.route) return;
+      const targetView = detail.view ?? navigation.view();
+      const opened = floatingWindowsEnabled()
+        ? floatingWindows.open(targetView, detail.route)
+        : floatingWindows.openTransient(targetView, detail.route, currentOwnerRoute());
+      if (!opened) {
+        toast('Открыто максимум маленьких окон — закройте одно, чтобы добавить новое.');
+      }
+    };
     const closeTransientWindows = (): void => {
       floatingWindows.closeTransientOutside(currentOwnerRoute());
     };
     window.addEventListener(ROUTE_WINDOW_REQUEST_EVENT, handleRouteWindowRequest);
+    window.addEventListener(OPEN_FLOATING_WINDOW_EVENT, handleOpenFloatingWindow);
     window.addEventListener('hashchange', closeTransientWindows);
     if (embeddedFloatingWindow) {
       syncFloatingViewport();
@@ -361,6 +378,7 @@ export function App(): JSX.Element {
     onCleanup(unsubscribePreferences);
     onCleanup(() => {
       window.removeEventListener(ROUTE_WINDOW_REQUEST_EVENT, handleRouteWindowRequest);
+      window.removeEventListener(OPEN_FLOATING_WINDOW_EVENT, handleOpenFloatingWindow);
       window.removeEventListener('hashchange', closeTransientWindows);
       window.removeEventListener('resize', syncFloatingViewport);
       document.documentElement.style.removeProperty('--floating-viewport-width');
@@ -446,7 +464,7 @@ export function App(): JSX.Element {
     floatingWindows.close(id);
   };
 
-  const currentRoute = (): string => window.location.hash || `#/${navigation.view()}`;
+  const currentRoute = (): string => currentHash() || `#/${navigation.view()}`;
   const currentFloatingWindow = () =>
     floatingWindows.windowForRoute(navigation.view(), currentRoute());
 
@@ -723,6 +741,15 @@ export function App(): JSX.Element {
       </Show>
 
       <div
+        id="app-bottom-left-controls"
+        class="bottom-left-controls"
+        classList={{
+          'bottom-left-controls--no-nav':
+            profileHidesNavigation(activeProfile()) || isFullScreen(currentHash()),
+        }}
+      />
+
+      <div
         id="app-floating-controls"
         class="floating-window-controls"
         classList={{
@@ -752,8 +779,8 @@ export function App(): JSX.Element {
               const windowState = currentFloatingWindow();
               if (windowState) {
                 collapseFloatingWindow(windowState.id);
-              } else {
-                floatingWindows.open(navigation.view(), currentRoute());
+              } else if (!floatingWindows.open(navigation.view(), currentRoute())) {
+                toast('Открыто максимум маленьких окон — закройте одно, чтобы добавить новое.');
               }
             }}
           >

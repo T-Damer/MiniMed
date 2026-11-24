@@ -28,12 +28,58 @@ interface HorizontalScrollerProps {
   readonly light?: boolean;
 }
 
+/**
+ * Shared read-then-write rAF queue for light horizontal scrollers: when several tables or strips
+ * enter the viewport in the same frame, reading every viewport's `scrollWidth`/`clientWidth` first
+ * and applying signal updates afterwards prevents read→write→read→write forced layout thrashing.
+ */
+interface LightMeasureTask {
+  readonly read: () => {
+    readonly prev: boolean;
+    readonly next: boolean;
+    readonly scrollLeft: number;
+  } | null;
+  readonly write: (result: {
+    readonly prev: boolean;
+    readonly next: boolean;
+    readonly scrollLeft: number;
+  }) => void;
+}
+
+const pendingLightMeasures = new Set<LightMeasureTask>();
+let lightMeasureFrame: number | undefined;
+
+function flushLightMeasures(): void {
+  lightMeasureFrame = undefined;
+  const tasks = Array.from(pendingLightMeasures);
+  pendingLightMeasures.clear();
+  const results: Array<{
+    readonly task: LightMeasureTask;
+    readonly data: { readonly prev: boolean; readonly next: boolean; readonly scrollLeft: number };
+  }> = [];
+  for (const task of tasks) {
+    const data = task.read();
+    if (data) results.push({ task, data });
+  }
+  for (const { task, data } of results) {
+    task.write(data);
+  }
+}
+
+function enqueueLightMeasure(task: LightMeasureTask): void {
+  pendingLightMeasures.add(task);
+  if (lightMeasureFrame === undefined) {
+    lightMeasureFrame = requestAnimationFrame(flushLightMeasures);
+  }
+}
+
 export function HorizontalScroller(props: HorizontalScrollerProps): JSX.Element {
   let scroller: OverlayScrollbarsComponentRef | undefined;
   let lastScrollLeft = 0;
   const [canScrollPrevious, setCanScrollPrevious] = createSignal(false);
   const [canScrollNext, setCanScrollNext] = createSignal(false);
   let lightViewport: HTMLDivElement | undefined;
+  let pendingScrolled = false;
   const viewportOf = (instance = scroller?.osInstance()): HTMLElement | undefined =>
     lightViewport ?? instance?.elements().viewport;
   const measure = (viewport: HTMLElement | undefined): void => {
@@ -55,15 +101,34 @@ export function HorizontalScroller(props: HorizontalScrollerProps): JSX.Element 
     }
     measure(viewport);
   };
-  // The light box: one measurement per frame at most, and only while it is on screen.
-  let frame: number | undefined;
+  const lightTask: LightMeasureTask = {
+    read: () => {
+      const viewport = lightViewport;
+      if (!viewport) return null;
+      const scrollLeft = viewport.scrollLeft;
+      const maximum = Math.max(0, viewport.scrollWidth - viewport.clientWidth);
+      return {
+        prev: scrollLeft > 2,
+        next: scrollLeft < maximum - 2,
+        scrollLeft,
+      };
+    },
+    write: ({ prev, next, scrollLeft }) => {
+      if (pendingScrolled) {
+        pendingScrolled = false;
+        if (Math.abs(scrollLeft - lastScrollLeft) >= 28) {
+          lastScrollLeft = scrollLeft;
+          uiSounds.play('swipe');
+          hapticFeedback('selection');
+        }
+      }
+      setCanScrollPrevious(prev);
+      setCanScrollNext(next);
+    },
+  };
   const measureSoon = (scrolled: boolean): void => {
-    if (frame !== undefined) return;
-    frame = requestAnimationFrame(() => {
-      frame = undefined;
-      if (scrolled) handleScroll();
-      else measure(lightViewport);
-    });
+    if (scrolled) pendingScrolled = true;
+    enqueueLightMeasure(lightTask);
   };
   onMount(() => {
     const viewport = lightViewport;
@@ -78,7 +143,7 @@ export function HorizontalScroller(props: HorizontalScrollerProps): JSX.Element 
     onCleanup(() => observer.disconnect());
   });
   onCleanup(() => {
-    if (frame !== undefined) cancelAnimationFrame(frame);
+    pendingLightMeasures.delete(lightTask);
   });
   const scroll = (direction: -1 | 1): void => {
     const viewport = viewportOf();

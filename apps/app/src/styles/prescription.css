@@ -566,3 +566,130 @@
   color: var(--theme-text-muted);
   font-size: 0.82rem;
 }
+
+/* Recipe header static mini-preview thumbnail (tapping opens full zoomed PaperPreview) */
+.recipe-thumb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transition: transform var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+
+.recipe-thumb:active {
+  transform: scale(0.95);
+}
+
+.recipe-thumb__paper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5px;
+  width: 2.1rem;
+  height: 2.75rem;
+  padding: 0.22rem 0.2rem;
+  overflow: hidden;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.25rem;
+  background: #fff;
+  color: #222;
+  box-shadow: 0 2px 6px rgb(34 31 25 / 16%);
+  text-align: left;
+}
+
+.recipe-thumb__line {
+  display: block;
+  overflow: hidden;
+  font-family: "Times New Roman", serif;
+  font-size: 3.6px;
+  line-height: 1.15;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .recipe-thumb:hover .recipe-thumb__paper {
+    border-color: var(--theme-accent);
+  }
+}
+
+/* Allmed recipes header & variant selector inside DrugRecipeSheet */
+.recipe-allmed {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.recipe-allmed__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.recipe-allmed__meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.recipe-allmed__source {
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.recipe-allmed__form-chip {
+  padding: 0.12rem 0.48rem;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 40%, var(--theme-border));
+  border-radius: 999px;
+  color: var(--theme-accent-text, var(--theme-accent));
+  background: var(--theme-accent-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.recipe-allmed__variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.recipe-allmed__variant {
+  max-width: 100%;
+  padding: 0.32rem 0.65rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: var(--theme-surface);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recipe-allmed__variant--active {
+  border-color: var(--theme-accent);
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+}
+
+.recipe-allmed__notes {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+@media (hover: hover) {
+  .recipe-allmed__variant:hover:not(.recipe-allmed__variant--active) {
+    border-color: var(--theme-accent);
+    background: var(--theme-hover-surface);
+  }
+}

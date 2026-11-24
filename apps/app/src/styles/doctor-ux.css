@@ -1429,6 +1429,13 @@ html.app-chrome-hidden .document-overlay-paper::before {
   gap: 0.5rem;
 }
 
+.document-inline-preview__actions {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.3rem;
+}
+
 .document-inline-preview__meaning-title {
   min-width: 0;
   font-weight: 650;

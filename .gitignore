@@ -46,6 +46,9 @@ data/build/*
 !data/build/.gitkeep
 # Connected diary service database (ciphertext, still never committed).
 data/diary-server/
+# Local LLM binaries and GGUF weights (Atomic Engine / Inkling 2 Mini; never committed).
+data/models/
+data/tools/
 release-clinical/
 model-mirror/
 apps/app/android/.gradle/

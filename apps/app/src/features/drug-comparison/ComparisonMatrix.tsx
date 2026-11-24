@@ -1,10 +1,23 @@
-import { createSignal, For, type JSX, Show } from 'solid-js';
+import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { createLineClamp } from '@/components/line-clamp';
+import { OverlayDialog } from '@/components/OverlayDialog';
 import { SelectField } from '@/components/SelectField';
 import { QuoteBlock } from '@/features/medication-safety/SafetyBlocks';
 import { NOTHING_SAID_TEXT } from '@/features/medication-safety/safety-view';
+import {
+  AFFINITY_TIER_LABELS,
+  BBB_LEVEL_LABELS,
+  CLINICAL_EFFECT_LEVEL_TEXT,
+  CLINICAL_EFFECT_META,
+  type DrugPharmacologyProfile,
+  type DrugReceptorBinding,
+  sedationActivationBalance,
+  splitEffectsByCategory,
+} from '@/features/medications/pharmacology/drug-pharmacology-schema';
+import { lookupPharmacologyForCandidates } from '@/features/medications/pharmacology/pharmacology-interactions';
+import { lookupReceptorInfo } from '@/features/medications/pharmacology/receptor-encyclopedia';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { buildOfficialDocumentHash } from '@/state/document-route';
 import type { RegistryCell, RegistryRowSpec } from './comparison-registry';
@@ -285,6 +298,21 @@ export function ComparisonMatrix(props: {
   readonly onRemove: (id: string) => void;
   readonly onChoose: (id: string, documentId: string) => void;
 }): JSX.Element {
+  const pharmacologyByColumn = createMemo<readonly (DrugPharmacologyProfile | null)[]>(() =>
+    props.columns.map((column) =>
+      lookupPharmacologyForCandidates([
+        column.item.id.split('|')[0],
+        column.item.product,
+        column.item.label,
+      ]),
+    ),
+  );
+  const hasPharmacology = createMemo(() => pharmacologyByColumn().some((item) => item !== null));
+  const [selectedReceptor, setSelectedReceptor] = createSignal<{
+    readonly drugLabel: string;
+    readonly binding: DrugReceptorBinding;
+  } | null>(null);
+
   return (
     <div
       class="drug-comparison__matrix"
@@ -317,6 +345,195 @@ export function ComparisonMatrix(props: {
           )}
         </For>
 
+        <Show when={hasPharmacology()}>
+          <h3 class="drug-comparison__group">Фармакологический профиль</h3>
+          <p class="drug-comparison__group-source">
+            Структурированные параметры (рецепторы, аффинность, ГЭБ, t½, CYP и выраженность
+            эффектов). Нажмите на рецептор, чтобы открыть зоны и механизм действия.
+          </p>
+
+          <Row title="Класс">
+            <For each={props.columns}>
+              {(column, position) => {
+                const profile = () => pharmacologyByColumn()[position()] ?? null;
+                return (
+                  <div class="drug-comparison__cell">
+                    <CellDrug column={column} />
+                    <span class="drug-comparison__value">{profile()?.classLabel ?? '—'}</span>
+                  </div>
+                );
+              }}
+            </For>
+          </Row>
+
+          <Row title="Период полувыведения (t½)">
+            <For each={props.columns}>
+              {(column, position) => {
+                const profile = () => pharmacologyByColumn()[position()] ?? null;
+                return (
+                  <div class="drug-comparison__cell">
+                    <CellDrug column={column} />
+                    <span class="drug-comparison__value">{profile()?.pk.halfLife ?? '—'}</span>
+                  </div>
+                );
+              }}
+            </For>
+          </Row>
+
+          <Row title="Проникновение через ГЭБ">
+            <For each={props.columns}>
+              {(column, position) => {
+                const bbb = () => pharmacologyByColumn()[position()]?.pk.bbb ?? null;
+                return (
+                  <div class="drug-comparison__cell">
+                    <CellDrug column={column} />
+                    <Show when={bbb()} fallback={<span class="drug-comparison__muted">—</span>}>
+                      {(entry) => (
+                        <div class="drug-comparison__pharma-stack">
+                          <span
+                            class={`drug-comparison__bbb-badge drug-comparison__bbb-badge--${entry().level}`}
+                          >
+                            {BBB_LEVEL_LABELS[entry().level]}
+                          </span>
+                          <p class="drug-comparison__pharma-note">{entry().summary}</p>
+                        </div>
+                      )}
+                    </Show>
+                  </div>
+                );
+              }}
+            </For>
+          </Row>
+
+          <Row title="Метаболизм / CYP">
+            <For each={props.columns}>
+              {(column, position) => {
+                const profile = () => pharmacologyByColumn()[position()] ?? null;
+                return (
+                  <div class="drug-comparison__cell">
+                    <CellDrug column={column} />
+                    <span class="drug-comparison__value">{profile()?.pk.metabolism ?? '—'}</span>
+                  </div>
+                );
+              }}
+            </For>
+          </Row>
+
+          <Row title="Седация / активация">
+            <For each={props.columns}>
+              {(column, position) => {
+                const profile = () => pharmacologyByColumn()[position()] ?? null;
+                return (
+                  <div class="drug-comparison__cell">
+                    <CellDrug column={column} />
+                    <Show when={profile()} fallback={<span class="drug-comparison__muted">—</span>}>
+                      {(facts) => {
+                        const balance = sedationActivationBalance(facts().effects);
+                        return (
+                          <div class="drug-comparison__pharma-stack">
+                            <span class="drug-comparison__value">{balance.label}</span>
+                            <span class="drug-comparison__pharma-note">
+                              Седация {CLINICAL_EFFECT_LEVEL_TEXT[balance.sedation]} · Активация{' '}
+                              {CLINICAL_EFFECT_LEVEL_TEXT[balance.activation]}
+                            </span>
+                          </div>
+                        );
+                      }}
+                    </Show>
+                  </div>
+                );
+              }}
+            </For>
+          </Row>
+
+          <Row title="Рецепторы и аффинность" note="нажмите для справки">
+            <For each={props.columns}>
+              {(column, position) => {
+                const profile = () => pharmacologyByColumn()[position()] ?? null;
+                return (
+                  <div class="drug-comparison__cell">
+                    <CellDrug column={column} />
+                    <Show when={profile()} fallback={<span class="drug-comparison__muted">—</span>}>
+                      {(facts) => (
+                        <div class="drug-comparison__receptor-list">
+                          <For each={facts().receptors}>
+                            {(binding) => (
+                              <button
+                                type="button"
+                                class={`drug-comparison__receptor-chip drug-comparison__receptor-chip--${binding.affinity}`}
+                                onClick={() =>
+                                  setSelectedReceptor({
+                                    drugLabel: column.item.label,
+                                    binding,
+                                  })
+                                }
+                              >
+                                <span class="drug-comparison__receptor-name">
+                                  {binding.receptor}
+                                </span>
+                                <Show when={binding.kiNm}>
+                                  {(ki) => <span class="drug-comparison__receptor-ki">{ki()}</span>}
+                                </Show>
+                              </button>
+                            )}
+                          </For>
+                        </div>
+                      )}
+                    </Show>
+                  </div>
+                );
+              }}
+            </For>
+          </Row>
+
+          <Row title="Побочные реакции (сила)">
+            <For each={props.columns}>
+              {(column, position) => {
+                const profile = () => pharmacologyByColumn()[position()] ?? null;
+                return (
+                  <div class="drug-comparison__cell">
+                    <CellDrug column={column} />
+                    <Show when={profile()} fallback={<span class="drug-comparison__muted">—</span>}>
+                      {(facts) => {
+                        const adverse = splitEffectsByCategory(facts().effects).adverse.filter(
+                          (item) => item.level > 0,
+                        );
+                        return (
+                          <Show
+                            when={adverse.length > 0}
+                            fallback={
+                              <span class="drug-comparison__muted">
+                                Без выраженного профиля в схеме
+                              </span>
+                            }
+                          >
+                            <ul class="drug-comparison__adverse-list">
+                              <For each={adverse}>
+                                {(metric) => (
+                                  <li
+                                    class={`drug-comparison__adverse-item drug-comparison__adverse-item--level-${metric.level}`}
+                                  >
+                                    <span class="drug-comparison__adverse-label">
+                                      {CLINICAL_EFFECT_META[metric.kind].shortLabel}
+                                    </span>
+                                    <span class="drug-comparison__adverse-level">
+                                      {CLINICAL_EFFECT_LEVEL_TEXT[metric.level]}
+                                    </span>
+                                  </li>
+                                )}
+                              </For>
+                            </ul>
+                          </Show>
+                        );
+                      }}
+                    </Show>
+                  </div>
+                );
+              }}
+            </For>
+          </Row>
+        </Show>
+
         <h3 class="drug-comparison__group">Из инструкций</h3>
         <p class="drug-comparison__group-source">
           Строки инструкций дословно; в каждом столбце читается инструкция, указанная в его
@@ -347,6 +564,63 @@ export function ComparisonMatrix(props: {
           )}
         </For>
       </div>
+
+      <OverlayDialog
+        open={selectedReceptor() !== null}
+        title={
+          selectedReceptor()
+            ? `${selectedReceptor()?.binding.receptor} · ${selectedReceptor()?.drugLabel}`
+            : 'Рецептор'
+        }
+        onClose={() => setSelectedReceptor(null)}
+      >
+        <Show when={selectedReceptor()}>
+          {(active) => {
+            const info = lookupReceptorInfo(active().binding.receptor);
+            return (
+              <div class="drug-comparison__receptor-modal">
+                <div class="drug-comparison__receptor-meta">
+                  <span class="drug-comparison__receptor-action">
+                    {active().binding.action} · {AFFINITY_TIER_LABELS[active().binding.affinity]}
+                    <Show when={active().binding.kiNm}>{(ki) => ` · Ki ${ki()}`}</Show>
+                  </span>
+                </div>
+                <p class="drug-comparison__receptor-line">
+                  <strong>Путь / зона: </strong>
+                  {active().binding.pathway}
+                </p>
+                <p class="drug-comparison__receptor-line">{active().binding.clinicalEffect}</p>
+                <Show when={info}>
+                  {(ref) => (
+                    <div class="drug-comparison__receptor-ref">
+                      <strong class="drug-comparison__receptor-ref-name">{ref().fullName}</strong>
+                      <p class="drug-comparison__receptor-ref-mech">{ref().mechanism}</p>
+                      <ul class="drug-comparison__receptor-zones">
+                        <For each={ref().zones}>
+                          {(entry) => (
+                            <li class="drug-comparison__receptor-zone">
+                              <strong>{entry.zone}: </strong>
+                              {entry.role}
+                            </li>
+                          )}
+                        </For>
+                      </ul>
+                      <p class="drug-comparison__receptor-line">
+                        <strong>Блокада: </strong>
+                        {ref().antagonismEffects}
+                      </p>
+                      <p class="drug-comparison__receptor-line">
+                        <strong>Активация: </strong>
+                        {ref().agonismEffects}
+                      </p>
+                    </div>
+                  )}
+                </Show>
+              </div>
+            );
+          }}
+        </Show>
+      </OverlayDialog>
     </div>
   );
 }

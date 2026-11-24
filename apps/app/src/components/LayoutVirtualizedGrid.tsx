@@ -10,9 +10,10 @@ import {
   on,
   onCleanup,
   onMount,
+  Show,
   untrack,
 } from 'solid-js';
-import { WindowVirtualizer } from 'virtua/solid';
+import { WindowVirtualizer, type WindowVirtualizerHandle } from 'virtua/solid';
 
 import { RetainedNodeCache } from '@/components/retained-node-cache';
 import { chunkLayoutRows, type LayoutColumnCount, layoutColumnCount } from '@/state/layout-columns';
@@ -45,6 +46,10 @@ export function LayoutVirtualizedGrid<T>(props: LayoutVirtualizedGridProps<T>): 
   const [viewportWidth, setViewportWidth] = createSignal(
     typeof window === 'undefined' ? 0 : window.innerWidth,
   );
+  const [viewActive, setViewActive] = createSignal(true);
+  let virtualizerHandle: WindowVirtualizerHandle | undefined;
+  let savedCache: WindowVirtualizerHandle['cache'] | undefined;
+  let savedCacheRows = -1;
   const responsiveColumns = createMemo(() =>
     layoutColumnCount(
       props.fitContainer && containerWidth() > 0
@@ -61,9 +66,24 @@ export function LayoutVirtualizedGrid<T>(props: LayoutVirtualizedGridProps<T>): 
   );
 
   onMount(() => {
+    const view = container?.closest('.app-view');
+    if (view) {
+      const syncViewActive = (): void => {
+        const active = view.classList.contains('active');
+        if (!active && viewActive()) {
+          savedCache = virtualizerHandle?.cache;
+          savedCacheRows = rows().length;
+        }
+        setViewActive(active);
+      };
+      syncViewActive();
+      const viewObserver = new MutationObserver(syncViewActive);
+      viewObserver.observe(view, { attributes: true, attributeFilter: ['class'] });
+      onCleanup(() => viewObserver.disconnect());
+    }
     if (props.columns !== undefined || !container) return;
     const syncWidth = (width: number): void => {
-      setContainerWidth(width);
+      if (width > 0) setContainerWidth(width);
     };
     const syncViewport = (): void => {
       setViewportWidth(window.innerWidth);
@@ -104,24 +124,30 @@ export function LayoutVirtualizedGrid<T>(props: LayoutVirtualizedGridProps<T>): 
       {props.preserveItemNodes ? (
         <RetainedRows rows={rows} container={() => container} render={props.children} row={row} />
       ) : (
-        <WindowVirtualizer
-          data={rows()}
-          bufferSize={props.bufferSize ?? 400}
-          itemSize={props.rowSize ?? 160}
-        >
-          {(items, rowIndex) =>
-            row(
-              () => (
-                <For each={items}>
-                  {(item, columnIndex) =>
-                    props.children(item, rowIndex() * columns() + columnIndex())
-                  }
-                </For>
-              ),
-              () => items.length,
-            )
-          }
-        </WindowVirtualizer>
+        <Show when={viewActive()}>
+          <WindowVirtualizer
+            ref={(handle) => {
+              virtualizerHandle = handle;
+            }}
+            {...(savedCache && savedCacheRows === rows().length ? { cache: savedCache } : {})}
+            data={rows()}
+            bufferSize={props.bufferSize ?? 400}
+            itemSize={props.rowSize ?? 160}
+          >
+            {(items, rowIndex) =>
+              row(
+                () => (
+                  <For each={items}>
+                    {(item, columnIndex) =>
+                      props.children(item, rowIndex() * columns() + columnIndex())
+                    }
+                  </For>
+                ),
+                () => items.length,
+              )
+            }
+          </WindowVirtualizer>
+        </Show>
       )}
     </div>
   );
@@ -179,26 +205,32 @@ export function LayoutVirtualizedGrid<T>(props: LayoutVirtualizedGridProps<T>): 
     );
 
     return (
-      <WindowVirtualizer
-        data={slotRows()}
-        bufferSize={props.bufferSize ?? 400}
-        itemSize={props.rowSize ?? 160}
-      >
-        {(slot) =>
-          retained.row(
-            () => (
-              <For each={itemsOf(slot)}>
-                {(item) => {
-                  const holder = nodes.acquire(item);
-                  onCleanup(() => nodes.release(item));
-                  return <div class="layout-card-grid__cell">{holder}</div>;
-                }}
-              </For>
-            ),
-            () => itemsOf(slot).length,
-          )
-        }
-      </WindowVirtualizer>
+      <Show when={viewActive()}>
+        <WindowVirtualizer
+          ref={(handle) => {
+            virtualizerHandle = handle;
+          }}
+          {...(savedCache && savedCacheRows === slotRows().length ? { cache: savedCache } : {})}
+          data={slotRows()}
+          bufferSize={props.bufferSize ?? 400}
+          itemSize={props.rowSize ?? 160}
+        >
+          {(slot) =>
+            retained.row(
+              () => (
+                <For each={itemsOf(slot)}>
+                  {(item) => {
+                    const holder = nodes.acquire(item);
+                    onCleanup(() => nodes.release(item));
+                    return <div class="layout-card-grid__cell">{holder}</div>;
+                  }}
+                </For>
+              ),
+              () => itemsOf(slot).length,
+            )
+          }
+        </WindowVirtualizer>
+      </Show>
     );
   }
 }

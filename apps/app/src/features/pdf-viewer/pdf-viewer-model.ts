@@ -164,8 +164,13 @@ export function createPdfViewerModel(options: PdfViewerModelOptions = {}): PdfVi
   let settleTarget: { readonly page: number; readonly fraction: number } | undefined;
   let settleUntil = 0;
   let readingFrame: number | undefined;
+  let readingTask: ReturnType<typeof setTimeout> | undefined;
+  let readingTimer: ReturnType<typeof setTimeout> | undefined;
+  let readingMeasuredAt = Number.NEGATIVE_INFINITY;
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   let prefetchTimer: ReturnType<typeof setTimeout> | undefined;
+  let cachedPages: readonly HTMLElement[] = [];
+  let cachedPagesCount = -1;
   let textGeneration = 0;
   let textPromise: Promise<void> | undefined;
   let revealPage: number | undefined;
@@ -178,8 +183,20 @@ export function createPdfViewerModel(options: PdfViewerModelOptions = {}): PdfVi
 
   // ---- geometry -------------------------------------------------------------------------
 
-  const pageElements = (): readonly HTMLElement[] =>
-    root ? Array.from(root.querySelectorAll<HTMLElement>('[data-pdf-page]')) : [];
+  const pageElements = (): readonly HTMLElement[] => {
+    if (!root) return [];
+    const expected = pageCount();
+    if (
+      cachedPagesCount === expected &&
+      cachedPages.length === expected &&
+      (expected === 0 || cachedPages[0]?.isConnected)
+    ) {
+      return cachedPages;
+    }
+    cachedPages = Array.from(root.querySelectorAll<HTMLElement>('[data-pdf-page]'));
+    cachedPagesCount = expected;
+    return cachedPages;
+  };
 
   const readingLineY = (): number => {
     const scroller = findPdfScroller(root);
@@ -254,8 +271,13 @@ export function createPdfViewerModel(options: PdfViewerModelOptions = {}): PdfVi
     saveTimer = setTimeout(savePositionNow, POSITION_SAVE_DELAY_MS);
   };
 
+  /** At most ~10 page-visibility reads per second during a scroll fling, always after paint. */
+  const READING_INTERVAL_MS = 100;
+
   const updateReading = (): void => {
     readingFrame = undefined;
+    readingTask = undefined;
+    readingMeasuredAt = performance.now();
     if (!root?.isConnected || pageCount() === 0) return;
     if (!tracking) return;
     const page = visiblePage();
@@ -266,9 +288,26 @@ export function createPdfViewerModel(options: PdfViewerModelOptions = {}): PdfVi
     savePositionSoon();
   };
 
+  const runReadingAfterPaint = (): void => {
+    if (readingFrame !== undefined || readingTask !== undefined) return;
+    readingFrame = requestAnimationFrame(() => {
+      readingFrame = undefined;
+      readingTask = setTimeout(updateReading, 0);
+    });
+  };
+
   const scheduleReading = (): void => {
-    if (readingFrame !== undefined) return;
-    readingFrame = requestAnimationFrame(updateReading);
+    if (readingFrame !== undefined || readingTask !== undefined || readingTimer !== undefined)
+      return;
+    const wait = READING_INTERVAL_MS - (performance.now() - readingMeasuredAt);
+    if (wait <= 0) {
+      runReadingAfterPaint();
+      return;
+    }
+    readingTimer = setTimeout(() => {
+      readingTimer = undefined;
+      runReadingAfterPaint();
+    }, wait);
   };
 
   const waitForSizes = (upTo: number): Promise<void> => {
@@ -546,9 +585,20 @@ export function createPdfViewerModel(options: PdfViewerModelOptions = {}): PdfVi
   // ---- DOM wiring -----------------------------------------------------------------------
 
   const attachListeners = (element: HTMLElement): (() => void) => {
-    const onScroll = (): void => scheduleReading();
+    const onScroll = (event: Event): void => {
+      const target = event.target;
+      if (
+        target instanceof Node &&
+        target !== document &&
+        !target.contains(element) &&
+        !element.contains(target)
+      ) {
+        return;
+      }
+      scheduleReading();
+    };
     document.addEventListener('scroll', onScroll, { capture: true, passive: true });
-    window.addEventListener('resize', onScroll);
+    window.addEventListener('resize', scheduleReading);
     window.addEventListener('pagehide', savePositionNow);
 
     let wheelFrame: number | undefined;
@@ -646,8 +696,16 @@ export function createPdfViewerModel(options: PdfViewerModelOptions = {}): PdfVi
 
     return () => {
       document.removeEventListener('scroll', onScroll, { capture: true });
-      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('resize', scheduleReading);
       window.removeEventListener('pagehide', savePositionNow);
+      if (readingFrame !== undefined) cancelAnimationFrame(readingFrame);
+      if (readingTask !== undefined) clearTimeout(readingTask);
+      if (readingTimer !== undefined) clearTimeout(readingTimer);
+      readingFrame = undefined;
+      readingTask = undefined;
+      readingTimer = undefined;
+      cachedPages = [];
+      cachedPagesCount = -1;
       window.removeEventListener('keydown', onKeyDown);
       element.removeEventListener('wheel', onWheel);
       element.removeEventListener('pointerdown', onPointerDown);

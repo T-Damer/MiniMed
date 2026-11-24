@@ -97,7 +97,8 @@ export function DrugInteractionWorkspace(props: {
   createEffect(() => {
     const loaded = index();
     const core = props.core;
-    if (!loaded || !core || initialized) return;
+    if (!loaded || initialized) return;
+    if (props.initialNames.length > 0 && !core) return;
     initialized = true;
     void (async () => {
       for (const slug of props.initialCards) {
@@ -108,6 +109,10 @@ export function DrugInteractionWorkspace(props: {
       for (const name of props.initialNames) {
         if (namesAlcohol(name) || name === ALCOHOL_QUERY_NAME) {
           addItem(alcoholItem(name));
+          continue;
+        }
+        if (!core) {
+          missing.push(name);
           continue;
         }
         const found = await resolveTypedName(core, loaded, name);

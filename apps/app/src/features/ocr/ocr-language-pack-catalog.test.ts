@@ -37,11 +37,11 @@ describe('OCR language pack catalog', () => {
         expect(source.endsWith(`/${file.language}.traineddata.gz`)).toBe(true);
       }
     }
-    expect(OCR_LANGUAGE_PACK_TOTAL_BYTES).toBe(19_557_397);
+    expect(OCR_LANGUAGE_PACK_TOTAL_BYTES).toBe(25_449_130);
   });
 
   it('formats the size with a Russian decimal comma', () => {
-    expect(formatOcrPackSize(OCR_LANGUAGE_PACK_TOTAL_BYTES)).toBe('19,6 МБ');
+    expect(formatOcrPackSize(OCR_LANGUAGE_PACK_TOTAL_BYTES)).toBe('25,4 МБ');
     expect(formatOcrPackSize(1_500_000)).toBe('1,5 МБ');
   });
 

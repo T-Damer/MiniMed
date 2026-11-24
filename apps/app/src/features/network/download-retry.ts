@@ -39,9 +39,20 @@ const TRANSIENT_MESSAGE_MARKERS = [
   'http 504',
   // A truncated transfer keeps its partial bytes, so the next attempt resumes instead of restarting.
   'размер файла не совпал',
+  // Reading a staged Android DownloadManager file can transiently fail under storage pressure.
+  'не удалось прочитать скачанный файл',
   // The browser's message for a Blob whose file is gone (NotReadableError), as the installer reports it.
   'requested file could not be read',
 ] as const;
+
+/**
+ * Transient Android DownloadManager failure reasons (ERROR_UNKNOWN=1000,
+ * ERROR_UNHANDLED_HTTP_CODE=1002, ERROR_HTTP_DATA_ERROR=1004, ERROR_TOO_MANY_REDIRECTS=1005,
+ * ERROR_CANNOT_RESUME=1008, ERROR_FILE_ALREADY_EXISTS=1009). Storage errors (1001/1006/1007) stay
+ * non-transient so disk-full or unavailable-storage failures surface immediately.
+ */
+const TRANSIENT_NATIVE_DOWNLOAD_ERROR =
+  /системная загрузка завершилась с ошибкой \((?:1000|1002|1004|1005|1008|1009|неизвестно)\)/u;
 
 /**
  * A download failure worth retrying without telling the doctor anything. Aborts are excluded: the
@@ -56,7 +67,10 @@ export function isTransientDownloadError(cause: unknown): boolean {
   if (cause.name === 'NotReadableError') return true;
   if ('code' in cause && cause.code === 'NATIVE_DOWNLOAD_BUSY') return true;
   const normalized = cause.message.toLowerCase();
-  return TRANSIENT_MESSAGE_MARKERS.some((marker) => normalized.includes(marker));
+  return (
+    TRANSIENT_NATIVE_DOWNLOAD_ERROR.test(normalized) ||
+    TRANSIENT_MESSAGE_MARKERS.some((marker) => normalized.includes(marker))
+  );
 }
 
 function waitForRetry(delayMs: number, signal: AbortSignal | undefined): Promise<void> {

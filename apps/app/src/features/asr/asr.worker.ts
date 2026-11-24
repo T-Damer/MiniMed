@@ -80,7 +80,7 @@ export type AsrWorkerOutMessage =
 
 interface ModelSpec {
   readonly options: {
-    readonly dtype: 'fp32' | 'q8';
+    readonly dtype: 'fp32' | 'q8' | 'q4';
     readonly device?: 'wasm';
     readonly revision: string;
   };
@@ -111,6 +111,18 @@ const MODEL_SPECS: Readonly<Record<string, ModelSpec>> = {
     options: {
       dtype: 'q8',
       revision: ASR_MODEL_REVISIONS['onnx-community/whisper-small'],
+    },
+    callOptions: {
+      chunk_length_s: 30,
+      language: 'russian',
+      task: 'transcribe',
+      return_timestamps: 'word',
+    },
+  },
+  'onnx-community/whisper-large-v3-turbo': {
+    options: {
+      dtype: 'q4',
+      revision: ASR_MODEL_REVISIONS['onnx-community/whisper-large-v3-turbo'],
     },
     callOptions: {
       chunk_length_s: 30,

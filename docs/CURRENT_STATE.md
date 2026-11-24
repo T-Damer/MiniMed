@@ -1,7 +1,7 @@
 # Current state
 
-> Updated: 23 November 2026
-> Released version: `0.6.129` (public prerelease toward `1.0`)
+> Updated: 24 November 2026
+> Released version: `0.6.130` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -19,6 +19,75 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Bottom bar states, reader scroll FPS, drug comparison & landscape cutout fixes — 2026-11-24
+
+- **Bottom bar & satellite controls (`App.tsx`, `bottom-nav.css`, `FloatingActionButton.tsx`, `ClinicalTabsBar.tsx`, `ConversationRecorder.tsx`, `clinical-tabs.css`, `conversation-recorder.css`, `floating-windows.css`, `readability.css`, `nav-crowding.ts`):**
+  - Added shared `#app-bottom-left-controls` (`flex-direction: column-reverse; gap: 0.5rem`) mirroring `#app-floating-controls` on the right so Clinical Tabs and the active recording indicator stack cleanly without overlapping each other, lift together when `--nav-crowded` is active (checking both left and right safe-area clearance), and drop to the low edge whenever the bottom nav is hidden (`--no-nav`, fullscreen reader, landscape news frame).
+  - Preserved `max(0.75rem, var(--safe-right))` and `--no-nav` bottom positioning on `#app-floating-controls` across narrow viewports.
+- **Reader scroll FPS (`minimed-perf-0.6.128-20261124-1200.json`):**
+  - `LayoutVirtualizedGrid.tsx`: pauses `<WindowVirtualizer>` (preserving `CacheSnapshot`) when its ancestor `.app-view` is inactive, eliminating hidden-tab `DOMWindow.onscroll` work during reader scrolling.
+  - `pdf-viewer-model.ts`: throttled reading-position updates to 100 ms in post-paint `setTimeout(0)` after `rAF`, cached `[data-pdf-page]` elements per page count, and filtered capture scroll events to the PDF's own scroll ancestors.
+  - `use-root-navigation.ts`: fast-returned when `!documentReadActive()`, deduplicated capture/bubble document scroll events, and coalesced chrome-hide reads into `rAF`.
+  - `ScrollIndicator.tsx`: skipped scroll draws when mounted inside an inactive `.app-view`.
+- **Main screen smooth scroll on page/section changes (`SearchHome.tsx`, `SearchWorkspace.tsx`, `use-root-navigation.ts`):**
+  - Replaced abrupt `'instant'` scroll jumps with motion-aware `smooth` scrolling (honoring `withoutMotion()`) when opening/switching main-screen sections, returning to the section list, or tapping the active root tab, and triggered `animatePageEnter` when opening a section.
+- **Pharmacology schema (BBB, clickable receptor encyclopedia, drug menu & schema-evaluated comparison/interactions — `drug-pharmacology-schema.ts`, `receptor-encyclopedia.ts`, `pharmacology-interactions.ts`, `psychotropic-pharmacology.ts`, `DrugReceptorFlower.tsx`, `DrugPinnedFacts.tsx`, `OfficialDocumentReader.tsx`, `ComparisonMatrix.tsx`, `InteractionPairs.tsx`):**
+  - Extended `DrugPharmacokineticsFact` with structured blood–brain barrier penetration (`bbb`: `level`, `summary`, `pGpSubstrate`) populated for all 42 psychotropic profiles (extensible to future drug classes / Inkling JSON schemas) and displayed as a clickable «ГЭБ» petal in `DrugReceptorFlower`, a badged row in «Кинетика», and a row in «Сравнение препаратов».
+  - Added `receptor-encyclopedia.ts`: tapping any receptor petal, list item, or comparison chip opens canonical receptor details (full name, neurotransmitter, GPCR/channel mechanism, anatomical CNS zones and roles, and general blockade vs activation effects) alongside the drug's affinity tier, `Ki`, pathway, and clinical effect.
+  - Added «Взаимодействия…» next to «Сравнить с…» in every drug card's header «⋯» menu (with INN/title fallback when no `compare` link is present) and in the pharmacology modal footer.
+  - Added deterministic `evaluatePharmacologyPair()` evaluating serotonergic synergy (`SERT`), QTc summation, CNS sedation (`H1`/`GABA-A`), anticholinergic burden (`M1`), orthostasis (`α1`), dual `D2` blockade, CYP inhibitor/inducer/substrate overlaps, and long `t½` washout reminders from the JSON drug schemas inside `InteractionPairsPanel`, plus a «Фармакологический профиль» section inside `ComparisonMatrix`.
+- **«Сравнение препаратов» (`DrugComparisonWorkspace.tsx`, `ComparisonDrugPicker.tsx`, `comparison-candidates.ts`, `drug-comparison.css`):**
+  - Removed the `!props.core` blocker so drug search, ATC code lookup, URL-provided drugs, and picker browsing work immediately from the bundled `comparison-index.json` even while modules are loading or before medication modules are downloaded.
+  - Added explicit loading indicators for index load, core/module initialization, and in-flight search (eliminating false «Ничего не найдено» flashes).
+  - Replaced the bare empty line with a centered `EmptyState`, immediate «Выбрать препарат» CTA (pre-populated with top frequent drugs when 0 drugs are selected), and 1-tap quick-start clinical comparison pairs.
+- **Landscape double-column layouts & camera cutout background (`mobile-shell.css`, `compact-release.css`, `short-landscape.css`, `search-quick-access.css`):**
+  - Removed side padding from `.app-shell` so page surfaces, grain, and dark hero headers extend edge-to-edge under the camera cutout while content stays padded clear of `--safe-left` / `--safe-right`.
+  - Polished short-landscape 2-column views (`SearchHome`, `UserLibraryPage`, `NewsListPage`, `NewsViewer`, `DocumentPage`): cleared `--safe-top` on both columns, gave left-pane headers rounded card framing without horizontal clipping, wrapped `NewsListPage` actions cleanly, padded `UserLibraryPage` items so card `•••` menus aren't clipped, and restricted `search-quick-access` scroll arrows to fine-pointer desktop hover devices.
+
+## Android download fixes, on-device model upgrades & Inkling 2 Mini schema extraction — 2026-11-24
+
+- **Android module download reliability & memory/queue fixes (verified live on Android emulator against remote URLs; emulator cleaned up):**
+  - `native-download.ts`: always sends `Accept-Encoding: identity` on native `DownloadManager` requests unless explicitly overridden, preventing proxy/CDN gzip re-encoding of `.db.zst` files.
+  - `download-retry.ts`: classifies transient Android `DownloadManager` errors (`1000`, `1002`, `1004`, `1005`, `1008`, `1009`, `неизвестно`, and temp-file read failures) as retryable while keeping storage errors (`1001`, `1006`, `1007`) non-transient.
+  - `encoded-index-reader.ts`, `browser-module-runtime.ts`, `worker-opfs-medical-store.ts`: added streaming decompression for large single-frame zstd (`>64 MiB`, `fzstd.Decompress`) and large gzip (`DecompressionStream('gzip')`) into OPFS, serialized large-index staging (`largeStageTail`), eliminated redundant buffer copies on ZIP shard activation, and used zero-copy `Transferable` transfer to the OPFS worker.
+  - `download-queue.ts`, `pending-module-installs.ts`, `recommendation-category-operations.ts`, `use-module-installer.ts`: batched bulk enqueue/cancel transitions (`DownloadQueue.batch`, `batchPendingModuleInstalls`), chunked category enqueue (32/tick) with cancel checks, and throttled installer UI revisions (150 ms). Live emulator verification: 872-module bulk enqueue dropped from 60+ s / 1.05 GB → 2.81 s / 290 MB; `Отменить все` dropped from 5.2 GB OOM kill → 3.82 s clean cancel; 18 real remote specialty modules installed with 0 failures at 545 MB steady WebView PSS.
+- **On-device model upgrades across the app (all pinned immutable commits, exact sizes & SHA-256, MIT / Apache-2.0 only):**
+  - **Android native recording ASR (`LocalMedTranscriberPlugin.kt`, `NativeSherpaTranscriber.kt`, `native-transcription-models.ts`):** upgraded `GigaAM v3 e2e_ctc` → `GigaAM v3 e2e_rnnt` with punctuation & text normalization (`csukuangfj/sherpa-onnx-nemo-transducer-punct-giga-am-v3-russian-2025-12-16` @ `a6039be`, 231.9 MB; total pack 263.0 MB with `pyannote-segmentation-3.0` + `campplus`; `:app:compileDebugKotlin` verified). Rejected `reverb-diarization` due to non-production license.
+  - **Browser recording ASR (`asr-models.ts`, `asr.worker.ts`, `asr-download-protocol.ts`):** added `onnx-community/whisper-large-v3-turbo` (`q4`, MIT, ~805 MB) as the «Максимальная» tier.
+  - **Local chat LLMs (`catalog.preview.json` `2026.11-preview.1`):** added 5 Apache-2.0 2026 GGUF candidates supported by vendored Android `llama.cpp` (`Qwen 3.5 0.8B / 2B / 4B`, `Qwen 3 4B-2507`, `Gemma 4 E2B-it`).
+  - **OCR (`ocr-language-pack-catalog.ts`):** upgraded `naptha/tessdata` `4.0.0` → `4.0.0_best` (`eng` + `rus`, 25.4 MB total).
+- **Local Inkling 2 Mini (16 GiB RAM budget) & typed clinical schema extraction (`scripts/inkling-2-mini.sh`, `scripts/inkling-drug-extract.ts`, `scripts/encode-all-drugs.ts`, `scripts/encode-all-drugs.sh`):**
+  - Added Apple Silicon Metal setup/launcher for `AtomicBot-ai/atomic-engine` (`codex/expert-weight-source`) with `Inkling-2-Mini-AD-IQ2_M.gguf` + `dspark-Inkling-2-Mini-Q8_0.gguf` capped at 16 GiB (`--engine-budget-mib 16484`).
+  - Added resumable 3-tier batch encoder (`encode-all-drugs.ts`) covering all 14,642 prepared drug documents (T1: 3,275 canonical INN×form, T2: 6,659 brand variants, T3: 4,708 Allmed) with required-nullable top-level + regimen schema, inline section-slot routing for flat-heading PDFs, and deterministic source-number/sanity verification into `data/build/drug-properties-inkling/drugs.jsonl`.
+- **Psychotropic block-schema usage mode & clinical effects (`DrugUsageSchemaView.tsx`, `psychotropic-regimen-schemas.ts`, `DrugPinnedFacts.tsx`, `OfficialDocumentReader.tsx`):**
+  - Added a «Схема» circular badge & 4th modal tab rendering patient-group-filtered block-schema flowcharts (`Старт → Титрация → Поддержка → Отмена`, doses, durations, max daily limits, source labels) plus live clickable «В клинических рекомендациях» links (`clinicalMedicationLinks`) across all 42 psychotropic profiles (including all 6 GRLS oral/IM branches + КР `676_2` link for `Тералиджен®`/`Алимемазин`).
+  - Upgraded the «Эффекты» tab with a bipolar `Седация ↔ Активация` balance bar and separate «Профиль действия» vs «Побочные реакции и их сила» (sorted strongest-first).
+
+## Reader UX, psychopharmacology flower, recipe modal, search dedup & scroll-lag fixes — 2026-11-23
+
+- **Single-patient route (`PatientWorkspace.tsx`, `patient-workspace.css`):** Replaced bare `<p>Событий пока нет.</p>` with `<EmptyState glyph="calendar" ... />` + «Записать осмотр» primary CTA; polished action tile elevation/grid (3-col mobile, 6-col wide), event count badge, and timeline card accent borders.
+- **Medication search deduplication («Изониазид» ~10 results → 1 drug):**
+  - Projected `inn`, `standardizedInn`, and `tradeName` in compact search metadata (`packages/storage-sqlite`, `packages/storage-capacitor`).
+  - Updated `canonicalMedicationGroupTitle`, `medicationCompletenessRank`, and `collapseGroupsByTargetDocument` (`packages/core/src/query-group-ranking.ts`) to strip GRLS/EAEU instruction suffixes (`: инструкция по медицинскому применению`, `: листок-вкладыш`, `: ОХЛП`, `: лист изменений`), prefer canonical ЕСКЛП substance cards, and collapse generic manufacturer variants of the same single INN while preserving distinct multi-ingredient combinations (`изониазид+рифампицин`); also applied `collapseGroupsByTargetDocument` in `runQuickSearch` (`create-medical-core.ts`).
+- **Clinical Tabs redesign (`clinical-tabs.ts`, `ClinicalTabsBar.tsx`, `clinical-tabs.css`):** Stopped adding browsing hub/list routes (`#/modules`, `#/notes`, `#/notes/patients`, `#/calculators`, `#/assessments`, `#/news`) as separate tabs; captured zero-layout frozen page text snapshots (`preview`) and redesigned the switcher as a 2-column visual card grid showing each tab's frozen preview and memory state (`Открыта` / `В памяти` / `Снимок`).
+- **Floating window fix & inline preview card actions (`floating-windows.ts`, `App.tsx`, `DocumentText.tsx`, `AppGlyph.tsx`):**
+  - Fixed «Маленькое окно» silently failing when reading a document from non-`modules` tabs (`routeBelongsToView` now accepts `#/documents/...` for all non-settings views; `currentRoute()` now reads reactive `currentHash()`).
+  - Replaced the bare `+` icon on inline reader preview cards with a floating-window button (`frame-corners`, triggering `requestFloatingWindow`) + dedicated `tab-plus` background-tab glyph.
+- **Inline document fixes (`DocumentText.tsx`, `document-inline-preview-load.ts`, `document-medication-links.ts`):**
+  - Moved trailing `closing` punctuation (`)`) out of `<button>` into `InlineLinkFrame` (with `\u2060` word-joiner), fixing `(капли)` showing/linking as `капли)`.
+  - Added lazy definition loader `loadInlineDocumentPreview` for non-medication inline links lacking pre-embedded `canonicalDefinition` (e.g. «Стеноз»), eliminating empty inline preview cards.
+  - Removed noisy `'Таблица без строк и столбцов'` caption on 1-column scanned cell lists.
+- **Drug Recipe modal (`allmed-recipes.ts`, `RecipeDialog.tsx`, `DrugRecipeSheet.tsx`, `prescription.css`):**
+  - Shows deduplicated Allmed recipes immediately when available (preferring Russian `S.` blocks, showing form number chips like `107-1/у` and dispensing notes) with an «Изменить» button to enter the interactive recipe generator.
+  - Modal header now shows a lightweight static mini-paper preview thumbnail (no iframe re-renders; tapping zooms into the real A4 `PaperPreview` dialog) + a single Print button whose menu holds Print, Share, and Copy.
+- **Psychiatric drug pharmacology flower & second icon row (`drug-pharmacology-schema.ts`, `psychotropic-pharmacology.ts`, `DrugReceptorFlower.tsx`, `DrugPinnedFacts.tsx`, `OfficialDocumentReader.tsx`):**
+  - Expanded schema & profiles to 36 psychiatric drugs (adding Алимемазин/Тералиджен, Карипразин/Реагила, Палиперидон, Луразидон, Сульпирид, Амисульприд, Хлорпромазин, Хлорпротиксен, Зуклопентиксол, Флупентиксол, Пароксетин, Флувоксамин, Дулоксетин, Тразодон, Вортиоксетин, Кломипрамин, Гидроксизин/Атаракс, Буспирон, Вальпроевая кислота, Карбамазепин, Алпразолам, Феназепам, Клоназепам, Тофизопам, Тригексифенидил) with Russian trade-name aliases and schema-declared clinical effect metrics.
+  - Mounted `DrugPinnedFacts` directly below `DrugConditionRow` as a matching 7-slot circular icon row with values (Receptor Flower count, `t½`, Sedation, Activation, and top clinical effects) opening the interactive SVG Receptor Flower (`Влияние`), 3-cell clinical effects meters (`Эффекты`), and `Кинетика` tabs.
+- **Additional UI forced-layout fixes (`press-feedback.ts`, `web-theme-color.ts`, `HorizontalScroller.tsx`):**
+  - Hoisted `getComputedStyle`/`clipBox` reads before `setAttribute`/`removeAttribute` in `press-feedback.ts` (eliminating write→read forced layout on every tap/release).
+  - Replaced continuous `scroll` + subtree `MutationObserver` in `web-theme-color.ts` with `scrollend` + shallow shell observation (eliminating mid-scroll `elementFromPoint`/`getClientRects` forced layouts).
+  - Batched light `HorizontalScroller` measurements in a shared rAF read-then-write queue.
 
 ## Xiaomi 14 `0.6.128` perf follow-ups & UI polish — 2026-11-23
 

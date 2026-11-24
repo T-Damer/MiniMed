@@ -71,6 +71,11 @@
   );
 }
 
+.floating-window-controls--no-nav,
+html:not(:has(.app-bottom-nav)) .floating-window-controls {
+  bottom: max(0.75rem, calc(0.75rem + var(--safe-bottom)));
+}
+
 /* ---- Tap targets: a finger-sized hit area behind a small control, its look unchanged -------- */
 
 .help-icon-link,

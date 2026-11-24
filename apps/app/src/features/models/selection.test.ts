@@ -208,7 +208,7 @@ describe('local model selection', () => {
       preference: preference(),
       availableRuntimes: new Set(['wllama-web', 'llama-native']),
     });
-    expect(selected?.model.id).toBe('qwen3-0.6b-q8');
+    expect(selected?.model.id).toBe('qwen3.5-0.8b-q4');
     expect(selected?.artifact.runtime).toBe('llama-native');
   });
 

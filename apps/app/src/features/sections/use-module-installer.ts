@@ -86,9 +86,22 @@ export function useModuleInstaller(
   let loading = false;
   let disposed = false;
   let unsubscribe: (() => void) | undefined;
+  let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+  let lastRefresh = 0;
+  const scheduleRefresh = (): void => {
+    if (refreshTimer !== undefined) return;
+    const wait = Math.max(0, 150 - (Date.now() - lastRefresh));
+    refreshTimer = setTimeout(() => {
+      refreshTimer = undefined;
+      if (disposed) return;
+      lastRefresh = Date.now();
+      setRevision((value) => value + 1);
+    }, wait);
+  };
   onCleanup(() => {
     disposed = true;
     unsubscribe?.();
+    clearTimeout(refreshTimer);
   });
   onMount(() => {
     createEffect(() => {
@@ -99,7 +112,8 @@ export function useModuleInstaller(
           if (disposed) return;
           const current = getContentModuleRuntime(catalog);
           setRuntime(current);
-          unsubscribe = current.subscribe(() => setRevision((value) => value + 1));
+          lastRefresh = Date.now();
+          unsubscribe = current.subscribe(scheduleRefresh);
         })
         .catch((cause: unknown) => {
           console.warn('Каталог пакетов не загрузился.', cause);

@@ -468,8 +468,7 @@ html:has(.floating-windows-layer--fullscreen) body {
   }
 
   .floating-window-controls {
-    right: 0.75rem;
-    bottom: calc(4.375rem + var(--safe-bottom));
+    right: max(0.75rem, var(--safe-right));
   }
 }
 

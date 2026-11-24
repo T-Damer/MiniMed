@@ -38,6 +38,23 @@ function isRootView(value: unknown): value is RootView {
   );
 }
 
+export const OPEN_FLOATING_WINDOW_EVENT = 'minimed:open-floating-window';
+
+export interface OpenFloatingWindowDetail {
+  readonly view?: RootView;
+  readonly route: string;
+}
+
+/** Requests opening any app route (e.g. a document from an inline preview) in a floating window. */
+export function requestFloatingWindow(route: string, view: RootView = 'modules'): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(
+    new CustomEvent<OpenFloatingWindowDetail>(OPEN_FLOATING_WINDOW_EVENT, {
+      detail: { view, route },
+    }),
+  );
+}
+
 function isRoute(value: unknown): value is string {
   return typeof value === 'string' && value.startsWith('#/') && value.length <= 2048;
 }
@@ -45,6 +62,7 @@ function isRoute(value: unknown): value is string {
 function routeBelongsToView(route: string, view: RootView): boolean {
   const root = route.replace(/^#\/?/u, '').split('/')[0];
   if (root === view) return true;
+  if (root === 'documents' && view !== 'settings') return true;
   if (view === 'search' && root === 'history') return true;
   if (view === 'modules' && root === 'documents') return true;
   return view === 'settings' && route === '#/modules/model';
@@ -411,8 +429,8 @@ export function createFloatingWindows() {
     return true;
   };
 
-  const open = (view: RootView, route = defaultRoute(view)): void => {
-    openWindow(view, route);
+  const open = (view: RootView, route = defaultRoute(view)): boolean => {
+    return openWindow(view, route);
   };
 
   const openTransient = (view: RootView, route: string, ownerRoute: string): boolean =>

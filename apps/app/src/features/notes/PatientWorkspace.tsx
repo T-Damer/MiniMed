@@ -1369,12 +1369,34 @@ function PatientDetail(props: {
         />
       </div>
       <section class="patient-workspace__timeline">
-        <Heading depth={2} class="patient-workspace__section-title">
-          События
-        </Heading>
+        <div class="patient-workspace__timeline-head">
+          <Heading depth={2} class="patient-workspace__section-title">
+            События
+          </Heading>
+          <Show when={log().length > 0}>
+            <span class="patient-workspace__timeline-count">{log().length}</span>
+          </Show>
+        </div>
         <Show
           when={log().length > 0}
-          fallback={<p class="patient-workspace__empty paper-card">Событий пока нет.</p>}
+          fallback={
+            <EmptyState
+              glyph="calendar"
+              class="patient-workspace__events-empty"
+              title="Событий пока нет"
+              text="Запишите осмотр, измерение или подключите дневник пациента — история появится здесь."
+              actions={
+                <Button
+                  type="button"
+                  variant="primary"
+                  icon={<AppGlyph name="note-pencil" />}
+                  onClick={() => setPanel('visit')}
+                >
+                  Записать осмотр
+                </Button>
+              }
+            />
+          }
         >
           <For each={log()}>
             {(entry) => (

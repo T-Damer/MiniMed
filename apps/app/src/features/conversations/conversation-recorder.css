@@ -38,6 +38,15 @@
     background-color var(--motion-fast) var(--motion-ease);
 }
 
+.recorder-fab--docked {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  flex: none;
+  order: 1;
+  pointer-events: auto;
+}
+
 .recorder-fab--hidden {
   opacity: 0;
   visibility: hidden;
@@ -47,7 +56,13 @@
   transform: translate(0.875rem, 0.75rem) scale(0.55);
 }
 
-html:not(:has(.app-bottom-nav)) .recorder-fab {
+.recorder-fab--docked.recorder-fab--hidden {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+html:not(:has(.app-bottom-nav)) .recorder-fab:not(.recorder-fab--docked) {
   bottom: max(0.625rem, var(--safe-bottom));
 }
 

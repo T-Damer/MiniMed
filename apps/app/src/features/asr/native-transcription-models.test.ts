@@ -7,9 +7,9 @@ import {
 
 describe('native transcription model manifest', () => {
   it('pins every artifact to immutable content with a SHA-256 and exact size', () => {
-    expect(NATIVE_TRANSCRIPTION_MODELS).toHaveLength(4);
-    expect(new Set(NATIVE_TRANSCRIPTION_MODELS.map((artifact) => artifact.id)).size).toBe(4);
-    expect(new Set(NATIVE_TRANSCRIPTION_MODELS.map((artifact) => artifact.fileName)).size).toBe(4);
+    expect(NATIVE_TRANSCRIPTION_MODELS).toHaveLength(6);
+    expect(new Set(NATIVE_TRANSCRIPTION_MODELS.map((artifact) => artifact.id)).size).toBe(6);
+    expect(new Set(NATIVE_TRANSCRIPTION_MODELS.map((artifact) => artifact.fileName)).size).toBe(6);
 
     for (const artifact of NATIVE_TRANSCRIPTION_MODELS) {
       expect(artifact.expectedBytes).toBeGreaterThan(0);
@@ -21,17 +21,24 @@ describe('native transcription model manifest', () => {
   });
 
   it('keeps the reviewed download footprint explicit', () => {
-    expect(NATIVE_TRANSCRIPTION_MODEL_BYTES).toBe(256_033_152);
+    expect(NATIVE_TRANSCRIPTION_MODEL_BYTES).toBe(263_034_686);
   });
 
-  it('keeps the GigaAM vocabulary coupled to the pinned CTC model revision', () => {
-    const asr = NATIVE_TRANSCRIPTION_MODELS.find((artifact) => artifact.id === 'gigaam-asr');
+  it('keeps the GigaAM v3 RNN-T transducer components coupled to one pinned revision', () => {
+    const encoder = NATIVE_TRANSCRIPTION_MODELS.find(
+      (artifact) => artifact.id === 'gigaam-encoder',
+    );
+    const decoder = NATIVE_TRANSCRIPTION_MODELS.find(
+      (artifact) => artifact.id === 'gigaam-decoder',
+    );
+    const joiner = NATIVE_TRANSCRIPTION_MODELS.find((artifact) => artifact.id === 'gigaam-joiner');
     const tokens = NATIVE_TRANSCRIPTION_MODELS.find((artifact) => artifact.id === 'gigaam-tokens');
-    expect(asr?.url).toContain('/360529f65d9687a7b1c2177130262819e51557da/');
-    expect(tokens?.url).toContain('/360529f65d9687a7b1c2177130262819e51557da/');
-    expect(tokens?.expectedBytes).toBe(2_007);
+    for (const part of [encoder, decoder, joiner, tokens]) {
+      expect(part?.url).toContain('/a6039be7cee829a9044a69ac0ebaf1c191217c97/');
+    }
+    expect(tokens?.expectedBytes).toBe(13_354);
     expect(tokens?.expectedSha256).toBe(
-      '142de7570b3de5b3035ce111a89c228e80e6085273731d944093ddf24fa539cd',
+      '39abae20e692998290c574e606f11a9edef2902a1995463fcff63d1490cf22b7',
     );
   });
 });

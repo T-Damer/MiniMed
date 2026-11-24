@@ -23,6 +23,10 @@ import { useInlinePreviewBounds } from '@/components/useInlinePreviewBounds';
 import { openAssessment } from '@/features/assessments/assessment-links';
 import { openCalculator } from '@/features/calculators/calculator-links';
 import {
+  type LoadedInlineDocumentPreview,
+  loadInlineDocumentPreview,
+} from '@/features/library/document-inline-preview-load';
+import {
   createDocumentLinkMatcher,
   type DocumentLinkMatcher,
   type DocumentLinkPhrase,
@@ -43,6 +47,7 @@ import { getClinicalTabsEnabled } from '@/state/app-preferences';
 import { openClinicalTabInBackground } from '@/state/clinical-tabs';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { buildOfficialDocumentHash } from '@/state/document-route';
+import { requestFloatingWindow } from '@/state/floating-windows';
 import { useHistoryLayer } from '@/state/use-history-layer';
 
 import '@/components/menu-owner.css';
@@ -133,27 +138,52 @@ function HighlightedLabel(props: {
 function InlineLinkFrame(
   props: Omit<Parameters<typeof HighlightedLabel>[0], 'text'> & {
     readonly opening?: string | undefined;
+    readonly closing?: string | undefined;
+    readonly closingRangeOffset?: number | undefined;
     readonly children: JSX.Element;
   },
 ): JSX.Element {
   return (
-    <Show when={props.opening} fallback={props.children}>
-      {(opening) => (
-        <span class="document-inline-link-frame">
-          <QueryHighlightedText
-            text={opening()}
-            query={props.query ?? ''}
-            exact={props.exactQuery}
-            fuzzy={props.fuzzyQuery}
-            matchClass={props.highlightClass}
-            ranges={props.ranges}
-            unitId={props.unitId}
-            activeStart={props.activeStart}
-            rangeOffset={(props.rangeOffset ?? 0) - opening().length}
-          />
-          {props.children}
-        </span>
-      )}
+    <Show when={props.opening || props.closing} fallback={props.children}>
+      <span class="document-inline-link-frame">
+        <Show when={props.opening}>
+          {(opening) => (
+            <>
+              <QueryHighlightedText
+                text={opening()}
+                query={props.query ?? ''}
+                exact={props.exactQuery}
+                fuzzy={props.fuzzyQuery}
+                matchClass={props.highlightClass}
+                ranges={props.ranges}
+                unitId={props.unitId}
+                activeStart={props.activeStart}
+                rangeOffset={(props.rangeOffset ?? 0) - opening().length}
+              />
+              {'\u2060'}
+            </>
+          )}
+        </Show>
+        {props.children}
+        <Show when={props.closing}>
+          {(closing) => (
+            <>
+              {'\u2060'}
+              <QueryHighlightedText
+                text={closing()}
+                query={props.query ?? ''}
+                exact={props.exactQuery}
+                fuzzy={props.fuzzyQuery}
+                matchClass={props.highlightClass}
+                ranges={props.ranges}
+                unitId={props.unitId}
+                activeStart={props.activeStart}
+                rangeOffset={props.closingRangeOffset ?? props.rangeOffset ?? 0}
+              />
+            </>
+          )}
+        </Show>
+      </span>
     </Show>
   );
 }
@@ -247,6 +277,8 @@ function InlineDocumentLink(props: {
   useHistoryLayer(open, () => setOpen(false));
 
   const [summary, setSummary] = createSignal<MedicationLinkSummary>();
+  const [loadedPreview, setLoadedPreview] = createSignal<LoadedInlineDocumentPreview | null>();
+  const [previewLoading, setPreviewLoading] = createSignal(false);
   const [previewError, setPreviewError] = createSignal<string>();
   const ambiguous = () => (props.segment.alternatives?.length ?? 0) > 1;
   /** Opens where the definition came from (a section of its source), else the linked document. */
@@ -275,21 +307,49 @@ function InlineDocumentLink(props: {
     setOpen(false);
     toast(created ? `Открыто в фоне: ${title}` : `Уже открыто во вкладках: ${title}`);
   };
+  const openSourceFloating = (
+    source: { readonly documentId: string; readonly anchor?: string } | undefined,
+    documentId: string,
+  ): void => {
+    const targetId = source?.documentId ?? documentId;
+    const hash = buildOfficialDocumentHash(targetId, source?.anchor);
+    setOpen(false);
+    requestFloatingWindow(hash, 'modules');
+  };
   const needsMedicationSummary = () => props.segment.linkKind === 'medication' && props.core;
+  const needsDocumentPreview = () =>
+    !props.segment.preview && props.segment.linkKind !== 'medication' && Boolean(props.core);
   const activate = async () => {
     setOpen((value) => !value);
-    if (!open() || ambiguous() || props.segment.preview || summary() || !needsMedicationSummary())
-      return;
+    if (!open() || ambiguous() || props.segment.preview) return;
     const core = props.core;
     if (!core) return;
-    setPreviewError();
-    try {
-      setSummary(
-        await loadMedicationLinkSummary(core, props.segment.documentId, MEDICATION_ASSETS),
-      );
-    } catch (error) {
-      console.error('Не удалось открыть сведения о препарате.', error);
-      setPreviewError('Не удалось открыть сведения о препарате.');
+    if (needsMedicationSummary()) {
+      if (summary()) return;
+      setPreviewError();
+      try {
+        setSummary(
+          await loadMedicationLinkSummary(core, props.segment.documentId, MEDICATION_ASSETS),
+        );
+      } catch (error) {
+        console.error('Не удалось открыть сведения о препарате.', error);
+        setPreviewError('Не удалось открыть сведения о препарате.');
+      }
+      return;
+    }
+    if (needsDocumentPreview() && loadedPreview() === undefined && !previewLoading()) {
+      setPreviewLoading(true);
+      setPreviewError();
+      try {
+        setLoadedPreview(
+          await loadInlineDocumentPreview(core, props.segment.documentId, props.segment.value),
+        );
+      } catch (error) {
+        console.error('Не удалось загрузить краткое определение.', error);
+        setPreviewError('Не удалось загрузить краткое описание.');
+      } finally {
+        setPreviewLoading(false);
+      }
     }
   };
 
@@ -307,18 +367,21 @@ function InlineDocumentLink(props: {
       overflowPadding={8}
     >
       <Popover.Anchor as="span" class="document-inline-preview">
-        <InlineLinkFrame {...props}>
+        <InlineLinkFrame
+          {...props}
+          closing={props.closing}
+          closingRangeOffset={(props.rangeOffset ?? 0) + props.segment.value.length}
+        >
           <button
             type="button"
             class="document-inline-link"
             classList={{ 'document-inline-link--open': open() }}
             aria-expanded={open()}
             aria-haspopup="dialog"
-            aria-label={props.closing ? props.segment.value : undefined}
             onClick={activate}
           >
             <HighlightedLabel
-              text={props.segment.value + (props.closing ?? '')}
+              text={props.segment.value}
               query={props.query}
               exactQuery={props.exactQuery}
               fuzzyQuery={props.fuzzyQuery}
@@ -352,28 +415,43 @@ function InlineDocumentLink(props: {
                   : (props.segment.preview?.title ?? summary()?.title ?? props.segment.value)}
               </strong>
               <Show when={!ambiguous()}>
-                <Show when={getClinicalTabsEnabled()}>
+                <span class="document-inline-preview__actions">
                   <button
                     type="button"
                     class="document-inline-preview__open"
-                    aria-label={`Открыть в фоновой вкладке: ${props.segment.preview?.title ?? props.segment.value}`}
-                    title="Открыть в фоновой вкладке"
+                    aria-label={`Маленькое окно: ${props.segment.preview?.title ?? props.segment.value}`}
+                    title="Маленькое окно"
                     onClick={() =>
-                      openSourceInBackground(
-                        props.segment.preview?.source,
-                        props.segment.documentId,
-                        props.segment.preview?.title ?? props.segment.value,
-                      )
+                      openSourceFloating(props.segment.preview?.source, props.segment.documentId)
                     }
                   >
-                    <AppGlyph name="plus" class="document-inline-preview__open-icon" />
+                    <AppGlyph name="frame-corners" class="document-inline-preview__open-icon" />
                   </button>
-                </Show>
-                <PreviewOpenButton
-                  label={props.segment.preview?.title ?? props.segment.value}
-                  title={props.segment.preview?.source?.label}
-                  onOpen={() => openSource(props.segment.preview?.source, props.segment.documentId)}
-                />
+                  <Show when={getClinicalTabsEnabled()}>
+                    <button
+                      type="button"
+                      class="document-inline-preview__open"
+                      aria-label={`Фоновая вкладка: ${props.segment.preview?.title ?? props.segment.value}`}
+                      title="Фоновая вкладка"
+                      onClick={() =>
+                        openSourceInBackground(
+                          props.segment.preview?.source,
+                          props.segment.documentId,
+                          props.segment.preview?.title ?? props.segment.value,
+                        )
+                      }
+                    >
+                      <AppGlyph name="tab-plus" class="document-inline-preview__open-icon" />
+                    </button>
+                  </Show>
+                  <PreviewOpenButton
+                    label={props.segment.preview?.title ?? props.segment.value}
+                    title={props.segment.preview?.source?.label}
+                    onOpen={() =>
+                      openSource(props.segment.preview?.source, props.segment.documentId)
+                    }
+                  />
+                </span>
               </Show>
             </div>
             <Show when={manyChoices()}>
@@ -430,6 +508,28 @@ function InlineDocumentLink(props: {
           </Show>
           <Show when={!ambiguous() && props.segment.preview}>
             {(preview) => <ClampedDefinition text={preview().definition} />}
+          </Show>
+          <Show when={!ambiguous() && !props.segment.preview && needsDocumentPreview()}>
+            <Show when={previewError()}>
+              {(error) => (
+                <p class="document-inline-preview__definition" role="alert">
+                  {error()}
+                </p>
+              )}
+            </Show>
+            <Show when={previewLoading()}>
+              <p class="document-inline-preview__definition" role="status">
+                Открываем определение…
+              </p>
+            </Show>
+            <Show when={loadedPreview()}>
+              {(loaded) => <ClampedDefinition text={loaded().definition} />}
+            </Show>
+            <Show when={!previewLoading() && !previewError() && loadedPreview() === null}>
+              <p class="document-inline-preview__definition">
+                Полный текст доступен в карточке документа — нажмите ↗, чтобы открыть.
+              </p>
+            </Show>
           </Show>
           <Show when={!ambiguous() && !props.segment.preview && needsMedicationSummary()}>
             <Show when={previewError()}>
@@ -648,12 +748,13 @@ function LinkedPlainText(props: {
           <InlineLinkFrame
             {...props}
             opening={segment.opening}
+            closing={segment.closing}
             rangeOffset={(props.rangeOffset ?? 0) + segment.offset}
+            closingRangeOffset={(props.rangeOffset ?? 0) + segment.offset + segment.value.length}
           >
             <button
               type="button"
               class={`document-inline-link document-inline-tool-link ${segment.kind}-inline-link`}
-              aria-label={segment.closing ? segment.value : undefined}
               onClick={() =>
                 assessment
                   ? openAssessment(segment.slug, { preferWindow: true })
@@ -661,7 +762,7 @@ function LinkedPlainText(props: {
               }
             >
               <HighlightedLabel
-                text={segment.value + (segment.closing ?? '')}
+                text={segment.value}
                 query={props.query}
                 exactQuery={props.exactQuery}
                 fuzzyQuery={props.fuzzyQuery}
@@ -1025,9 +1126,9 @@ export function DocumentText(props: {
           return (
             <Show when={props.tablesReady !== false}>
               <figure class="document-cells">
-                <span class="document-cells__badge">
-                  {columns > 1 ? 'Таблица из скана' : 'Таблица без строк и столбцов'}
-                </span>
+                <Show when={columns > 1}>
+                  <span class="document-cells__badge">Таблица из скана</span>
+                </Show>
                 <Show
                   when={columns > 1}
                   fallback={

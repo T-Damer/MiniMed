@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "2026.08-preview.1",
-  "publishedAt": "2026-08-26T00:00:00Z",
+  "catalogVersion": "2026.11-preview.1",
+  "publishedAt": "2026-11-24T00:00:00Z",
   "runtime": {
     "wllamaModuleUrl": "https://cdn.jsdelivr.net/npm/@wllama/wllama@3.5.1/esm/index.js",
     "wllamaWasmUrl": "https://cdn.jsdelivr.net/npm/@wllama/wllama@3.5.1/esm/wasm/wllama.wasm",
@@ -164,6 +164,172 @@
           "sha256": "425495de8462e63c98aae4e18561fa1fc7e153fa218e3067a5b39753258b48f2",
           "published": true,
           "maxContextTokens": 2048
+        }
+      ]
+    },
+    {
+      "id": "qwen3.5-0.8b-q4",
+      "name": "Qwen 3.5 0.8B",
+      "family": "qwen3.5",
+      "tier": "compact",
+      "description": "Быстрая модель поколения Qwen 3.5 для компактных Android-устройств.",
+      "parameterCount": 800000000,
+      "qualityScore": 86,
+      "russianPriority": 95,
+      "minimumMemoryGb": 3,
+      "recommendedMemoryGb": 4,
+      "license": {
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0",
+        "requiresAcceptance": false
+      },
+      "artifacts": [
+        {
+          "id": "qwen3.5-0.8b-q4-llama",
+          "runtime": "llama-native",
+          "platforms": ["android"],
+          "upstreamUrl": "https://huggingface.co/unsloth/Qwen3.5-0.8B-GGUF/resolve/6ab461498e2023f6e3c1baea90a8f0fe38ab64d0/Qwen3.5-0.8B-Q4_K_M.gguf",
+          "mirrorPath": "qwen3.5-0.8b-q4_k_m.gguf",
+          "downloadBytes": 532517120,
+          "sha256": "bd258782e35f7f458f8aced1adc053e6e92e89bc735ba3be89d38a06121dc517",
+          "published": true,
+          "maxContextTokens": 4096
+        }
+      ]
+    },
+    {
+      "id": "qwen3.5-2b-q4",
+      "name": "Qwen 3.5 2B",
+      "family": "qwen3.5",
+      "tier": "balanced",
+      "description": "Сбалансированная модель Qwen 3.5 для структурированного извлечения и ответов на русском на Android.",
+      "parameterCount": 2000000000,
+      "qualityScore": 94,
+      "russianPriority": 97,
+      "minimumMemoryGb": 4,
+      "recommendedMemoryGb": 6,
+      "license": {
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0",
+        "requiresAcceptance": false
+      },
+      "artifacts": [
+        {
+          "id": "qwen3.5-2b-q4-llama",
+          "runtime": "llama-native",
+          "platforms": ["android"],
+          "upstreamUrl": "https://huggingface.co/unsloth/Qwen3.5-2B-GGUF/resolve/f6d5376be1edb4d416d56da11e5397a961aca8ae/Qwen3.5-2B-Q4_K_M.gguf",
+          "mirrorPath": "qwen3.5-2b-q4_k_m.gguf",
+          "downloadBytes": 1280835840,
+          "sha256": "aaf42c8b7c3cab2bf3d69c355048d4a0ee9973d48f16c731c0520ee914699223",
+          "published": true,
+          "maxContextTokens": 4096
+        }
+      ]
+    },
+    {
+      "id": "qwen3-4b-2507-q4",
+      "name": "Qwen 3 4B Instruct (2507)",
+      "family": "qwen3",
+      "tier": "quality",
+      "description": "Сильная 4B-модель с хорошей работой со схемами и русскими медицинскими текстами (веб и Android).",
+      "parameterCount": 4000000000,
+      "qualityScore": 96,
+      "russianPriority": 97,
+      "minimumMemoryGb": 6,
+      "recommendedMemoryGb": 8,
+      "license": {
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0",
+        "requiresAcceptance": false
+      },
+      "artifacts": [
+        {
+          "id": "qwen3-4b-2507-q4-gguf",
+          "runtime": "wllama-web",
+          "platforms": ["browser", "android"],
+          "upstreamUrl": "https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/a06e946bb6b655725eafa393f4a9745d460374c9/Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+          "mirrorPath": "qwen3-4b-instruct-2507-q4_k_m.gguf",
+          "downloadBytes": 2497281120,
+          "sha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597",
+          "published": true,
+          "maxContextTokens": 4096
+        },
+        {
+          "id": "qwen3-4b-2507-q4-llama",
+          "runtime": "llama-native",
+          "platforms": ["android"],
+          "upstreamUrl": "https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/a06e946bb6b655725eafa393f4a9745d460374c9/Qwen3-4B-Instruct-2507-Q4_K_M.gguf",
+          "mirrorPath": "qwen3-4b-instruct-2507-q4_k_m.gguf",
+          "downloadBytes": 2497281120,
+          "sha256": "3605803b982cb64aead44f6c1b2ae36e3acdb41d8e46c8a94c6533bc4c67e597",
+          "published": true,
+          "maxContextTokens": 4096
+        }
+      ]
+    },
+    {
+      "id": "qwen3.5-4b-q4",
+      "name": "Qwen 3.5 4B",
+      "family": "qwen3.5",
+      "tier": "quality",
+      "description": "Флагманская локальная 4B-модель поколения Qwen 3.5 для мощных Android-устройств (от 8 ГБ ОЗУ).",
+      "parameterCount": 4000000000,
+      "qualityScore": 98,
+      "russianPriority": 98,
+      "minimumMemoryGb": 6,
+      "recommendedMemoryGb": 8,
+      "license": {
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0",
+        "requiresAcceptance": false
+      },
+      "artifacts": [
+        {
+          "id": "qwen3.5-4b-q4-llama",
+          "runtime": "llama-native",
+          "platforms": ["android"],
+          "upstreamUrl": "https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/e87f176479d0855a907a41277aca2f8ee7a09523/Qwen3.5-4B-Q4_K_M.gguf",
+          "mirrorPath": "qwen3.5-4b-q4_k_m.gguf",
+          "downloadBytes": 2740937888,
+          "sha256": "00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4",
+          "published": true,
+          "maxContextTokens": 4096
+        }
+      ]
+    },
+    {
+      "id": "gemma-4-e2b-it-q4",
+      "name": "Gemma 4 E2B",
+      "family": "gemma4",
+      "tier": "quality",
+      "description": "Компактная модель Gemma 4 E2B (Apache 2.0) для Android-устройств с запасом памяти.",
+      "parameterCount": 5100000000,
+      "qualityScore": 97,
+      "russianPriority": 95,
+      "minimumMemoryGb": 6,
+      "recommendedMemoryGb": 8,
+      "license": {
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0",
+        "requiresAcceptance": false
+      },
+      "artifacts": [
+        {
+          "id": "gemma-4-e2b-it-q4-llama",
+          "runtime": "llama-native",
+          "platforms": ["android"],
+          "upstreamUrl": "https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/0314792d7f1f7e229411f620751375812bb9faf2/gemma-4-E2B-it-Q4_K_M.gguf",
+          "mirrorPath": "gemma-4-e2b-it-q4_k_m.gguf",
+          "downloadBytes": 3106738272,
+          "sha256": "740185b21d22ceb83a11c3aa62ad5842ef32c70f6096d756bbee85a1e4ec34b8",
+          "published": true,
+          "maxContextTokens": 4096
         }
       ]
     }

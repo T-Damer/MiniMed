@@ -537,3 +537,94 @@
 .drug-interactions__compare-text {
   flex: 1 1 auto;
 }
+
+/* Schema-evaluated pharmacodynamic / CYP interaction findings */
+.drug-interactions__pharmacology {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem 0.9rem;
+  border-top: var(--theme-border-hairline, 1px) solid var(--theme-border);
+  border-bottom: var(--theme-border-hairline, 1px) solid var(--theme-border);
+  background: color-mix(in srgb, var(--theme-accent) 4%, var(--theme-surface));
+}
+
+.drug-interactions__pharmacology-title {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--theme-text-muted);
+}
+
+.drug-interactions__pharmacology-list {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.drug-interactions__pharmacology-item {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--theme-border);
+  border-left: 3px solid var(--theme-accent);
+  border-radius: var(--theme-radius-control, 0.65rem);
+  background: var(--theme-surface-raised);
+}
+
+.drug-interactions__pharmacology-item--high {
+  border-left-color: var(--theme-danger);
+}
+
+.drug-interactions__pharmacology-item--moderate {
+  border-left-color: var(--theme-warning);
+}
+
+.drug-interactions__pharmacology-item--info {
+  border-left-color: var(--theme-accent);
+}
+
+.drug-interactions__pharmacology-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.drug-interactions__pharmacology-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--theme-text);
+}
+
+.drug-interactions__pharmacology-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.drug-interactions__pharmacology-tag {
+  padding: 0.08rem 0.42rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--theme-text-muted);
+  background: var(--theme-surface);
+}
+
+.drug-interactions__pharmacology-mech {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--theme-text-muted);
+}
+
+.drug-interactions__pharmacology-detail {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.42;
+  color: var(--theme-text);
+}

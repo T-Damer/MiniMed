@@ -36,6 +36,27 @@ describe('isTransientDownloadError', () => {
     expect(isTransientDownloadError(new Error('Сервер ответил HTTP 429.'))).toBe(true);
     expect(isTransientDownloadError(new Error('Размер файла не совпал: 10 != 20.'))).toBe(true);
     expect(isTransientDownloadError(new Error('Ошибка из-за нестабильной сети.'))).toBe(true);
+    expect(
+      isTransientDownloadError(new Error('Системная загрузка завершилась с ошибкой (1004).')),
+    ).toBe(true);
+    expect(
+      isTransientDownloadError(new Error('Системная загрузка завершилась с ошибкой (1008).')),
+    ).toBe(true);
+    expect(
+      isTransientDownloadError(new Error('Системная загрузка завершилась с ошибкой (1000).')),
+    ).toBe(true);
+    expect(
+      isTransientDownloadError(new Error('Системная загрузка завершилась с ошибкой (неизвестно).')),
+    ).toBe(true);
+    expect(isTransientDownloadError(new Error('Не удалось прочитать скачанный файл.'))).toBe(true);
+  });
+
+  it('never retries permanent Android storage download errors', () => {
+    expect(isTransientDownloadError(new Error('Недостаточно места для загрузки.'))).toBe(false);
+    expect(isTransientDownloadError(new Error('Хранилище загрузок недоступно.'))).toBe(false);
+    expect(
+      isTransientDownloadError(new Error('Системная загрузка завершилась с ошибкой (1001).')),
+    ).toBe(false);
   });
 
   it('retries a stored file that could not be read, by name or by the installer message', () => {

@@ -5,12 +5,17 @@ import rawCatalog from '@/features/models/catalog.preview.json';
 describe('local model catalog', () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it('loads the three curated startup candidates', () => {
+  it('loads the curated startup candidates including 2026 Qwen 3.5 and Gemma 4 entries', () => {
     const catalog = parseLocalModelCatalog(rawCatalog);
     expect(catalog.models.map((model) => model.id)).toEqual([
       'vikhr-qwen2.5-0.5b-q4',
       'qwen3-0.6b-q8',
       'qvikhr-3-1.7b-q4',
+      'qwen3.5-0.8b-q4',
+      'qwen3.5-2b-q4',
+      'qwen3-4b-2507-q4',
+      'qwen3.5-4b-q4',
+      'gemma-4-e2b-it-q4',
     ]);
     expect(catalog.models.every((model) => model.artifacts.length > 0)).toBe(true);
   });

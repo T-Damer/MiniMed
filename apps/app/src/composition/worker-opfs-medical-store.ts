@@ -406,11 +406,23 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
       if (type === 'open') {
-        this.worker.postMessage({
+        const openOptions = methodOrOptions as OpfsPackWorkerOpenOptions;
+        const encodedBytes = 'encoded' in openOptions ? openOptions.encoded.bytes : undefined;
+        const message = {
           id,
-          type: 'open',
-          ...(methodOrOptions as OpfsPackWorkerOpenOptions),
-        });
+          type: 'open' as const,
+          ...openOptions,
+        };
+        if (
+          encodedBytes &&
+          encodedBytes.byteOffset === 0 &&
+          encodedBytes.byteLength === encodedBytes.buffer.byteLength &&
+          encodedBytes.buffer instanceof ArrayBuffer
+        ) {
+          this.worker.postMessage(message, [encodedBytes.buffer]);
+        } else {
+          this.worker.postMessage(message);
+        }
         return;
       }
       this.worker.postMessage({

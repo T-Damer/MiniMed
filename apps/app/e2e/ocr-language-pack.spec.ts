@@ -79,7 +79,7 @@ test('no pack: OCR asks, downloads with consent, runs, then works offline from t
   await chooseOcr(page, 'first-scan.pdf');
   const prompt = page.getByTestId('ocr-pack-prompt');
   await expect(prompt).toContainText(PROMPT);
-  await expect(prompt).toContainText('19,6 МБ');
+  await expect(prompt).toContainText('25,4 МБ');
   // Nothing was fetched before the consent.
   expect(pack.requests).toEqual([]);
 
@@ -143,14 +143,14 @@ test('Settings lists the pack with its size, downloads it and removes it', async
 
   const card = page.locator('.ocr-settings');
   await expect(card).toContainText('Распознавание текста (OCR)');
-  await expect(card).toContainText('Не скачано · 19,6 МБ');
+  await expect(card).toContainText('Не скачано · 25,4 МБ');
   await card.getByRole('button', { name: 'Скачать' }).click();
   await expect(card).toContainText('Готово к работе', { timeout: 60_000 });
   expect(pack.requests.toSorted()).toEqual(['eng', 'rus']);
 
   await card.getByRole('button', { name: 'Удалить' }).click();
-  await expect(card).toContainText('Не скачано · 19,6 МБ');
+  await expect(card).toContainText('Не скачано · 25,4 МБ');
   await page.reload();
   await openSettingsPage(page, 'Функции ИИ');
-  await expect(page.locator('.ocr-settings')).toContainText('Не скачано · 19,6 МБ');
+  await expect(page.locator('.ocr-settings')).toContainText('Не скачано · 25,4 МБ');
 });

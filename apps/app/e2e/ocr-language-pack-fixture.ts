@@ -44,7 +44,7 @@ export interface OcrLanguagePackRoutes {
 }
 
 const SOURCE_PATTERN =
-  /\/(?:naptha\/tessdata@|naptha\/tessdata\/)[0-9a-f]{40}\/4\.0\.0\/(eng|rus)\.traineddata\.gz/u;
+  /\/(?:naptha\/tessdata@|naptha\/tessdata\/)[0-9a-f]{40}\/4\.0\.0_best\/(eng|rus)\.traineddata\.gz/u;
 
 /** Serves the language-pack URLs (every mirror) from the local cache and counts the requests. */
 export async function routeOcrLanguagePack(page: Page): Promise<OcrLanguagePackRoutes> {

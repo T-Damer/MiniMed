@@ -474,22 +474,72 @@ function isMedicationDeduplicableDocument(document: SearchDocumentDescriptor | u
   );
 }
 
+const INSTRUCTION_TITLE_SUFFIX_RE =
+  /:\s*(?:инструкция(?:\s+по\s+медицинскому\s+применению)?|листок-вкладыш|общая характеристика лекарственного препарата(?:\s*\(охлп\))?|лист изменений к инструкции|регистрационная карточка грлс)\s*$/iu;
+
 /**
- * Normalizes a drug trade/card title for duplicate detection: strips trademark marks (`®`, `™`),
+ * Normalizes a drug trade/card title for duplicate detection: strips instruction kind suffixes
+ * («Изониазид: инструкция по медицинскому применению» → «изониазид»), trademark marks (`®`, `™`),
  * trailing parenthetical form/country qualifiers («Акинетон (таблетки)» → «акинетон»), and extra
- * punctuation/whitespace so «Акинетон» and «Акинетон®» map to one canonical name.
+ * punctuation/whitespace so all forms/registrations of one drug map to one canonical name.
  */
 function canonicalMedicationGroupTitle(title: string): string {
-  const withoutMarks = title
+  const withoutSuffix = title
+    .replace(INSTRUCTION_TITLE_SUFFIX_RE, '')
     .replace(/[®™©]/gu, '')
     .replace(/\s*\([^)]*\)\s*$/u, '')
     .trim();
-  return normalizeSurfaceText(withoutMarks).trim();
+  return normalizeSurfaceText(withoutSuffix).trim();
 }
 
 /**
- * Completeness tier for medication cards that share the exact same canonical drug title.
- * Full official instructions and full ЕСКЛП/registry records beat pointers and incomplete stubs.
+ * Normalizes a medication's active substance set (`inn` / `standardizedInn`, or the title of an
+ * `esklp.mnn.` substance card). Multi-ingredient combinations keep all sorted components joined
+ * with `+` («изониазид+рифампицин») so single-ingredient «изониазид» never collapses with combos.
+ */
+function canonicalMedicationInnKey(
+  group: SearchResultGroup,
+  document: SearchDocumentDescriptor | undefined,
+): string | undefined {
+  if (!document || !isMedicationDeduplicableDocument(document)) return undefined;
+  const raw =
+    (typeof document.metadata?.['standardizedInn'] === 'string'
+      ? document.metadata['standardizedInn']
+      : undefined) ??
+    (typeof document.metadata?.['inn'] === 'string' ? document.metadata['inn'] : undefined) ??
+    (document.id.startsWith('esklp.mnn.') ||
+    document.metadata?.['contentMode'] === 'esklp-mnn' ||
+    document.sourceType === 'official_registry_summary' ||
+    (document.sourceType === 'core_catalog_pointer' &&
+      typeof document.metadata?.['targetDocumentId'] === 'string' &&
+      document.metadata['targetDocumentId'].startsWith('esklp.mnn.'))
+      ? group.title
+      : undefined);
+  if (!raw?.trim()) return undefined;
+  const parts = raw
+    .split(/\s*\+\s*/u)
+    .map((part) => canonicalMedicationGroupTitle(part))
+    .filter(Boolean)
+    .toSorted();
+  return parts.length > 0 ? parts.join('+') : undefined;
+}
+
+function isCanonicalSubstanceGroup(document: SearchDocumentDescriptor | undefined): boolean {
+  if (!document) return false;
+  if (document.sourceType === 'official_registry_summary') return true;
+  if (document.id.startsWith('esklp.mnn.')) return true;
+  return (
+    document.sourceType === 'core_catalog_pointer' &&
+    typeof document.metadata?.['targetDocumentId'] === 'string' &&
+    document.metadata['targetDocumentId'].startsWith('esklp.mnn.')
+  );
+}
+
+/**
+ * Completeness tier for medication cards that share the exact same canonical drug title or INN.
+ * A full ЕСКЛП substance card (which opens the unified DrugScreen with all trade names, forms,
+ * ATC and the best instruction) beats individual PDF instructions, amendments, Allmed stubs,
+ * and pointers.
  */
 function medicationCompletenessRank(
   group: SearchResultGroup,
@@ -506,9 +556,12 @@ function medicationCompletenessRank(
     document.metadata?.['partial'] === true ||
     document.metadata?.['stub'] === true;
   if (isIncomplete) return 1;
-  if (document.sourceType === 'official_drug_instruction') return isPointer ? 3 : 6;
   if (document.sourceType === 'official_registry_summary') {
-    return isPointer ? 3 : 5;
+    return isPointer ? 3 : 6;
+  }
+  if (document.sourceType === 'official_drug_instruction') {
+    if (isPointer) return 3;
+    return document.metadata?.['documentKind'] === 'amendment' ? 4 : 5;
   }
   if (document.sourceType === 'core_catalog_pointer') return 3;
   if (document.sourceType === 'allmed_reference') {
@@ -516,6 +569,21 @@ function medicationCompletenessRank(
     return snippetLength >= 60 ? 4 : 2;
   }
   return 2;
+}
+
+/**
+ * True when a drug title is the INN itself or a generic manufacturer variant of that single INN
+ * (e.g. «изониазид», «изониазид-акос», «изониазид ферейн», «изониазид убф»), NOT a distinct
+ * combination or unrelated branded product.
+ */
+function isGenericVariantOfInn(titleKey: string, innKey: string): boolean {
+  if (!titleKey || !innKey || innKey.includes('+')) return false;
+  if (titleKey === innKey) return true;
+  if (!titleKey.startsWith(innKey)) return false;
+  const rest = titleKey.slice(innKey.length);
+  if (!/^[\s-]/u.test(rest)) return false;
+  // Do not treat combinations like «изониазид + рифампицин» as a generic single-INN variant.
+  return !rest.includes('+');
 }
 
 /**
@@ -565,24 +633,61 @@ export function collapseGroupsByTargetDocument(
   }
 
   // Second pass: collapse duplicate medication cards with the same canonical trade name
-  // (e.g. «Акинетон», «Акинетон®», «Акинетон (таблетки)»), keeping the highest-ranked slot and
-  // upgrading to the more complete record (official instruction / full ЕСКЛП over incomplete stub).
+  // (e.g. «Акинетон», «Акинетон®», «Изониазид: инструкция», «Изониазид: листок-вкладыш»),
+  // keeping the highest-ranked slot and upgrading to the more complete record.
   const byMedicationTitle = new Map<string, number>();
-  const collapsed: SearchResultGroup[] = [];
+  const collapsedByTitle: SearchResultGroup[] = [];
   for (const group of uniqueByIdentity) {
+    const document = documentsById.get(group.documentId);
+    if (!isMedicationDeduplicableDocument(document)) {
+      collapsedByTitle.push(group);
+      continue;
+    }
+    const titleKey = canonicalMedicationGroupTitle(group.title);
+    if (!titleKey) {
+      collapsedByTitle.push(group);
+      continue;
+    }
+    const existingSlot = byMedicationTitle.get(titleKey);
+    if (existingSlot === undefined) {
+      byMedicationTitle.set(titleKey, collapsedByTitle.length);
+      collapsedByTitle.push(group);
+      continue;
+    }
+    const existing = collapsedByTitle[existingSlot];
+    if (!existing) continue;
+    const existingRank = medicationCompletenessRank(
+      existing,
+      documentsById.get(existing.documentId),
+    );
+    const candidateRank = medicationCompletenessRank(group, document);
+    if (candidateRank > existingRank) {
+      collapsedByTitle[existingSlot] = group;
+    }
+  }
+
+  // Third pass: collapse manufacturer-suffixed generic instructions / duplicates of the same
+  // single-ingredient INN (e.g. «Изониазид-АКОС», «Изониазид-Ферейн», «Изониазид-Дарница») into
+  // the single canonical drug card, while preserving multi-ingredient combinations (`innA+innB`)
+  // and distinct branded products.
+  const substanceSlotByInn = new Map<string, number>();
+  const collapsed: SearchResultGroup[] = [];
+  for (const group of collapsedByTitle) {
     const document = documentsById.get(group.documentId);
     if (!isMedicationDeduplicableDocument(document)) {
       collapsed.push(group);
       continue;
     }
+    const innKey = canonicalMedicationInnKey(group, document);
     const titleKey = canonicalMedicationGroupTitle(group.title);
-    if (!titleKey) {
+    const isGeneric = innKey !== undefined && isGenericVariantOfInn(titleKey, innKey);
+    if (!innKey || (!isGeneric && !isCanonicalSubstanceGroup(document))) {
       collapsed.push(group);
       continue;
     }
-    const existingSlot = byMedicationTitle.get(titleKey);
+    const existingSlot = substanceSlotByInn.get(innKey);
     if (existingSlot === undefined) {
-      byMedicationTitle.set(titleKey, collapsed.length);
+      substanceSlotByInn.set(innKey, collapsed.length);
       collapsed.push(group);
       continue;
     }

@@ -28,8 +28,8 @@
         "data/intermediate/grls-instructions-current-*"
       ],
       "note": "Rate-limited official downloads plus the download state ledger; the only local copy. G1 (2026-10-02) added 30 PDFs; collection stopped at a CAPTCHA (data/build/grls-collect/BLOCKED-by-site).",
-      "bytes": 13509927910,
-      "modified": "2026-10-28"
+      "bytes": 13519675756,
+      "modified": "2026-11-23"
     },
     {
       "path": "data/raw/krasotaimedicina",
@@ -717,8 +717,8 @@
       ],
       "release": "tracked in Git on main",
       "note": "Small optional module packs committed to the repository; each file is the published artifact of its catalog entry. Remove only together with its catalog entry.",
-      "bytes": 76124144,
-      "modified": "2026-10-20"
+      "bytes": 80281584,
+      "modified": "2026-11-16"
     },
     {
       "path": "data/raw/herbal",
@@ -752,7 +752,7 @@
       "producer": "Skin photo datasets for tools/derm-cnn: SCIN and PAD-UFES-20 (direct downloads), DermNet (Hugging Face WahajRaza/Dermnet parquet), Atlas Dermatológico (tools/derm-cnn/index_atlas.py + download_images.py), ISIC 2024 SLICE-3D (isic-archive S3), MSID / scabies benchmark / SkinDiseaseBD (Mendeley Data)",
       "consumers": ["tools/derm-cnn/train_skin_cnn.py", "tools/derm-cnn/eval_onnx.py"],
       "note": "Personal-use training data (owner 2026-10-29: licences not a constraint, weights stay local). Re-downloadable but slow; dermnet/images and isic2024/images are unpacked from the parquet/zip on first use.",
-      "bytes": 53788161328,
+      "bytes": 2257834300,
       "modified": "2026-10-30"
     },
     {
@@ -761,8 +761,8 @@
       "producer": "tools/derm-cnn/train_skin_cnn.py and eval_onnx.py over data/raw/derm",
       "consumers": ["tools/derm-cnn/stage_model.sh → apps/app/public/models/skin (gitignored)"],
       "note": "Resized-photo caches, trained runs (model.pt, ONNX, metrics) and logs. Superseded runs are deleted once the staged ensemble is verified.",
-      "bytes": 2623287568,
-      "modified": "2026-10-30"
+      "bytes": 4927567265,
+      "modified": "2026-11-03"
     },
     {
       "path": "data/intermediate/grls-render-repair",
@@ -773,7 +773,7 @@
       ],
       "rebuild": "uv run python scripts/grls_render_repair.py apply --out ../../data/intermediate/grls-render-repair --overlay ../../data/build/grls-render-repair.jsonl (a few minutes; MINIMED_DATA_ROOT from a worktree)",
       "note": "2 163 re-rendered ГРЛС instructions (Markdown only), the current build input of the 15 instruction modules for those documents.",
-      "bytes": 133824512,
+      "bytes": 129349319,
       "modified": "2026-11-06"
     },
     {
@@ -787,8 +787,28 @@
       ],
       "rebuild": "the published branch datasets/grls-instructions-2026.11.06-9a01334d2a42-kd1 holds the same bytes",
       "note": "Local copy of the published 15 ГРЛС instruction modules (grls-2026.11.06.kd1); the 2026-10-20 copy stays as rollback.",
-      "bytes": 221061120,
+      "bytes": 221029069,
       "modified": "2026-11-06"
+    },
+    {
+      "path": "data/models/inkling-2-mini",
+      "class": "REBUILDABLE",
+      "producer": "scripts/inkling-2-mini.sh setup (downloads AtomicChat/Inkling-2-Mini-GGUF Inkling-2-Mini-AD-IQ2_M.gguf + dspark-Inkling-2-Mini-Q8_0.gguf from Hugging Face)",
+      "consumers": ["scripts/inkling-2-mini.sh serve", "scripts/inkling-drug-extract.ts"],
+      "rebuild": "bash scripts/inkling-2-mini.sh setup",
+      "note": "Local workstation weights for Inkling 2 Mini (AD-IQ2_M 8.67 GB + DSpark Q8_0 481 MiB) run under Atomic Engine's 16 GiB managed RAM budget for typed drug & КР schema extraction experiments.",
+      "bytes": 9168949376,
+      "modified": "2026-11-23"
+    },
+    {
+      "path": "data/tools/atomic-engine",
+      "class": "REBUILDABLE",
+      "producer": "scripts/inkling-2-mini.sh setup (git clone codex/expert-weight-source + CMake Metal release build)",
+      "consumers": ["scripts/inkling-2-mini.sh serve"],
+      "rebuild": "bash scripts/inkling-2-mini.sh setup",
+      "note": "Local Apple Silicon Metal build of AtomicBot-ai/atomic-engine (codex/expert-weight-source) with managed expert-memory budgeting (--engine-budget-mib).",
+      "bytes": 418044999,
+      "modified": "2026-11-23"
     }
   ]
 }

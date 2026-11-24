@@ -20,6 +20,7 @@ export const ASR_DOWNLOAD_VERSION = 'transformers-whisper-q8-v2-pinned-cache';
 export const ASR_MODEL_REVISIONS = {
   'onnx-community/whisper-base': '1846881b6b3a3024392c1eea3ad983695bc23925',
   'onnx-community/whisper-small': '36050c46d777d46dc4b5f43f6d90574fc38f8732',
+  'onnx-community/whisper-large-v3-turbo': '360ebcde2559d60bb474678be3c1de9ef347d01a',
 } as const;
 
 export type SupportedAsrModelId = keyof typeof ASR_MODEL_REVISIONS;

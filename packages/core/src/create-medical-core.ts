@@ -2163,19 +2163,21 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         plan.lookupTermGroups,
       );
       const namedIds = new Set(namedGroups.map((item) => item.documentId));
-      const visibleGroups = [
+      const mergedGroups = [
         ...namedGroups.filter(
           (item, index) =>
             namedGroups.findIndex((other) => other.documentId === item.documentId) === index,
         ),
         ...groups.filter((item) => !namedIds.has(item.documentId)),
-      ]
-        .slice(0, request.limit)
-        .map((group) =>
-          documents.get(group.documentId)?.metadata?.['contentMode'] === 'module-pointer'
-            ? { ...group, contentKind: 'pointer' as const }
-            : group,
-        );
+      ].map((group) =>
+        documents.get(group.documentId)?.metadata?.['contentMode'] === 'module-pointer'
+          ? { ...group, contentKind: 'pointer' as const }
+          : group,
+      );
+      const visibleGroups = collapseGroupsByTargetDocument(mergedGroups, documents).slice(
+        0,
+        request.limit,
+      );
       return ok({
         requestId: requestId(),
         identities,

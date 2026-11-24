@@ -68,6 +68,15 @@ describe('floating windows', () => {
     expect(manager?.windows()).toHaveLength(1);
     manager?.toggle('search', '#/search');
     expect(manager?.windows()).toEqual([]);
+
+    // Opening a document read route while on any non-settings root view (e.g. search) must work.
+    expect(manager?.open('search', '#/documents/official/esklp.mnn.alimemazin')).toBe(true);
+    expect(manager?.windowForRoute('search', '#/documents/official/esklp.mnn.alimemazin')).toEqual(
+      expect.objectContaining({
+        view: 'search',
+        route: '#/documents/official/esklp.mnn.alimemazin',
+      }),
+    );
     dispose?.();
   });
 

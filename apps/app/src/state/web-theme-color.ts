@@ -109,14 +109,15 @@ export function watchTopEdgeContrast(
     apply(dark, floatingFullscreen);
   };
   const schedule = (): void => {
-    if (!timer) timer = window.setTimeout(sync, 100);
+    if (!timer) timer = window.setTimeout(sync, 220);
   };
   const observer = new MutationObserver(schedule);
   observer.observe(document.documentElement, {
     attributes: true,
     attributeFilter: ['class', 'data-theme'],
   });
-  observer.observe(document.body, { childList: true, subtree: true });
+  const shell = document.querySelector('.app-shell');
+  observer.observe(shell ?? document.body, { childList: true });
   window.addEventListener('scrollend', schedule, { capture: true, passive: true });
   window.addEventListener('hashchange', schedule);
   schedule();
@@ -153,9 +154,10 @@ export function installWebThemeColor(): () => void {
     const color = browserBarColor();
     if (color && meta.content !== color) meta.content = color;
   };
-  // Throttled: a scroll or a burst of renders reads the colour once per ~0.1 s.
+  // Sync after scroll settles or theme/route changes — never during active scrolling where
+  // `topEdgeColor()` (`getClientRects` + `elementFromPoint`) would force layout mid-fling.
   const schedule = (): void => {
-    if (!timer) timer = window.setTimeout(sync, 100);
+    if (!timer) timer = window.setTimeout(sync, 220);
   };
   const scheme = window.matchMedia('(prefers-color-scheme: dark)');
   const observer = new MutationObserver(schedule);
@@ -163,8 +165,9 @@ export function installWebThemeColor(): () => void {
     attributes: true,
     attributeFilter: ['class', 'data-theme'],
   });
-  observer.observe(document.body, { childList: true, subtree: true });
-  window.addEventListener('scroll', schedule, { capture: true, passive: true });
+  const shell = document.querySelector('.app-shell');
+  observer.observe(shell ?? document.body, { childList: true });
+  window.addEventListener('scrollend', schedule, { capture: true, passive: true });
   window.addEventListener('resize', schedule, { passive: true });
   window.addEventListener('hashchange', schedule);
   scheme.addEventListener('change', schedule);
@@ -172,7 +175,7 @@ export function installWebThemeColor(): () => void {
   return () => {
     if (timer) window.clearTimeout(timer);
     observer.disconnect();
-    window.removeEventListener('scroll', schedule, { capture: true });
+    window.removeEventListener('scrollend', schedule, { capture: true });
     window.removeEventListener('resize', schedule);
     window.removeEventListener('hashchange', schedule);
     scheme.removeEventListener('change', schedule);

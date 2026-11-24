@@ -198,6 +198,27 @@ export class DownloadQueue {
   private readonly priority = new Set<string>();
   private persistenceError: string | null = null;
   private lastSaved = 0;
+  private batchDepth = 0;
+  private pendingEmit = false;
+  private pendingDurable = false;
+
+  private flushBatchEmit(): void {
+    if (!this.pendingEmit) return;
+    const durable = this.pendingDurable;
+    this.pendingEmit = false;
+    this.pendingDurable = false;
+    this.emit(durable);
+  }
+
+  public batch<T>(fn: () => T): T {
+    this.batchDepth += 1;
+    try {
+      return fn();
+    } finally {
+      this.batchDepth -= 1;
+      if (this.batchDepth === 0) this.flushBatchEmit();
+    }
+  }
 
   public constructor(
     private readonly limit = 3,
@@ -630,11 +651,22 @@ export class DownloadQueue {
     return cancellation;
   }
   public async cancelAll(): Promise<void> {
-    const results = await Promise.allSettled(
-      this.list()
-        .filter((task) => task.canCancel)
-        .map((task) => this.cancel(task.id)),
-    );
+    const cancellable = this.list().filter((task) => task.canCancel);
+    if (cancellable.length === 0) return;
+    // Coalesce both the synchronous transition to `cancelling` and the async settlement storm so
+    // cancelling ~870 queued tasks emits twice instead of thousands of times.
+    this.batchDepth += 1;
+    let results: PromiseSettledResult<void>[];
+    try {
+      const promises = cancellable.map((task) => this.cancel(task.id));
+      this.batchDepth -= 1;
+      if (this.batchDepth === 0) this.flushBatchEmit();
+      this.batchDepth += 1;
+      results = await Promise.allSettled(promises);
+    } finally {
+      this.batchDepth -= 1;
+      if (this.batchDepth === 0) this.flushBatchEmit();
+    }
     const failures = results.filter((result) => result.status === 'rejected');
     if (failures.length)
       throw new AggregateError(
@@ -702,6 +734,11 @@ export class DownloadQueue {
       });
   }
   private emit(durable: boolean): void {
+    if (this.batchDepth > 0) {
+      this.pendingEmit = true;
+      if (durable) this.pendingDurable = true;
+      return;
+    }
     // A pause holds module downloads. With none left to hold (all done, failed or cancelled) it
     // ends by itself, so the next download the person starts is not silently held.
     if (this.paused && !this.hasHoldableWork()) this.paused = false;

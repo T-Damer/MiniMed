@@ -163,6 +163,8 @@
     "native:visual:dev": "bun scripts/nativeVisualDev.ts",
     "native:visual:prepare": "bun scripts/prepare-native-visual-fixtures.ts",
     "models:publish": "bash scripts/publish-model-assets.sh",
+    "llm:inkling:setup": "bash scripts/inkling-2-mini.sh setup",
+    "llm:inkling": "bash scripts/inkling-2-mini.sh serve",
     "benchmark:runtime": "bun tools/benchmarks/src/run-runtime-retrieval.ts",
     "benchmark:search-latency": "bun tools/benchmarks/src/run-search-latency.ts",
     "content:catalog:tools": "bun scripts/buildToolCatalog.ts",

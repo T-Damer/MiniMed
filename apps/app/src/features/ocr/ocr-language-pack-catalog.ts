@@ -1,12 +1,13 @@
 /**
- * The OCR language pack (Tesseract «tessdata» 4.0.0, русский + английский) is not part of the app
- * bundle: it is downloaded once, after the user agrees, and then OCR works offline. This module is
- * the pure part: what the pack is, where it comes from and how a downloaded file is accepted.
+ * The OCR language pack (Tesseract «tessdata_best» 4.0.0_best, русский + английский) is not part
+ * of the app bundle: it is downloaded once, after the user agrees, and then OCR works offline.
+ * This module is the pure part: what the pack is, where it comes from and how a downloaded file is
+ * accepted.
  */
 
 /** The pinned upstream commit of naptha/tessdata (branch gh-pages) the files below were taken from. */
 const TESSDATA_COMMIT = '806cd9adc8c6e8abc11c782db1818c990576bebc';
-const TESSDATA_RELEASE_DIR = '4.0.0';
+const TESSDATA_RELEASE_DIR = '4.0.0_best';
 
 export type OcrLanguage = 'eng' | 'rus';
 
@@ -34,14 +35,14 @@ export const OCR_LANGUAGE_PACK_FILES: readonly OcrLanguagePackFile[] = [
   {
     language: 'eng',
     sources: sources('eng'),
-    bytes: 10_923_060,
-    sha256: 'ed350f3752f81ee8f38769edc14d92d997dababe23b565c59879372cc46a2468',
+    bytes: 12_821_300,
+    sha256: '341ff75b44432480cf6cab965c3e7c23fae4de240dfb49fa9604e6008f95a708',
   },
   {
     language: 'rus',
     sources: sources('rus'),
-    bytes: 8_634_337,
-    sha256: '63a48ae166be2bb9862839b6f75e11afbac5e3be5bd5fa9a155ea43d5cdf9575',
+    bytes: 12_627_830,
+    sha256: 'eb0651092874fae6735d629be182582fe6d15da9ae1f6db8e6e3c16152a54bc4',
   },
 ];
 
@@ -53,7 +54,7 @@ export const OCR_LANGUAGE_PACK_TOTAL_BYTES = OCR_LANGUAGE_PACK_FILES.reduce(
 /** The languages passed to tesseract, in the order it expects (`rus+eng`). */
 export const OCR_LANGUAGES = 'rus+eng';
 
-/** Decimal megabytes with a Russian decimal comma, like the downloads list: «19,6 МБ». */
+/** Decimal megabytes with a Russian decimal comma, like the downloads list: «25,4 МБ». */
 export function formatOcrPackSize(bytes: number): string {
   return `${(bytes / 1_000_000).toFixed(1).replace('.', ',')} МБ`;
 }

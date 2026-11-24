@@ -23,6 +23,8 @@ export interface ClinicalTabSnapshot {
   readonly kind: ClinicalTabKind;
   readonly title: string;
   readonly subtitle?: string;
+  /** Short frozen text lines captured from the screen before leaving, for visual grid cards. */
+  readonly preview?: readonly string[];
   readonly hash: string;
   readonly documentId?: string;
   readonly anchor?: string;
@@ -196,63 +198,45 @@ function parseToolRouteTab(normalizedHash: string): ParsedToolTab | null {
   if (!path || path === 'search' || path.startsWith('search/')) return null;
   if (path === 'settings' || path.startsWith('settings/') || path === 'status') return null;
 
-  if (path === 'notes/diaries' || path.startsWith('notes/diaries/')) {
-    const sub = path.slice('notes/diaries'.length).replace(/^\/+/u, '');
+  // Only concrete clinical work items become tabs — browsing hub/list routes (`#/modules`,
+  // `#/notes`, `#/notes/patients`, `#/calculators`, `#/assessments`, `#/news`) do not flood tabs.
+  if (path.startsWith('notes/diaries/')) {
+    const sub = path.slice('notes/diaries/'.length).replace(/^\/+/u, '');
     const segment = sub.split('/')[0] ?? '';
+    if (!segment || segment === 'new') return null;
     return {
-      id: segment ? `tab:diary:${segment}` : 'tab:diary:list',
+      id: `tab:diary:${segment}`,
       kind: 'diary',
-      defaultTitle: segment && segment !== 'new' ? 'Дневник пациента' : 'Дневники',
+      defaultTitle: 'Дневник пациента',
     };
   }
-  if (path === 'notes/patients' || path.startsWith('notes/patients/')) {
-    const sub = path.slice('notes/patients'.length).replace(/^\/+/u, '');
+  if (path.startsWith('notes/patients/')) {
+    const sub = path.slice('notes/patients/'.length).replace(/^\/+/u, '');
     const segment = sub.split('/')[0] ?? '';
+    if (!segment || segment === 'new') return null;
     return {
-      id: segment ? `tab:patients:${segment}` : 'tab:patients:list',
+      id: `tab:patients:${segment}`,
       kind: 'patients',
-      defaultTitle: segment && segment !== 'new' ? 'Карточка пациента' : 'Пациенты',
+      defaultTitle: 'Карточка пациента',
     };
   }
-  if (path === 'notes' || path.startsWith('notes/')) {
-    const sub = path.slice('notes'.length).replace(/^\/+/u, '');
+  if (path.startsWith('calculators/')) {
+    const slug = path.slice('calculators/'.length).replace(/^\/+/u, '');
+    if (!slug) return null;
     return {
-      id: sub ? `tab:notes:${sub}` : 'tab:notes:root',
-      kind: 'notes',
-      defaultTitle: sub.startsWith('worksheets') ? 'Дневники КПТ' : 'Заметки',
-    };
-  }
-  if (path === 'calculators' || path.startsWith('calculators/')) {
-    const slug = path.slice('calculators'.length).replace(/^\/+/u, '');
-    return {
-      id: slug ? `tab:calculator:${slug}` : 'tab:calculator:list',
+      id: `tab:calculator:${slug}`,
       kind: 'calculator',
-      defaultTitle: slug ? 'Калькулятор' : 'Калькуляторы',
+      defaultTitle: 'Калькулятор',
     };
   }
-  if (path === 'assessments' || path.startsWith('assessments/')) {
-    const slug = path.slice('assessments'.length).replace(/^\/+/u, '');
+  if (path.startsWith('assessments/')) {
+    const slug = path.slice('assessments/'.length).replace(/^\/+/u, '');
+    if (!slug) return null;
     return {
-      id: slug ? `tab:assessment:${slug}` : 'tab:assessment:list',
+      id: `tab:assessment:${slug}`,
       kind: 'assessment',
-      defaultTitle: slug ? 'Опросник' : 'Опросники',
+      defaultTitle: 'Опросник',
     };
-  }
-  if (path === 'modules' || path.startsWith('modules/') || path === 'documents') {
-    const sub = path.startsWith('modules/') ? path.slice('modules/'.length) : '';
-    const title = sub.startsWith('documents/medications')
-      ? 'Препараты'
-      : sub.startsWith('documents/user')
-        ? 'Ваши документы'
-        : 'База знаний';
-    return {
-      id: sub ? `tab:modules:${sub.split('/').slice(0, 2).join('/')}` : 'tab:modules:root',
-      kind: 'modules',
-      defaultTitle: title,
-    };
-  }
-  if (path === 'news' || path.startsWith('news/')) {
-    return { id: 'tab:news', kind: 'news', defaultTitle: 'Лента' };
   }
   return null;
 }
@@ -392,14 +376,41 @@ export function openClinicalTabInBackground(input: {
 }
 
 export function updateActiveClinicalTabTitle(title: string): ClinicalTabsState {
-  const trimmed = title.trim();
-  if (!trimmed) return loadClinicalTabsState();
+  return updateActiveClinicalTabSnapshot({ title });
+}
+
+export function updateActiveClinicalTabSnapshot(patch: {
+  readonly title?: string;
+  readonly subtitle?: string;
+  readonly preview?: readonly string[];
+}): ClinicalTabsState {
   const current = loadClinicalTabsState();
   const active = current.tabs.find((tab) => tab.id === current.activeTabId);
-  if (!active || active.kind === 'search' || active.title === trimmed) return current;
+  if (!active) return current;
+  const nextTitle =
+    active.kind !== 'search' && patch.title?.trim() ? patch.title.trim() : active.title;
+  const nextSubtitle =
+    patch.subtitle !== undefined ? patch.subtitle.trim() || undefined : active.subtitle;
+  const cleanedPreview = patch.preview
+    ?.map((line) => line.replace(/\s+/gu, ' ').trim())
+    .filter(Boolean)
+    .slice(0, 4);
+  const nextPreview = cleanedPreview && cleanedPreview.length > 0 ? cleanedPreview : active.preview;
+  const samePreview =
+    (nextPreview?.length ?? 0) === (active.preview?.length ?? 0) &&
+    (nextPreview ?? []).every((line, index) => line === active.preview?.[index]);
+  if (nextTitle === active.title && nextSubtitle === active.subtitle && samePreview) {
+    return current;
+  }
+  const updated: ClinicalTabSnapshot = {
+    ...active,
+    title: nextTitle,
+    ...(nextSubtitle ? { subtitle: nextSubtitle } : {}),
+    ...(nextPreview ? { preview: nextPreview } : {}),
+  };
   return saveClinicalTabsState({
     ...current,
-    tabs: current.tabs.map((tab) => (tab.id === active.id ? { ...tab, title: trimmed } : tab)),
+    tabs: current.tabs.map((tab) => (tab.id === active.id ? updated : tab)),
   });
 }
 

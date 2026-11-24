@@ -272,7 +272,10 @@ const SEARCH_DOCUMENT_METADATA = `json_object(
     'publisher', json_extract(d.metadata_json, '$.publisher'),
     'sourceLabel', json_extract(d.metadata_json, '$.sourceLabel'),
     'issuer', json_extract(d.metadata_json, '$.issuer'),
-    'linkedMnnDocumentId', json_extract(d.metadata_json, '$.linkedMnnDocumentId')
+    'linkedMnnDocumentId', json_extract(d.metadata_json, '$.linkedMnnDocumentId'),
+    'inn', json_extract(d.metadata_json, '$.inn'),
+    'standardizedInn', json_extract(d.metadata_json, '$.standardizedInn'),
+    'tradeName', json_extract(d.metadata_json, '$.tradeName')
   )`;
 
 const SEARCH_DOCUMENT_SELECT = `

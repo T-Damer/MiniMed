@@ -11,7 +11,7 @@ function task(state: DownloadPhase, patch: Partial<DownloadTask> = {}): Download
     title: 'Распознавание текста (OCR)',
     state,
     downloadedBytes: 0,
-    totalBytes: 19_557_397,
+    totalBytes: 25_449_130,
     completedFiles: null,
     totalFiles: null,
     attempt: 0,
@@ -29,7 +29,7 @@ describe('OCR language pack view', () => {
     expect(ocrPackView({ installed: false, task: undefined })).toEqual({
       kind: 'missing',
       fraction: undefined,
-      label: 'Не скачано · 19,6 МБ',
+      label: 'Не скачано · 25,4 МБ',
       busy: false,
       cancellable: false,
     });
@@ -43,13 +43,13 @@ describe('OCR language pack view', () => {
   it('shows the share of bytes while downloading and never reaches 100% before the commit', () => {
     const half = ocrPackView({
       installed: false,
-      task: task('downloading', { downloadedBytes: 9_778_699 }),
+      task: task('downloading', { downloadedBytes: 12_724_565 }),
     });
     expect(half).toMatchObject({ kind: 'downloading', busy: true, cancellable: true });
     expect(half.label).toBe('Скачивается · 50%');
     const all = ocrPackView({
       installed: false,
-      task: task('downloading', { downloadedBytes: 19_557_397 }),
+      task: task('downloading', { downloadedBytes: 25_449_130 }),
     });
     expect(all.label).toBe('Скачивается · 99%');
   });

@@ -158,7 +158,7 @@ import { browserI18n } from '@/i18n';
 import { pluralRu } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
-import { motionMs } from '@/state/motion';
+import { motionMs, motionRate } from '@/state/motion';
 import { perfMark, perfSpan } from '@/state/perf-log';
 import { coreIsBaseOnly, searchDataVersion } from '@/state/search-data-version';
 import {
@@ -1121,7 +1121,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       const pageChange = !clinicalToggle && (previousScope === 'all' || props.scope === 'all');
       if (!pageChange)
         requestAnimationFrame(() =>
-          window.scrollTo({ top: saved?.scrollTop ?? 0, behavior: 'instant' }),
+          window.scrollTo({
+            top: saved?.scrollTop ?? 0,
+            behavior: motionRate() === 0 ? 'auto' : 'smooth',
+          }),
         );
     }
     activeScope = props.scope;

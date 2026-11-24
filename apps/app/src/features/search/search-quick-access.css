@@ -75,7 +75,7 @@
   top: calc(0.25rem + (100% - 0.25rem - 1.6rem) / 2);
 }
 
-@media (min-width: 48rem) {
+@media (min-width: 48rem) and (hover: hover) and (pointer: fine) {
   .horizontal-scroll-control.search-quick-access__control {
     display: grid;
   }

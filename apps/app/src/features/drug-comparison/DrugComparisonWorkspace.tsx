@@ -15,7 +15,9 @@ import { toast } from 'solid-sonner';
 import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { AsciiSpinner } from '@/components/AsciiSpinner';
 import { Button } from '@/components/Button';
+import { EmptyState } from '@/components/EmptyState';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
@@ -67,6 +69,13 @@ import {
 } from './comparison-view';
 import '@/styles/drug-comparison.css';
 
+const QUICK_PAIR_CANDIDATES: readonly (readonly [string, string])[] = [
+  ['Ибупрофен', 'Нимесулид'],
+  ['Омепразол', 'Пантопразол'],
+  ['Амоксициллин', 'Азитромицин'],
+  ['Эналаприл', 'Лозартан'],
+];
+
 function todayText(): string {
   return new Date().toLocaleDateString('ru-RU');
 }
@@ -96,6 +105,8 @@ export function DrugComparisonWorkspace(props: {
   const [unresolved, setUnresolved] = createSignal<readonly string[]>([]);
   const [query, setQuery] = createSignal('');
   const [candidates, setCandidates] = createSignal<readonly FoundDrug[]>([]);
+  const [searching, setSearching] = createSignal(false);
+  const [searchedQuery, setSearchedQuery] = createSignal('');
   const [resolving, setResolving] = createSignal(
     props.initialNames.length > 0 || props.initialDrugs.length > 0,
   );
@@ -144,12 +155,13 @@ export function DrugComparisonWorkspace(props: {
   };
 
   // The drugs the tool was opened with: exact drugs first, then typed names through the drug search.
+  // Works as soon as the bundled comparison index loads (never stalls waiting for `core`).
   let initialized = false;
   createEffect(() => {
     const loaded = index();
-    const core = props.core;
-    if (!loaded || !core || initialized) return;
+    if (!loaded || initialized) return;
     initialized = true;
+    const core = props.core;
     void (async () => {
       for (const value of props.initialDrugs) {
         const { slug, product } = decodeDrug(value);
@@ -179,20 +191,51 @@ export function DrugComparisonWorkspace(props: {
     );
   });
 
-  // The drug search box.
+  // The drug search box: works immediately from the bundled comparison index even while modules load.
   createEffect(() => {
     const text = query().trim();
     const core = props.core;
-    if (text.length < 2 || !core || !index()) {
+    const loaded = index();
+    if (text.length < 2 || !loaded) {
       setCandidates([]);
+      setSearching(false);
+      setSearchedQuery('');
       return;
     }
+    setSearching(true);
     const handle = setTimeout(() => {
-      void findDrugs(core, text).then((found) => {
-        if (untrack(() => query().trim()) === text) setCandidates(found);
-      });
+      void findDrugs(core, text)
+        .then((found) => {
+          if (untrack(() => query().trim()) !== text) return;
+          setCandidates(found);
+          setSearchedQuery(text);
+        })
+        .finally(() => {
+          if (untrack(() => query().trim()) === text) setSearching(false);
+        });
     }, 250);
     onCleanup(() => clearTimeout(handle));
+  });
+
+  const quickPairs = createMemo(() => {
+    const loaded = index();
+    if (!loaded) return [];
+    const cardByName = new Map<string, FoundDrug>();
+    for (const card of loaded.asset.cards) {
+      const normalized = card.n.toLocaleLowerCase('ru-RU').trim();
+      if (!cardByName.has(normalized)) {
+        cardByName.set(normalized, {
+          slug: card.s,
+          label: displayDrugName(card.n),
+          product: null,
+        });
+      }
+    }
+    return QUICK_PAIR_CANDIDATES.flatMap(([firstName, secondName]) => {
+      const first = cardByName.get(firstName.toLocaleLowerCase('ru-RU'));
+      const second = cardByName.get(secondName.toLocaleLowerCase('ru-RU'));
+      return first && second ? [{ first, second }] : [];
+    });
   });
 
   const chosen = createMemo(() => {
@@ -407,8 +450,22 @@ export function DrugComparisonWorkspace(props: {
           onClear={() => {
             setQuery('');
             setCandidates([]);
+            setSearchedQuery('');
+            setSearching(false);
           }}
         />
+        <Show when={index.loading}>
+          <p class="drug-comparison__status" role="status" data-testid="comparison-index-loading">
+            <AsciiSpinner class="drug-comparison__status-spinner" />
+            Загружаем справочник препаратов…
+          </p>
+        </Show>
+        <Show when={!index.loading && !props.core}>
+          <p class="drug-comparison__status" role="status" data-testid="comparison-core-loading">
+            <AsciiSpinner class="drug-comparison__status-spinner" />
+            Подключаем базу инструкций — выбор и реестровые свойства уже доступны.
+          </p>
+        </Show>
         <Show when={index() && candidates().length > 0}>
           <ComparisonDrugRows
             index={index() as NonNullable<ReturnType<typeof index>>}
@@ -421,13 +478,29 @@ export function DrugComparisonWorkspace(props: {
               addDrug(drug);
               setQuery('');
               setCandidates([]);
+              setSearchedQuery('');
+              setSearching(false);
             }}
           />
         </Show>
-        <Show when={query().trim().length >= 2 && candidates().length === 0 && !index.loading}>
+        <Show when={query().trim().length >= 2 && searching() && candidates().length === 0}>
+          <p class="drug-comparison__status" role="status">
+            <AsciiSpinner class="drug-comparison__status-spinner" />
+            Ищем препараты…
+          </p>
+        </Show>
+        <Show
+          when={
+            query().trim().length >= 2 &&
+            !searching() &&
+            searchedQuery() === query().trim() &&
+            candidates().length === 0 &&
+            !index.loading
+          }
+        >
           <p class="drug-comparison__hint" role="status">
-            Ничего не найдено. Если справочник препаратов не скачан, скачайте его в разделе
-            «Препараты».
+            Ничего не найдено по запросу «{query().trim()}». Попробуйте МНН, торговое название или
+            код АТХ.
           </p>
         </Show>
       </section>
@@ -491,22 +564,56 @@ export function DrugComparisonWorkspace(props: {
         when={items().length >= MIN_DRUGS}
         fallback={
           <Show when={!resolving()}>
-            <p class="drug-comparison__empty" role="status" data-testid="comparison-empty">
-              Добавьте {items().length === 0 ? 'два препарата' : 'ещё один препарат'} или больше (до{' '}
-              {MAX_DRUGS}), чтобы сравнить их.
-            </p>
-            <Show when={items().length === 1}>
-              <Button
-                type="button"
-                variant="primary"
-                class="drug-comparison__choose"
-                data-testid="comparison-choose"
-                icon={<AppGlyph name="plus" />}
-                onClick={() => setPickerOpen(true)}
-              >
-                Выбрать препарат
-              </Button>
-            </Show>
+            <div class="drug-comparison__starter" data-testid="comparison-empty">
+              <EmptyState
+                glyph="pill"
+                title={
+                  items().length === 0
+                    ? 'Выберите 2–4 препарата для сравнения'
+                    : 'Добавьте ещё один препарат'
+                }
+                text={
+                  items().length === 0
+                    ? 'Формы, дозировки, условия отпуска, взаимодействия и разделы официальных инструкций рядом.'
+                    : `Можно добавить ещё до ${MAX_DRUGS - items().length} препаратов или выбрать аналог из той же группы АТХ.`
+                }
+                actions={
+                  <Show when={index()}>
+                    <Button
+                      type="button"
+                      variant="primary"
+                      class="drug-comparison__choose"
+                      data-testid="comparison-choose"
+                      icon={<AppGlyph name="plus" />}
+                      onClick={() => setPickerOpen(true)}
+                    >
+                      {items().length === 0 ? 'Выбрать препарат' : 'Выбрать второй препарат'}
+                    </Button>
+                  </Show>
+                }
+              />
+              <Show when={items().length === 0 && quickPairs().length > 0}>
+                <section class="drug-comparison__examples" aria-label="Примеры сравнения">
+                  <span class="drug-comparison__examples-label">Быстрый старт</span>
+                  <div class="drug-comparison__examples-list">
+                    <For each={quickPairs()}>
+                      {(pair) => (
+                        <button
+                          type="button"
+                          class="drug-comparison__example-chip"
+                          onClick={() => {
+                            addDrug(pair.first);
+                            addDrug(pair.second);
+                          }}
+                        >
+                          {pair.first.label} ↔ {pair.second.label}
+                        </button>
+                      )}
+                    </For>
+                  </div>
+                </section>
+              </Show>
+            </div>
           </Show>
         }
       >

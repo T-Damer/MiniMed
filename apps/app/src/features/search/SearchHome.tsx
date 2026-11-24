@@ -14,6 +14,7 @@ import {
   untrack,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
+import { animatePageEnter } from '@/app/page-enter';
 import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
@@ -116,6 +117,7 @@ import { VACCINATION_TOOL } from '@/features/vaccination/vaccination-tool';
 import { getUsefulFeaturesHidden, subscribeAppPreferences } from '@/state/app-preferences';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { experimentalModulesEnabled } from '@/state/experimental-modules';
+import { motionRate } from '@/state/motion';
 import { perfSpan } from '@/state/perf-log';
 import { coreIsBaseOnly } from '@/state/search-data-version';
 import {
@@ -886,8 +888,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     window.addEventListener('touchstart', cancel, { once: true, passive: true });
     const step = (): void => {
       if (cancelled || frames-- <= 0) return;
-      window.scrollTo({ top, behavior: 'instant' });
-      if (Math.abs(window.scrollY - top) > 1) requestAnimationFrame(step);
+      const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      if (top <= maxScroll + 1 || frames <= 1) {
+        window.scrollTo({ top, behavior: motionRate() === 0 ? 'auto' : 'smooth' });
+        return;
+      }
+      requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
   };
@@ -932,7 +938,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         }
         return;
       }
-      if (previous === undefined) window.scrollTo({ top: 0, behavior: 'instant' });
+      if (previous === undefined) {
+        window.scrollTo({ top: 0, behavior: motionRate() === 0 ? 'auto' : 'smooth' });
+        requestAnimationFrame(() => {
+          animatePageEnter(document.querySelector('.app-view.active'));
+        });
+      }
       if (current === id) return;
       if (current) {
         window.history.replaceState(window.history.state, '', searchSectionHash(id));

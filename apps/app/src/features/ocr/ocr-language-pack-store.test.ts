@@ -62,7 +62,7 @@ describe('OCR language pack store', () => {
 
   it('uses the key layout tesseract.js reads with cacheMethod readOnly', () => {
     expect(ocrCacheKey('rus')).toBe(`${OCR_TESSERACT_CACHE_PATH}/rus.traineddata`);
-    expect(OCR_TESSERACT_CACHE_PATH).toBe('minimed-ocr-tessdata-4.0.0');
+    expect(OCR_TESSERACT_CACHE_PATH).toBe('minimed-ocr-tessdata-4.0.0_best');
   });
 
   it('writes the pack into the shared tesseract database and drops the pre-pack cache entries', async () => {

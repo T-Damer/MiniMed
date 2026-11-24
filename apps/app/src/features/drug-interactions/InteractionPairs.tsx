@@ -17,6 +17,11 @@ import { Button } from '@/components/Button';
 import { Disclosure } from '@/components/Disclosure';
 import { createLineClamp } from '@/components/line-clamp';
 import { Heading } from '@/components/Text';
+import {
+  evaluatePharmacologyPair,
+  lookupPharmacologyForCandidates,
+  type PharmacologyInteractionFinding,
+} from '@/features/medications/pharmacology/pharmacology-interactions';
 import { PrintManager } from '@/features/printing/print-manager';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { buildOfficialDocumentHash } from '@/state/document-route';
@@ -203,6 +208,20 @@ function PairCard(props: {
   readonly severityMissing: boolean;
   readonly onContentChanged: () => Promise<void>;
 }): JSX.Element {
+  const schemaFindings = createMemo<readonly PharmacologyInteractionFinding[]>(() => {
+    const [firstSide, secondSide] = props.view.sides;
+    if (!firstSide || !secondSide) return [];
+    const profileA = lookupPharmacologyForCandidates([firstSide.from.id, firstSide.from.label]);
+    const profileB = lookupPharmacologyForCandidates([secondSide.from.id, secondSide.from.label]);
+    if (!profileA || !profileB) return [];
+    return evaluatePharmacologyPair(
+      profileA,
+      profileB,
+      firstSide.from.label,
+      secondSide.from.label,
+    );
+  });
+
   return (
     <article
       class="drug-interactions__pair paper-card"
@@ -264,6 +283,37 @@ function PairCard(props: {
           )}
         </Show>
       </header>
+      <Show when={schemaFindings().length > 0}>
+        <section
+          class="drug-interactions__pharmacology"
+          aria-label="Оценка по фармакологическому профилю"
+          data-testid="interaction-pharmacology-findings"
+        >
+          <h4 class="drug-interactions__pharmacology-title">
+            По фармакологическому профилю (рецепторы, CYP, эффекты)
+          </h4>
+          <ul class="drug-interactions__pharmacology-list">
+            <For each={schemaFindings()}>
+              {(finding) => (
+                <li
+                  class={`drug-interactions__pharmacology-item drug-interactions__pharmacology-item--${finding.severity}`}
+                >
+                  <div class="drug-interactions__pharmacology-head">
+                    <strong class="drug-interactions__pharmacology-name">{finding.title}</strong>
+                    <div class="drug-interactions__pharmacology-tags">
+                      <For each={finding.tags}>
+                        {(tag) => <span class="drug-interactions__pharmacology-tag">{tag}</span>}
+                      </For>
+                    </div>
+                  </div>
+                  <p class="drug-interactions__pharmacology-mech">{finding.mechanism}</p>
+                  <p class="drug-interactions__pharmacology-detail">{finding.detail}</p>
+                </li>
+              )}
+            </For>
+          </ul>
+        </section>
+      </Show>
       <For each={props.view.sides.filter(hasReadableSide)}>
         {(side) => <SideBlock side={side} />}
       </For>

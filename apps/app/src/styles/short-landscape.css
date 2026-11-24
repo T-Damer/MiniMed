@@ -30,6 +30,7 @@
     max-width: none;
     margin: 0;
     padding-block: 0.25rem;
+    padding-inline: max(0.75rem, var(--safe-left)) max(0.75rem, var(--safe-right));
     background-color: var(--page-hero-band);
   }
 
@@ -38,9 +39,13 @@
   .news-page.page-surface,
   .news-viewer.page-surface {
     display: grid;
-    grid-template-columns: minmax(0, clamp(14rem, 37vw, 26rem)) minmax(0, 1fr);
+    grid-template-columns: minmax(0, clamp(15rem, 38vw, 25rem)) minmax(0, 1fr);
     align-items: start;
-    gap: clamp(0.625rem, 2vw, 1.5rem);
+    gap: clamp(0.75rem, 2vw, 1.5rem);
+  }
+
+  .search-workspace-main .case-folder {
+    padding-inline: max(0.75rem, var(--safe-left)) max(0.75rem, var(--safe-right));
   }
 
   .search-workspace-main .archive-desk {
@@ -67,34 +72,66 @@
     gap: 0.625rem;
   }
 
+  .user-library-page.page-surface {
+    padding-top: calc(var(--safe-top) + 0.5rem);
+    padding-inline: max(0.75rem, var(--safe-left)) max(0.75rem, var(--safe-right));
+  }
+
   .user-library-page__controls,
   .news-page__controls,
   .news-viewer__heading.page--hero {
     position: sticky;
-    top: var(--safe-top);
+    top: calc(var(--safe-top) + 0.5rem);
+  }
+
+  .user-library-page__items {
+    padding-inline-end: 0.375rem;
   }
 
   .search-workspace__controls {
     position: sticky;
     top: calc(var(--safe-top) + 3.5rem);
     max-height: calc(100dvh - var(--safe-top) - 3.5rem);
+    padding-bottom: calc(var(--bottom-nav-clearance, 4.75rem) + 0.5rem);
     overflow-y: auto;
   }
 
   .news-page.page-surface,
   .news-viewer.page-surface {
-    grid-template-columns: minmax(0, clamp(12rem, 32vw, 19rem)) minmax(0, 1fr);
-    padding-top: calc(var(--safe-top) + 0.625rem);
+    grid-template-columns: minmax(15.5rem, clamp(15.5rem, 36vw, 22rem)) minmax(0, 1fr);
+    padding-top: calc(var(--safe-top) + 0.5rem);
+    padding-inline: max(0.75rem, var(--safe-left)) max(0.75rem, var(--safe-right));
   }
 
   .news-page__heading.page--hero,
   .news-viewer__heading.page--hero,
   .user-library-page__heading.page--hero {
     --page-hero-lip: 0px;
-    /* The usual hero bleed reaches the whole route. This header belongs to the left pane. */
+    /* Left-pane header card: sits neatly inside the column without bleeding across the status bar
+       or leaving a mismatched dark block beside the right column. */
     --page-hero-inset-left: 0px;
     --page-hero-inset-right: 0px;
     --page-hero-inset-top: 0px;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.875rem;
+    overflow: hidden;
+  }
+
+  .news-page__heading.page--hero::before,
+  .news-viewer__heading.page--hero::before,
+  .user-library-page__heading.page--hero::before {
+    display: none;
+  }
+
+  .news-page__heading .page__above-header,
+  .news-viewer__heading .page__above-header {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+  }
+
+  .news-page__heading .news-page__actions {
+    flex-wrap: wrap;
+    gap: 0.375rem;
   }
 
   .news-page__heading .page__hero-room,
@@ -128,6 +165,13 @@
     display: none;
   }
 
+  :root:has(.app-view.active .news-viewer--frame) .bottom-left-controls,
+  :root:has(.app-view--document-read.active [data-reader-page-root]) .bottom-left-controls,
+  :root:has(.app-view.active .news-viewer--frame) .floating-window-controls,
+  :root:has(.app-view--document-read.active [data-reader-page-root]) .floating-window-controls {
+    bottom: max(0.75rem, calc(0.75rem + var(--safe-bottom, 0px)));
+  }
+
   .app-shell:has(.app-view--document-read.active [data-reader-page-root]) {
     background: var(--paper-light);
   }
@@ -135,8 +179,9 @@
   .document-page[data-reader-page-root] {
     --document-chrome-height: var(--safe-top);
     --document-heading-top: var(--safe-top);
-    --reader-action-rail-width: 3.5rem;
+    --reader-action-rail-width: calc(3.5rem + var(--safe-right));
     margin-top: calc(-1 * var(--shell-top-inset));
+    padding-inline: 0;
     background: var(--paper-light);
   }
 
@@ -157,7 +202,8 @@
     height: 100dvh;
     min-height: 0;
     max-height: 100dvh;
-    padding: calc(var(--safe-top) + 0.625rem) 0.625rem max(0.625rem, var(--safe-bottom));
+    padding: calc(var(--safe-top) + 0.625rem) 0.625rem max(0.625rem, var(--safe-bottom))
+      max(0.625rem, var(--safe-left));
     border-right: 1px solid var(--paper-line);
   }
 
@@ -183,6 +229,12 @@
   .document-page__body.document-overlay__body {
     grid-area: 1 / 1;
     padding-top: var(--safe-top);
+    padding-left: max(0.75rem, var(--safe-left));
+  }
+
+  .document-overlay-layout:not(.document-overlay-layout--outline-hidden)
+    .document-page__body.document-overlay__body {
+    padding-left: 0.75rem;
   }
 
   .document-page__main > .document-page__chrome {
@@ -195,7 +247,8 @@
     align-items: center;
     justify-content: flex-start;
     gap: 0.375rem;
-    padding: calc(var(--safe-top) + 0.5rem) 0.25rem max(0.5rem, var(--safe-bottom));
+    padding: calc(var(--safe-top) + 0.5rem) max(0.25rem, var(--safe-right))
+      max(0.5rem, var(--safe-bottom)) 0.25rem;
     border-bottom: 0;
     border-left: 1px solid var(--paper-line);
   }

@@ -408,6 +408,9 @@ const SEARCH_METADATA_FIELDS = [
   'sourceLabel',
   'issuer',
   'linkedMnnDocumentId',
+  'inn',
+  'standardizedInn',
+  'tradeName',
 ] as const;
 const NAVIGATION_METADATA_FIELDS = [
   ...SEARCH_METADATA_FIELDS,

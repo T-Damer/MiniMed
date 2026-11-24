@@ -88,7 +88,13 @@ export function ScrollIndicator(props: {
     return { visible, total, room: track?.clientHeight ?? 0 };
   };
 
+  const isHiddenInInactiveView = (): boolean => {
+    const view = track?.closest('.app-view');
+    return Boolean(view && !view.classList.contains('active'));
+  };
+
   const applyDraw = (): void => {
+    if (isHiddenInInactiveView()) return;
     const element = scroller();
     if (!element) return;
     // Read phase first: never read layout after mutating styles or classes.
@@ -132,6 +138,7 @@ export function ScrollIndicator(props: {
   };
 
   const scheduleScroll = (): void => {
+    if (isHiddenInInactiveView()) return;
     if (!scrollFrame) {
       scrollFrame = requestAnimationFrame(() => {
         scrollFrame = 0;

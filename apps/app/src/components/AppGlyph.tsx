@@ -322,7 +322,10 @@ export type AppGlyphName =
   | 'newspaper'
   | 'rss'
   | 'globe'
-  | 'arrow-square-out';
+  | 'arrow-square-out'
+  | 'tab-plus'
+  | 'moon'
+  | 'flower';
 
 function svgBody(asset: string): string {
   return asset.slice(asset.indexOf('>') + 1, asset.lastIndexOf('</svg>'));
@@ -348,8 +351,18 @@ const liver = stroke(
 const kidney = stroke(
   '<path d="M118 28c-66-6-94 56-84 124 10 64 64 92 102 60 20-18 12-44-8-54-20-10-20-44 0-56 28-16 38-68-10-74Z"/><path d="M138 132h40q20 0 20 20v84"/>',
 );
+const tabPlus = stroke(
+  '<rect x="32" y="48" width="160" height="128" rx="18"/><path d="M32 88h160"/><path d="M192 96h20a16 16 0 0 1 16 16v84a16 16 0 0 1-16 16H92a16 16 0 0 1-16-16v-20"/><path d="M112 116v40M92 136h40"/>',
+);
+const moon = stroke('<path d="M208 150A84 84 0 0 1 106 48a84 84 0 1 0 102 102Z"/>');
+const flower = stroke(
+  '<circle cx="128" cy="128" r="24"/><path d="M128 104c-24-40-16-72 0-72s24 32 0 72Z"/><path d="M152 128c40-24 72-16 72 0s-32 24-72 0Z"/><path d="M128 152c24 40 16 72 0 72s-24-32 0-72Z"/><path d="M104 128c-40 24-72 16-72 0s32-24 72 0Z"/>',
+);
 
 const glyphBodies: Record<AppGlyphName, string> = {
+  'tab-plus': tabPlus,
+  moon,
+  flower,
   'refresh-fill': svgBody(arrowsClockwiseFill),
   'image-fill': svgBody(imageSquareFill),
   'text-aa-fill': svgBody(textAaFill),

@@ -1,12 +1,17 @@
 import {
+  type DrugBbbPenetration,
+  type DrugClinicalEffectMetric,
   type DrugFactSourceRef,
   type DrugPharmacologyProfile,
   normalizeInnLookupKey,
 } from '@/features/medications/pharmacology/drug-pharmacology-schema';
+import { lookupPsychotropicRegimenSchemas } from '@/features/medications/pharmacology/psychotropic-regimen-schemas';
 
 /**
- * Cited psychopharmacology reference profiles (Wave 3.1): pharmacokinetics (`t½`, CYP, Tmax) and
- * receptor binding profiles with anatomical pathways and clinical effects.
+ * Cited psychopharmacology reference profiles (Wave 3.1 + Receptor Flower & Effects row):
+ * pharmacokinetics (`t½`, CYP, Tmax, typical dose), receptor binding profiles with anatomical
+ * pathways, and clinical effect intensities (sedation, activation, antidepressant/anxiolytic,
+ * EPS, weight, prolactin, anticholinergic, orthostasis, QTc).
  *
  * Per `docs/REFERENCE_SOURCE_POLICY.md`, every entry retains explicit published reference
  * attribution and supplements — never replaces — the official GRLS/ESKLP instruction text.
@@ -31,9 +36,241 @@ const SOURCE_MAUDSLEY: DrugFactSourceRef = {
   year: 2021,
 };
 
-export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfile[] = [
+function fx(
+  kind: DrugClinicalEffectMetric['kind'],
+  level: DrugClinicalEffectMetric['level'],
+  note: string,
+): DrugClinicalEffectMetric {
+  return { kind, level, note };
+}
+
+const PSYCHOTROPIC_BBB_BY_INN: Readonly<Record<string, DrugBbbPenetration>> = {
+  рисперидон: {
+    level: 'moderate',
+    pGpSubstrate: true,
+    summary:
+      'Липофильный, но активно выводится P-gp (ABCB1); высокая экспозиция гипофиза вне ГЭБ объясняет выраженную гиперпролактинемию.',
+  },
+  палиперидон: {
+    level: 'low',
+    pGpSubstrate: true,
+    summary:
+      'Полярнее рисперидона и выраженный субстрат P-gp (ABCB1) → соотношение мозг/плазма ниже, а действие на гипофиз (вне ГЭБ) сильнее.',
+  },
+  кветиапин: {
+    level: 'high',
+    summary:
+      'Быстрая пассивная диффузия через ГЭБ за счёт высокой липофильности; активный метаболит норкветиапин также свободно проникает в ЦНС.',
+  },
+  оланзапин: {
+    level: 'high',
+    summary:
+      'Высоколипофильный, свободно пересекает ГЭБ путём пассивной диффузии при минимальном ограничении со стороны P-gp.',
+  },
+  арипипразол: {
+    level: 'high',
+    pGpSubstrate: true,
+    summary:
+      'Высокая липофильность и длительное удержание на D2-рецепторах ЦНС; умеренный субстрат P-gp.',
+  },
+  карипразин: {
+    level: 'high',
+    summary:
+      'Высоколипофильный, свободно проникает через ГЭБ; активный метаболит DDCAR накапливается в ткани мозга.',
+  },
+  луразидон: {
+    level: 'moderate',
+    summary:
+      'Липофильный; проникает через ГЭБ пассивной диффузией, но системная и ЦНС-экспозиция зависят от приёма с пищей (≥350 ккал).',
+  },
+  алимемазин: {
+    level: 'high',
+    summary:
+      'Высоколипофильный фенотиазин, быстро и свободно проходит через ГЭБ → быстрое центральное H1-седативное и анксиолитическое действие.',
+  },
+  сульпирид: {
+    level: 'low',
+    pGpSubstrate: true,
+    summary:
+      'Гидрофильный бензамид, медленно и ограниченно проникает через ГЭБ; сильно блокирует D2 в гипофизе (вне ГЭБ) → выраженная гиперпролактинемия.',
+  },
+  амисульприд: {
+    level: 'low',
+    pGpSubstrate: true,
+    summary:
+      'Низкая липофильность и эффлюкс через P-gp ограничивают проникновение через ГЭБ; высокая экспозиция гипофиза вне ГЭБ → пролактин +++.',
+  },
+  галоперидол: {
+    level: 'high',
+    summary:
+      'Высоколипофильный бутирофенон, быстро пересекает ГЭБ и накапливается в стриатуме и лимбической системе (высокая оккупация D2).',
+  },
+  хлорпромазин: {
+    level: 'high',
+    summary:
+      'Высокая липофильность, быстро и широко проникает через ГЭБ с длительным удержанием в мозговой ткани.',
+  },
+  хлорпротиксен: {
+    level: 'high',
+    summary: 'Высоколипофильный тиоксантен, свободно проходит через ГЭБ путём пассивной диффузии.',
+  },
+  зуклопентиксол: {
+    level: 'high',
+    summary:
+      'Высоколипофильный тиоксантен, свободно пересекает ГЭБ; депо-формы поддерживают ровную концентрацию в ЦНС.',
+  },
+  флупентиксол: {
+    level: 'high',
+    summary: 'Высоколипофильный тиоксантен, быстро проходит через ГЭБ путём пассивной диффузии.',
+  },
+  клозапин: {
+    level: 'high',
+    summary:
+      'Высоколипофильный, быстро проникает через ГЭБ пассивной диффузией; минимально зависит от P-gp.',
+  },
+  бипериден: {
+    level: 'high',
+    summary:
+      'Липофильный третичный амин, свободно проходит через ГЭБ → центральное антихолинергическое действие (коррекция ЭПС).',
+  },
+  тригексифенидил: {
+    level: 'high',
+    summary:
+      'Липофильный третичный амин, легко пересекает ГЭБ; при передозировке возможен центральный антихолинергический делирий.',
+  },
+  сертралин: {
+    level: 'high',
+    summary:
+      'Высокая липофильность, свободно проходит через ГЭБ с высокой центральной оккупацией SERT (>80% на 50 мг).',
+  },
+  эсциталопрам: {
+    level: 'high',
+    summary:
+      'Хорошо проникает через ГЭБ (пассивная диффузия, слабый субстрат P-gp); высокая центральная оккупация SERT.',
+  },
+  флуоксетин: {
+    level: 'high',
+    summary:
+      'Высоколипофильный, накапливается в ткани мозга (мозг/плазма ~10:1); норфлуоксетин также свободно пересекает ГЭБ.',
+  },
+  пароксетин: {
+    level: 'high',
+    summary:
+      'Высокая липофильность, свободно проникает через ГЭБ (умеренный субстрат P-gp, не препятствующий терапевтическому эффекту).',
+  },
+  флувоксамин: {
+    level: 'high',
+    summary:
+      'Быстро и широко проникает через ГЭБ (высокая липофильность, не ограничивается существенно P-gp).',
+  },
+  венлафаксин: {
+    level: 'moderate',
+    pGpSubstrate: true,
+    summary:
+      'Хорошо проникает через ГЭБ; активный метаболит O-десметилвенлафаксин умеренно ограничивается P-gp.',
+  },
+  дулоксетин: {
+    level: 'high',
+    summary: 'Высокая липофильность, свободно проходит через ГЭБ путём пассивной диффузии.',
+  },
+  миртазапин: {
+    level: 'high',
+    summary: 'Высоколипофильный, быстро пересекает ГЭБ → быстрое центральное H1- и α2-действие.',
+  },
+  тразодон: {
+    level: 'high',
+    summary:
+      'Быстро проникает через ГЭБ (высокая липофильность); активный метаболит mCPP также проходит в ЦНС.',
+  },
+  вортиоксетин: {
+    level: 'high',
+    summary:
+      'Высокая липофильность, свободно пересекает ГЭБ с высокой центральной оккупацией SERT и 5-HT-рецепторов.',
+  },
+  амитриптилин: {
+    level: 'high',
+    summary:
+      'Высоколипофильный третичный амин, быстро и широко проникает через ГЭБ вместе с метаболитом нортриптилином.',
+  },
+  кломипрамин: {
+    level: 'high',
+    summary:
+      'Высокая липофильность, свободно проникает через ГЭБ вместе с активным метаболитом десметилкломипрамином.',
+  },
+  ламотриджин: {
+    level: 'high',
+    summary:
+      'Хорошо проникает через ГЭБ путём пассивной диффузии (равновесие мозг/плазма близко к 1:1).',
+  },
+  'лития карбонат': {
+    level: 'moderate',
+    summary:
+      'Медленный перенос через ГЭБ через натриевые каналы и ионные транспортёры (ликвор ~40–50% от плазмы, пик в ЦНС отстаёт на часы).',
+  },
+  'вальпроевая кислота': {
+    level: 'moderate',
+    summary:
+      'Пересекает ГЭБ через транспортёры монокарбоновых кислот (MCT1) и диффузию; активный эффлюкс ограничивает уровень в ликворе (~10–20% от плазмы).',
+  },
+  карбамазепин: {
+    level: 'high',
+    summary:
+      'Липофильный, свободно проникает через ГЭБ (концентрация в ликворе соответствует свободной фракции в плазме).',
+  },
+  гидроксизин: {
+    level: 'high',
+    summary:
+      'Липофильный H1-блокатор 1-го поколения, свободно проходит через ГЭБ → центральный анксиолитический и седативный эффект (в отличие от цетиризина).',
+  },
+  буспирон: {
+    level: 'high',
+    summary:
+      'Липофильный, быстро проникает через ГЭБ; активный метаболит 1-PP также проходит в ЦНС.',
+  },
+  диазепам: {
+    level: 'high',
+    summary:
+      'Очень высокая липофильность → пересекает ГЭБ за секунды–минуты (быстрое начало, затем перераспределение в жировую ткань).',
+  },
+  лоразепам: {
+    level: 'moderate',
+    summary:
+      'Умеренная липофильность: пересекает ГЭБ медленнее диазепама, но дольше удерживается в ЦНС (меньше перераспределение).',
+  },
+  алпразолам: {
+    level: 'high',
+    summary:
+      'Высокая липофильность → быстрое проникновение через ГЭБ и быстрое начало анксиолитического действия.',
+  },
+  бромдигидрохлорфенилбензодиазепин: {
+    level: 'high',
+    summary:
+      'Высоколипофильный бензодиазепин, быстро проникает через ГЭБ и длительно удерживается в ЦНС.',
+  },
+  клоназепам: {
+    level: 'high',
+    summary:
+      'Высокая липофильность, быстро и свободно проходит через ГЭБ с равномерным распределением в ЦНС.',
+  },
+  тофизопам: {
+    level: 'high',
+    summary:
+      'Липофильный атипичный 2,3-бензодиазепин, хорошо проникает через ГЭБ без связывания с классическим BZD-сайтом ГАМК-А.',
+  },
+};
+
+function lookupBbbProfile(inns: readonly string[]): DrugBbbPenetration | undefined {
+  for (const inn of inns) {
+    const found = PSYCHOTROPIC_BBB_BY_INN[normalizeInnLookupKey(inn)];
+    if (found) return found;
+  }
+  return undefined;
+}
+
+const RAW_PSYCHOTROPIC_PROFILES: readonly DrugPharmacologyProfile[] = [
   {
     inns: ['рисперидон', 'risperidone'],
+    aliases: ['рисполепт', 'риссет', 'торендо', 'сперидан', 'лептинорм'],
     classLabel: 'Атипичный антипсихотик (SDA)',
     pk: {
       halfLife: '~3 ч (активный метаболит палиперидон ~20–24 ч)',
@@ -41,6 +278,7 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
       metabolism: 'CYP2D6 → 9-гидроксирисперидон (палиперидон)',
       steadyState: '4–5 дней',
       activeMetabolites: '9-гидроксирисперидон (палиперидон)',
+      typicalDose: '2–6 мг/сут',
     },
     receptors: [
       {
@@ -93,10 +331,76 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
         clinicalEffect: 'Минимальный антихолинергический эффект',
       },
     ],
+    effects: [
+      fx('sedation', 1, 'Умеренная/слабая седация, выше в начале титрации'),
+      fx('activation', 0, 'Не обладает выраженным активирующим действием'),
+      fx('prolactin', 3, 'Выраженное дозозависимое повышение пролактина (высшее среди атипичных)'),
+      fx('eps', 2, 'Дозозависимый риск ЭПС, заметно возрастает выше 4–6 мг/сут'),
+      fx('weight', 2, 'Умеренная прибавка массы тела и метаболический риск'),
+      fx('orthostasis', 2, 'Возможна ортостатическая гипотензия за счёт блокады α1'),
+      fx('anticholinergic', 0, 'Минимальная антихолинергическая нагрузка'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['палиперидон', 'paliperidone'],
+    aliases: ['инвега', 'ксеплион', 'тревикта'],
+    classLabel: 'Атипичный антипсихотик (активный метаболит рисперидона)',
+    pk: {
+      halfLife: '~23 ч (OROS внутрь); ксеплион ~25–49 дней',
+      tmax: '~24 ч (OROS)',
+      metabolism: 'Минимальный печёночный метаболизм; ~59% выводится почками в неизменном виде',
+      steadyState: '4–5 дней',
+      typicalDose: '3–12 мг/сут',
+    },
+    receptors: [
+      {
+        receptor: '5-HT2A',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~1.2 нМ',
+        pathway: 'Кора и нигростриарная система',
+        clinicalEffect: 'Смягчение ЭПС при низких/средних дозах',
+      },
+      {
+        receptor: 'D2L',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~1.6–4 нМ',
+        pathway: 'Мезолимбический и тубероинфундибулярный пути',
+        clinicalEffect:
+          'Антипсихотический эффект; выраженная гиперпролактинемия и дозозависимые ЭПС',
+      },
+      {
+        receptor: 'α1',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~2.5 нМ',
+        pathway: 'Сосудистая стенка',
+        clinicalEffect: 'Ортостатическая гипотензия, головокружение',
+      },
+      {
+        receptor: 'H1',
+        action: 'Антагонист',
+        affinity: 'moderate',
+        kiNm: '~19 нМ',
+        pathway: 'Гипоталамус',
+        clinicalEffect: 'Слабая/умеренная седация и прибавка веса',
+      },
+    ],
+    effects: [
+      fx('sedation', 1, 'Слабая седация; форма OROS даёт ровный профиль без пиков'),
+      fx('activation', 0, 'Нет значимой активации'),
+      fx('prolactin', 3, 'Выраженное повышение пролактина (как у рисперидона)'),
+      fx('eps', 2, 'Дозозависимые ЭПС, выше на дозах 9–12 мг/сут'),
+      fx('weight', 2, 'Умеренная прибавка массы тела'),
+      fx('orthostasis', 2, 'Умеренный риск ортостаза'),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
   },
   {
     inns: ['кветиапин', 'quetiapine'],
+    aliases: ['сероквель', 'кетилепт', 'лаквель', 'квентиакс', 'виктоэль'],
     classLabel: 'Атипичный антипсихотик (MARTA)',
     pk: {
       halfLife: '~6–7 ч (норкветиапин ~12 ч)',
@@ -104,6 +408,7 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
       metabolism: 'CYP3A4 → норкветиапин (активный метаболит)',
       steadyState: '2 дня',
       activeMetabolites: 'Норкветиапин (ингибитор NET, частичный агонист 5-HT1A)',
+      typicalDose: '25–100 мг (сон/тревога) · 300 мг (депрессия) · 400–800 мг (психоз)',
     },
     receptors: [
       {
@@ -121,6 +426,14 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
         kiNm: '~22 нМ',
         pathway: 'Сосудистые и центральные α1-адренорецепторы',
         clinicalEffect: 'Ортостатическая гипотензия и сонливость при титрации',
+      },
+      {
+        receptor: 'NET',
+        action: 'Ингибитор обратного захвата (норкветиапин)',
+        affinity: 'high',
+        kiNm: '~35 нМ (норкветиапин)',
+        pathway: 'Префронтальная кора, лимбические структуры',
+        clinicalEffect: 'Вклад в антидепрессивный эффект (биполярная депрессия, ГТР)',
       },
       {
         receptor: '5-HT2A',
@@ -147,25 +460,33 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
         clinicalEffect:
           'Антипсихотический эффект на высоких дозах; минимальный риск ЭПС и гиперпролактинемии',
       },
-      {
-        receptor: 'NET',
-        action: 'Ингибитор обратного захвата (норкветиапин)',
-        affinity: 'high',
-        kiNm: '~35 нМ (норкветиапин)',
-        pathway: 'Префронтальная кора, лимбические структуры',
-        clinicalEffect: 'Вклад в антидепрессивный эффект (биполярная депрессия, ГТР)',
-      },
+    ],
+    effects: [
+      fx('sedation', 3, 'Выраженная седация уже на низких дозах за счёт мощной блокады H1'),
+      fx('activation', 0, 'Не оказывает активирующего действия'),
+      fx(
+        'antidepressant',
+        2,
+        'Доказанный эффект при биполярной депрессии и аугментации БДР (норкветиапин)',
+      ),
+      fx('anxiolytic', 2, 'Умеренное противотревожное действие'),
+      fx('weight', 2, 'Умеренная/выраженная прибавка веса и дислипидемия'),
+      fx('orthostasis', 2, 'Ортостатическая гипотензия при старте/быстрой титрации'),
+      fx('eps', 0, 'Минимальный риск ЭПС (быстрая диссоциация с D2)'),
+      fx('prolactin', 0, 'Практически не повышает пролактин'),
     ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
   },
   {
     inns: ['оланзапин', 'olanzapine'],
+    aliases: ['зипрекса', 'заласта', 'эголанза', 'оланекс'],
     classLabel: 'Атипичный антипсихотик (MARTA)',
     pk: {
       halfLife: '~30–38 ч (у курящих короче)',
       tmax: '5–8 ч',
       metabolism: 'UGT1A4, CYP1A2 (индуцируется табачным дымом), минорно CYP2D6',
       steadyState: '~7 дней',
+      typicalDose: '5–20 мг/сут',
     },
     receptors: [
       {
@@ -209,10 +530,19 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
         clinicalEffect: 'Выраженный антипсихотический эффект',
       },
     ],
+    effects: [
+      fx('sedation', 3, 'Выраженная седация и сонливость'),
+      fx('activation', 0, 'Не оказывает активирующего действия'),
+      fx('weight', 3, 'Высокий риск прибавки массы тела, гипергликемии и дислипидемии'),
+      fx('anticholinergic', 2, 'Умеренная антихолинергическая нагрузка (M1/M3)'),
+      fx('eps', 1, 'Низкий риск ЭПС на стандартных дозах'),
+      fx('prolactin', 1, 'Слабое или транзиторное повышение пролактина'),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
   },
   {
     inns: ['арипипразол', 'aripiprazole'],
+    aliases: ['абилифай', 'зилаксера', 'амдоал', 'ралотекс', 'арилентал'],
     classLabel: 'Атипичный антипсихотик (частичный агонист D2/D3)',
     pk: {
       halfLife: '~75 ч (дегидроарипипразол ~94 ч)',
@@ -220,6 +550,7 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
       metabolism: 'CYP2D6, CYP3A4',
       steadyState: '~14 дней',
       activeMetabolites: 'Дегидроарипипразол',
+      typicalDose: '2–5 мг (аугментация БДР) · 10–30 мг (психоз/мания)',
     },
     receptors: [
       {
@@ -230,6 +561,14 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
         pathway: 'Мезолимбический, мезокортикальный и тубероинфундибулярный пути',
         clinicalEffect:
           'Стабилизация дофамина: антипсихотический эффект, снижение пролактина, возможна акатизия',
+      },
+      {
+        receptor: 'D3',
+        action: 'Частичный агонист',
+        affinity: 'very-high',
+        kiNm: '~0.8 нМ',
+        pathway: 'Вентральный стриатум, лимбическая система',
+        clinicalEffect: 'Влияние на мотивацию и негативную симптоматику',
       },
       {
         receptor: '5-HT1A',
@@ -264,16 +603,339 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
         clinicalEffect: 'Практически без антихолинергических эффектов',
       },
     ],
+    effects: [
+      fx('sedation', 0, 'Минимальная седация'),
+      fx('activation', 2, 'Часто оказывает активирующее действие, возможна бессонница и акатизия'),
+      fx('antidepressant', 2, 'Эффективен для аугментации антидепрессантов (2–5 мг/сут)'),
+      fx('eps', 2, 'Низкий паркинсонизм, но частая акатизия'),
+      fx('weight', 0, 'Минимальное влияние на массу тела и обмен веществ'),
+      fx('prolactin', 0, 'Не повышает, а часто снижает повышенный пролактин'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['карипразин', 'cariprazine'],
+    aliases: ['реагила', 'vraylar'],
+    classLabel: 'Атипичный антипсихотик (D3-предпочтительный частичный агонист)',
+    pk: {
+      halfLife: '~2–4 дня (дидесметилкарипразин ~1–3 недели!)',
+      tmax: '3–6 ч',
+      metabolism: 'CYP3A4 → десметил- и дидесметилкарипразин (DDCAR)',
+      steadyState: '1–2 недели (DDCAR до 4–8 недель)',
+      activeMetabolites: 'Десметилкарипразин, дидесметилкарипразин (DDCAR)',
+      typicalDose: '1.5–6 мг/сут',
+    },
+    receptors: [
+      {
+        receptor: 'D3',
+        action: 'Частичный агонист (в ~10× выше сродство, чем к D2)',
+        affinity: 'very-high',
+        kiNm: '~0.085 нМ',
+        pathway: 'Префронтальная кора, вентральный стриатум',
+        clinicalEffect: 'Влияние на первичную негативную и депрессивную симптоматику, мотивацию',
+      },
+      {
+        receptor: 'D2L',
+        action: 'Частичный агонист',
+        affinity: 'very-high',
+        kiNm: '~0.5 нМ',
+        pathway: 'Мезолимбический и нигростриарный пути',
+        clinicalEffect: 'Антипсихотический и антиманиакальный эффект; риск акатизии',
+      },
+      {
+        receptor: '5-HT1A',
+        action: 'Частичный агонист',
+        affinity: 'very-high',
+        kiNm: '~2.6 нМ',
+        pathway: 'Ядра шва, кора',
+        clinicalEffect: 'Антидепрессивный и анксиолитический вклад',
+      },
+      {
+        receptor: '5-HT2B',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~0.58 нМ',
+        pathway: 'Лимбические структуры',
+        clinicalEffect: 'Модуляция дофаминергической передачи',
+      },
+      {
+        receptor: '5-HT2A',
+        action: 'Антагонист',
+        affinity: 'moderate',
+        kiNm: '~19 нМ',
+        pathway: 'Кора',
+        clinicalEffect: 'Атипичный профиль антипсихотического действия',
+      },
+      {
+        receptor: 'H1',
+        action: 'Антагонист',
+        affinity: 'moderate',
+        kiNm: '~23 нМ',
+        pathway: 'Гипоталамус',
+        clinicalEffect: 'Низкий риск седации и прибавки массы тела',
+      },
+    ],
+    effects: [
+      fx('sedation', 0, 'Минимальная седация'),
+      fx('activation', 2, 'Умеренно активирующий профиль; возможны акатизия и бессонница'),
+      fx('antidepressant', 2, 'Показан при биполярной депрессии и негативных симптомах'),
+      fx('eps', 2, 'Акатизия и ЭПС возможны с отсрочкой из-за длительного t½ DDCAR'),
+      fx('weight', 0, 'Низкий метаболический риск'),
+      fx('prolactin', 0, 'Не повышает пролактин'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['луразидон', 'lurasidone'],
+    aliases: ['латуда'],
+    classLabel: 'Атипичный антипсихотик (SDA / антагонист 5-HT7)',
+    pk: {
+      halfLife: '~18–31 ч',
+      tmax: '1–3 ч (принимать строго с пищей ≥350 ккал!)',
+      metabolism: 'CYP3A4',
+      steadyState: '~7 дней',
+      typicalDose: '20–120 мг/сут (с едой)',
+    },
+    receptors: [
+      {
+        receptor: '5-HT7',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~0.5 нМ',
+        pathway: 'Гиппокамп, префронтальная кора, ядра шва',
+        clinicalEffect: 'Антидепрессивный, прокогнитивный и циркадный эффект',
+      },
+      {
+        receptor: 'D2L',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~1.0–1.7 нМ',
+        pathway: 'Мезолимбический путь',
+        clinicalEffect: 'Антипсихотический эффект; умеренный риск акатизии',
+      },
+      {
+        receptor: '5-HT2A',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~0.5–2 нМ',
+        pathway: 'Кора и стриатум',
+        clinicalEffect: 'Снижение риска паркинсонизма',
+      },
+      {
+        receptor: '5-HT1A',
+        action: 'Частичный агонист',
+        affinity: 'high',
+        kiNm: '~6.8 нМ',
+        pathway: 'Кора и гиппокамп',
+        clinicalEffect: 'Антидепрессивный и анксиолитический вклад',
+      },
+      {
+        receptor: 'H1',
+        action: 'Антагонист',
+        affinity: 'low',
+        kiNm: '>1000 нМ',
+        pathway: 'Гипоталамус',
+        clinicalEffect: 'Отсутствие гистаминергической прибавки массы тела',
+      },
+    ],
+    effects: [
+      fx('sedation', 1, 'Слабая/умеренная сонливость (часто приём вечером с ужином)'),
+      fx('activation', 1, 'Возможна акатизия, но выраженной стимуляции нет'),
+      fx('antidepressant', 2, 'Доказанная эффективность при биполярной депрессии'),
+      fx('eps', 2, 'Дозозависимая акатизия и ЭПС'),
+      fx('weight', 0, 'Один из наиболее метаболически нейтральных антипсихотиков'),
+      fx('prolactin', 1, 'Небольшое дозозависимое повышение пролактина'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['алимемазин', 'alimemazine', 'тримепразин', 'trimeprazine'],
+    aliases: ['тералиджен', 'тералиджен валента'],
+    classLabel: 'Алифатический фенотиазин (малый нейролептик / седативный антигистамин)',
+    pk: {
+      halfLife: '~3.5–5 ч',
+      tmax: '1–2 ч',
+      metabolism: 'Печёночное окисление (CYP2D6/сульфоксидирование)',
+      steadyState: '1–2 дня',
+      typicalDose: '5–40 мг/сут (до 100–200 мг при психозах)',
+    },
+    receptors: [
+      {
+        receptor: 'H1',
+        action: 'Мощный антагонист',
+        affinity: 'very-high',
+        kiNm: '~1–3 нМ',
+        pathway: 'Гипоталамус (туберомамиллярное ядро) и периферические H1',
+        clinicalEffect:
+          'Выраженный седативный, снотворный и противозудный/противоаллергический эффект',
+      },
+      {
+        receptor: '5-HT2A',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~5–15 нМ',
+        pathway: 'Кора и лимбическая система',
+        clinicalEffect: 'Вклад в анксиолитическое действие и улучшение структуры сна',
+      },
+      {
+        receptor: 'α1',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~10–25 нМ',
+        pathway: 'Сосуды и центральные адренорецепторы',
+        clinicalEffect:
+          'Вегетостабилизирующий эффект; риск ортостатической гипотензии и головокружения',
+      },
+      {
+        receptor: 'M1',
+        action: 'Антагонист',
+        affinity: 'moderate',
+        kiNm: '~40–80 нМ',
+        pathway: 'ЦНС и парасимпатическая система',
+        clinicalEffect: 'Сухость во рту, запор, нечёткость зрения, задержка мочи',
+      },
+      {
+        receptor: 'D2L',
+        action: 'Слабый антагонист',
+        affinity: 'moderate',
+        kiNm: '~50–150 нМ',
+        pathway: 'Мезолимбический и триггерная зона рвотного центра',
+        clinicalEffect:
+          'Мягкий антипсихотический и противорвотный эффект; низкий риск ЭПС в малых дозах',
+      },
+    ],
+    effects: [
+      fx('sedation', 3, 'Выраженная седация и сонливость, особенно в первые дни приёма'),
+      fx('activation', 0, 'Не обладает активирующим эффектом'),
+      fx('anxiolytic', 2, 'Умеренный противотревожный и вегетостабилизирующий эффект'),
+      fx('anticholinergic', 2, 'Умеренная М-холинолитическая нагрузка (сухость, аккомодация)'),
+      fx('orthostasis', 2, 'Возможна ортостатическая гипотензия и тахикардия'),
+      fx('eps', 1, 'Редки на малых дозах (5–30 мг), возможны при высоких дозах'),
+      fx('qtc', 1, 'Фенотиазиновый класс: осторожность при удлинении QTc'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL],
+  },
+  {
+    inns: ['сульпирид', 'sulpiride'],
+    aliases: ['эглонил', 'просульпин', 'бетамакс'],
+    classLabel: 'Замещённый бензамид (атипичный антипсихотик D2/D3)',
+    pk: {
+      halfLife: '~7–9 ч',
+      tmax: '3–6 ч',
+      metabolism: 'Практически не метаболизируется; выводится почками в неизменном виде',
+      steadyState: '2 дня',
+      typicalDose: '50–200 мг (депрессия/астения) · 400–800 мг (психоз)',
+    },
+    receptors: [
+      {
+        receptor: 'D2L',
+        action: 'Селективный антагонист (пресинаптический на низких дозах)',
+        affinity: 'high',
+        kiNm: '~9–15 нМ',
+        pathway: 'Мезолимбический и тубероинфундибулярный пути',
+        clinicalEffect:
+          'Двухфазный профиль: малые дозы растормаживают дофамин (активация), высокие — купируют психоз; выраженная гиперпролактинемия',
+      },
+      {
+        receptor: 'D3',
+        action: 'Селективный антагонист',
+        affinity: 'high',
+        kiNm: '~8–12 нМ',
+        pathway: 'Лимбические структуры',
+        clinicalEffect: 'Влияние на апатию и соматоформную симптоматику',
+      },
+      {
+        receptor: 'H1',
+        action: 'Нет значимого связывания',
+        affinity: 'low',
+        kiNm: '>1000 нМ',
+        pathway: 'Гипоталамус',
+        clinicalEffect: 'Не вызывает выраженной гистаминергической седации',
+      },
+      {
+        receptor: 'M1',
+        action: 'Нет значимого связывания',
+        affinity: 'low',
+        kiNm: '>1000 нМ',
+        pathway: 'Холинергическая система',
+        clinicalEffect: 'Отсутствие антихолинергических побочных эффектов',
+      },
+    ],
+    effects: [
+      fx('sedation', 0, 'Практически не седатирует'),
+      fx(
+        'activation',
+        2,
+        'В малых дозах (50–200 мг) оказывает активирующее и тимоаналептическое действие',
+      ),
+      fx(
+        'antidepressant',
+        1,
+        'Дополнительный эффект при апатической депрессии и соматоформных расстройствах',
+      ),
+      fx('prolactin', 3, 'Сильное повышение пролактина уже на низких дозах (галакторея, аменорея)'),
+      fx('eps', 1, 'Низкие на малых дозах, дозозависимо растут >400 мг/сут'),
+      fx('weight', 1, 'Умеренная прибавка массы тела при длительном приёме'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['амисульприд', 'amisulpride'],
+    aliases: ['солиан', 'лимипранил'],
+    classLabel: 'Замещённый бензамид (атипичный антипсихотик D2/D3)',
+    pk: {
+      halfLife: '~12 ч',
+      tmax: '1 ч и 3–4 ч (двойной пик)',
+      metabolism: 'Минимальный метаболизм; выводится почками в неизменном виде',
+      steadyState: '2–3 дня',
+      typicalDose: '50–300 мг (негативные симптомы) · 400–800 мг (психоз)',
+    },
+    receptors: [
+      {
+        receptor: 'D2L',
+        action: 'Селективный антагонист',
+        affinity: 'very-high',
+        kiNm: '~2.8 нМ',
+        pathway: 'Мезолимбический и тубероинфундибулярный пути',
+        clinicalEffect: 'Мощный антипсихотический эффект; выраженная гиперпролактинемия',
+      },
+      {
+        receptor: 'D3',
+        action: 'Селективный антагонист',
+        affinity: 'very-high',
+        kiNm: '~3.2 нМ',
+        pathway: 'Пресинаптические терминалы коры и лимбики',
+        clinicalEffect: 'Улучшение негативных симптомов в малых дозах (50–300 мг)',
+      },
+      {
+        receptor: '5-HT7',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~11.5 нМ',
+        pathway: 'Гиппокамп и кора',
+        clinicalEffect: 'Вклад в антидепрессивный эффект',
+      },
+    ],
+    effects: [
+      fx('sedation', 0, 'Минимальная седация'),
+      fx('activation', 1, 'Мягкая активация на низких дозах (50–200 мг)'),
+      fx('prolactin', 3, 'Выраженное повышение пролактина'),
+      fx('eps', 1, 'Низкие на малых дозах, дозозависимые на высоких'),
+      fx('qtc', 2, 'Дозозависимое удлинение QTc — требуется контроль ЭКГ на высоких дозах'),
+      fx('weight', 1, 'Небольшая прибавка массы тела'),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
   },
   {
     inns: ['галоперидол', 'haloperidol'],
+    aliases: ['галоперидол деканоат', 'сенорм'],
     classLabel: 'Типичный антипсихотик (бутирофенон)',
     pk: {
       halfLife: '~14–26 ч (внутрь); деканоат ~3 нед',
       tmax: '2–6 ч (внутрь), ~20 мин (в/м)',
       metabolism: 'CYP3A4, CYP2D6, UGT',
       steadyState: '4–6 дней',
+      typicalDose: '1–10 мг/сут (в/м 2.5–5 мг)',
     },
     receptors: [
       {
@@ -318,10 +980,269 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
         clinicalEffect: 'Низкий антихолинергический эффект → частая потребность в корректорах ЭПС',
       },
     ],
+    effects: [
+      fx('sedation', 1, 'Слабая прямая седация (успокаивающий эффект вторичен к блокаде D2)'),
+      fx('activation', 0, 'Не активирует; возможна мучительная акатизия'),
+      fx('eps', 3, 'Высокий риск острой дистонии, паркинсонизма, акатизии и поздней дискинезии'),
+      fx('prolactin', 3, 'Выраженная гиперпролактинемия'),
+      fx('qtc', 2, 'Удлинение QTc, особенно при в/в введении и высоких дозах'),
+      fx('weight', 1, 'Низкая/умеренная прибавка веса'),
+      fx('anticholinergic', 0, 'Практически нет антихолинергической нагрузки'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['хлорпромазин', 'chlorpromazine'],
+    aliases: ['аминазин'],
+    classLabel: 'Типичный низкопотентный антипсихотик (фенотиазин)',
+    pk: {
+      halfLife: '~23–37 ч',
+      tmax: '2–4 ч',
+      metabolism: 'CYP2D6, CYP1A2 (множество метаболитов)',
+      steadyState: '4–7 дней',
+      typicalDose: '50–400 мг/сут',
+    },
+    receptors: [
+      {
+        receptor: 'α1',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~0.6–3 нМ',
+        pathway: 'Сосудистая стенка и ЦНС',
+        clinicalEffect: 'Сильная ортостатическая гипотензия и коллаптоидные реакции',
+      },
+      {
+        receptor: 'H1',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~3–6 нМ',
+        pathway: 'Гипоталамус',
+        clinicalEffect: 'Мощная седация и прибавка массы тела',
+      },
+      {
+        receptor: 'D2L',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~2–10 нМ',
+        pathway: 'Мезолимбический и нигростриарный пути',
+        clinicalEffect: 'Антипсихотический эффект, умеренные ЭПС и гиперпролактинемия',
+      },
+      {
+        receptor: '5-HT2A',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~3–10 нМ',
+        pathway: 'Кора',
+        clinicalEffect: 'Усиление седации и модуляция ЭПС',
+      },
+      {
+        receptor: 'M1',
+        action: 'Антагонист',
+        affinity: 'moderate',
+        kiNm: '~25–47 нМ',
+        pathway: 'Холинергические пути',
+        clinicalEffect: 'Сухость во рту, запор, задержка мочи',
+      },
+    ],
+    effects: [
+      fx('sedation', 3, 'Очень выраженная седация'),
+      fx('activation', 0, 'Нет активирующего эффекта'),
+      fx('orthostasis', 3, 'Высокий риск ортостатической гипотензии'),
+      fx('anticholinergic', 2, 'Умеренная/выраженная антихолинергическая нагрузка'),
+      fx('weight', 2, 'Умеренная/высокая прибавка веса'),
+      fx('eps', 2, 'Умеренный риск ЭПС (ниже, чем у галоперидола)'),
+      fx('qtc', 2, 'Риск удлинения QTc'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['хлорпротиксен', 'chlorprothixene'],
+    aliases: ['труксал'],
+    classLabel: 'Типичный седативный антипсихотик (тиоксантен)',
+    pk: {
+      halfLife: '~8–12 ч',
+      tmax: '2 ч',
+      metabolism: 'CYP2D6',
+      steadyState: '2–3 дня',
+      typicalDose: '15–100 мг (седация/тревога) · 100–400 мг (психоз)',
+    },
+    receptors: [
+      {
+        receptor: 'H1',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~1–3 нМ',
+        pathway: 'Гипоталамус',
+        clinicalEffect: 'Сильный седативный и снотворный эффект',
+      },
+      {
+        receptor: '5-HT2A',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~0.5–3 нМ',
+        pathway: 'Кора и лимбическая система',
+        clinicalEffect: 'Анксиолитический и снотворный вклад',
+      },
+      {
+        receptor: 'D2L',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~3–10 нМ',
+        pathway: 'Мезолимбический путь',
+        clinicalEffect: 'Антипсихотический эффект на средних/высоких дозах',
+      },
+      {
+        receptor: 'α1',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~1–5 нМ',
+        pathway: 'Сосуды',
+        clinicalEffect: 'Ортостатическая гипотензия и тахикардия',
+      },
+      {
+        receptor: 'M1',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~10–25 нМ',
+        pathway: 'Холинергические пути',
+        clinicalEffect: 'Сухость во рту, запор, нечёткость зрения',
+      },
+    ],
+    effects: [
+      fx('sedation', 3, 'Выраженная седация и сонливость'),
+      fx('activation', 0, 'Не активирует'),
+      fx('anxiolytic', 2, 'Умеренное противотревожное действие'),
+      fx('anticholinergic', 2, 'Заметная антихолинергическая нагрузка'),
+      fx('orthostasis', 3, 'Высокий риск ортостатической гипотензии'),
+      fx('eps', 1, 'Редки на малых дозах, умеренны на высоких'),
+      fx('weight', 2, 'Возможна прибавка массы тела'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL],
+  },
+  {
+    inns: ['зуклопентиксол', 'zuclopenthixol'],
+    aliases: ['клопиксол', 'клопиксол депо', 'клопиксол акуфаз'],
+    classLabel: 'Типичный антипсихотик (тиоксантен)',
+    pk: {
+      halfLife: '~20 ч (внутрь); акуфаз ~32 ч; депо ~19 дней',
+      tmax: '4 ч (внутрь)',
+      metabolism: 'CYP2D6',
+      steadyState: '4–5 дней',
+      typicalDose: '10–50 мг/сут (внутрь)',
+    },
+    receptors: [
+      {
+        receptor: 'D2L',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~0.4–1 нМ',
+        pathway: 'Мезолимбический и нигростриарный пути',
+        clinicalEffect: 'Мощный антипсихотический эффект; высокий риск ЭПС и гиперпролактинемии',
+      },
+      {
+        receptor: 'D1',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~1–3 нМ',
+        pathway: 'Стриатум и префронтальная кора',
+        clinicalEffect: 'Дополнительное купирование возбуждения и агрессии',
+      },
+      {
+        receptor: '5-HT2A',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~5–12 нМ',
+        pathway: 'Кора',
+        clinicalEffect: 'Участие в седативном действии',
+      },
+      {
+        receptor: 'α1',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~5–10 нМ',
+        pathway: 'Сосуды',
+        clinicalEffect: 'Ортостатическая гипотензия',
+      },
+      {
+        receptor: 'H1',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~10–20 нМ',
+        pathway: 'Гипоталамус',
+        clinicalEffect: 'Умеренная/выраженная седация',
+      },
+    ],
+    effects: [
+      fx('sedation', 2, 'Умеренная/выраженная седация (применяется при ажитации)'),
+      fx('activation', 0, 'Не активирует'),
+      fx('eps', 3, 'Высокий риск ЭПС, часто требуется корректор'),
+      fx('prolactin', 3, 'Выраженное повышение пролактина'),
+      fx('orthostasis', 2, 'Возможен ортостаз'),
+      fx('weight', 2, 'Умеренная прибавка веса'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['флупентиксол', 'flupentixol'],
+    aliases: ['флюанксол', 'флюанксол депо'],
+    classLabel: 'Типичный антипсихотик (тиоксантен)',
+    pk: {
+      halfLife: '~35 ч (внутрь); депо ~17 дней',
+      tmax: '4–5 ч',
+      metabolism: 'Печёночный (CYP2D6)',
+      steadyState: '7 дней',
+      typicalDose: '0.5–3 мг (активация/астения) · 3–18 мг (психоз)',
+    },
+    receptors: [
+      {
+        receptor: 'D2L',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~0.4–1.5 нМ',
+        pathway: 'Мезолимбический и нигростриарный пути',
+        clinicalEffect: 'Антипсихотический эффект и ЭПС на средних/высоких дозах',
+      },
+      {
+        receptor: 'D1',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~1–3 нМ',
+        pathway: 'Стриатум и кора',
+        clinicalEffect: 'Дополнительный антипсихотический профиль',
+      },
+      {
+        receptor: '5-HT2A',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~1–5 нМ',
+        pathway: 'Кора',
+        clinicalEffect: 'Антидепрессивный/анксиолитический вклад в малых дозах',
+      },
+      {
+        receptor: 'H1',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~10–25 нМ',
+        pathway: 'Гипоталамус',
+        clinicalEffect: 'Лёгкая седация на высоких дозах',
+      },
+    ],
+    effects: [
+      fx('sedation', 1, 'Слабая седация на малых дозах, возрастает на высоких'),
+      fx(
+        'activation',
+        2,
+        'В малых дозах (0.5–3 мг) оказывает растормаживающее и активирующее действие',
+      ),
+      fx('antidepressant', 1, 'Мягкий тимоаналептический эффект в малых дозах'),
+      fx('eps', 2, 'Дозозависимые ЭПС (низкие на 0.5–2 мг, высокие >6 мг)'),
+      fx('prolactin', 2, 'Умеренная/выраженная гиперпролактинемия'),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
   },
   {
     inns: ['клозапин', 'clozapine'],
+    aliases: ['азалептин', 'клозастен', 'лепонекс'],
     classLabel: 'Атипичный антипсихотик (резерв при резистентности)',
     pk: {
       halfLife: '~12 ч (диапазон 8–16 ч)',
@@ -329,6 +1250,7 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
       metabolism: 'CYP1A2 (основной; табачный дым ускоряет клиренс), CYP3A4, CYP2C19',
       steadyState: '3–5 дней',
       activeMetabolites: 'Норклозапин (N-десметилклозапин)',
+      typicalDose: '200–450 мг/сут (медленная титрация + контроль ОАК!)',
     },
     receptors: [
       {
@@ -372,16 +1294,27 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
         clinicalEffect: 'Практически без ЭПС и гиперпролактинемии',
       },
     ],
+    effects: [
+      fx('sedation', 3, 'Очень сильная седация'),
+      fx('activation', 0, 'Не активирует'),
+      fx('weight', 3, 'Максимальный метаболический риск (вес, диабет, липиды)'),
+      fx('anticholinergic', 3, 'Высокая нагрузка (запор вплоть до пареза кишечника, тахикардия)'),
+      fx('orthostasis', 3, 'Выраженная ортостатическая гипотензия при старте'),
+      fx('eps', 0, 'Практически не вызывает ЭПС'),
+      fx('prolactin', 0, 'Не повышает пролактин'),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
   },
   {
     inns: ['бипериден', 'biperiden'],
+    aliases: ['акинетон'],
     classLabel: 'Центральный антихолинергик (корректор ЭПС)',
     pk: {
       halfLife: '~18–24 ч',
       tmax: '1–1.5 ч',
       metabolism: 'Печёночное гидроксилирование',
       steadyState: '4–5 дней',
+      typicalDose: '2–6 мг/сут',
     },
     receptors: [
       {
@@ -403,16 +1336,65 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
           'Мидриаз, нарушение аккомодации, задержка мочи, запор (осторожно при глаукоме и ДГПЖ)',
       },
     ],
+    effects: [
+      fx('sedation', 1, 'Слабая сонливость или, реже, лёгкое возбуждение'),
+      fx('activation', 1, 'Возможна лёгкая эйфория/возбуждение при превышении доз'),
+      fx(
+        'anticholinergic',
+        3,
+        'Выраженный М-холиноблокирующий профиль (сухость, аккомодация, память)',
+      ),
+      fx('eps', 0, 'Купирует острые ЭПС и лекарственный паркинсонизм'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL],
+  },
+  {
+    inns: ['тригексифенидил', 'trihexyphenidyl'],
+    aliases: ['циклодол', 'паркопан'],
+    classLabel: 'Центральный антихолинергик (корректор ЭПС)',
+    pk: {
+      halfLife: '~5–10 ч',
+      tmax: '1–1.5 ч',
+      metabolism: 'Печёночное гидроксилирование',
+      steadyState: '2 дня',
+      typicalDose: '2–6 мг/сут',
+    },
+    receptors: [
+      {
+        receptor: 'M1',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~0.6–1.5 нМ',
+        pathway: 'Стриатум, кора, гиппокамп',
+        clinicalEffect:
+          'Коррекция паркинсонизма; риск делирия, когнитивного снижения и злоупотребления',
+      },
+      {
+        receptor: 'M3',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~4–8 нМ',
+        pathway: 'Периферическая парасимпатическая система',
+        clinicalEffect: 'Сухость во рту, мидриаз, запор, задержка мочи',
+      },
+    ],
+    effects: [
+      fx('sedation', 0, 'Обычно не вызывает выраженной седации'),
+      fx('activation', 1, 'Возможны беспокойство, эйфория и злоупотребление'),
+      fx('anticholinergic', 3, 'Сильная антихолинергическая нагрузка (память, делирий у пожилых)'),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL],
   },
   {
     inns: ['сертралин', 'sertraline'],
+    aliases: ['золофт', 'стимулотон', 'асентура', 'серената', 'серлифт', 'толуол'],
     classLabel: 'Антидепрессант (СИОЗС)',
     pk: {
       halfLife: '~26 ч (N-десметилсертралин ~62–104 ч)',
       tmax: '4.5–8.5 ч',
       metabolism: 'CYP2B6, CYP2C19, CYP2C9, CYP3A4 (слабый ингибитор CYP2D6)',
       steadyState: '~7 дней',
+      typicalDose: '50–200 мг/сут',
     },
     receptors: [
       {
@@ -440,16 +1422,30 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
         clinicalEffect: 'Предполагаемый вклад в анксиолитический эффект',
       },
     ],
+    effects: [
+      fx('sedation', 0, 'Обычно не вызывает седации (приём утром)'),
+      fx('activation', 2, 'Умеренно активирующий СИОЗС (вклад слабого DAT-ингибирования)'),
+      fx('antidepressant', 3, 'Препарат 1-й линии при депрессии, ОКР и ПТСР'),
+      fx(
+        'anxiolytic',
+        3,
+        'Выраженный эффект при паническом, социальном и генерализованном тревожном расстройстве',
+      ),
+      fx('weight', 0, 'В основном нейтрален по массе тела'),
+      fx('qtc', 0, 'Один из наиболее кардиологически безопасных СИОЗС'),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
   },
   {
     inns: ['эсциталопрам', 'escitalopram'],
+    aliases: ['ципралекс', 'селектра', 'элицея', 'ленуксин', 'мирцитал'],
     classLabel: 'Антидепрессант (высокоселективный СИОЗС)',
     pk: {
       halfLife: '~27–32 ч',
       tmax: '3–4 ч',
       metabolism: 'CYP2C19, CYP3A4, CYP2D6 (минимальные CYP-взаимодействия)',
       steadyState: '~7–10 дней',
+      typicalDose: '10–20 мг/сут',
     },
     receptors: [
       {
@@ -470,10 +1466,23 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
         clinicalEffect: 'Отсутствие выраженной гистаминергической седации',
       },
     ],
+    effects: [
+      fx('sedation', 1, 'Преимущественно сбалансированный; лёгкая сонливость у части пациентов'),
+      fx('activation', 1, 'Мягкая активация или нейтральный профиль'),
+      fx('antidepressant', 3, 'Высокоэффективный СИОЗС 1-й линии с хорошей переносимостью'),
+      fx(
+        'anxiolytic',
+        3,
+        'Препарат выбора при ГТР, паническом и социальном тревожном расстройстве',
+      ),
+      fx('qtc', 2, 'Дозозависимое удлинение QTc (максимум 20 мг/сут; 10 мг у пожилых)'),
+      fx('weight', 0, 'Минимальное влияние на массу тела'),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
   },
   {
     inns: ['флуоксетин', 'fluoxetine'],
+    aliases: ['прозак', 'флуоксетин ланнахер', 'портал'],
     classLabel: 'Антидепрессант (СИОЗС)',
     pk: {
       halfLife: '~1–4 дня (норфлуоксетин ~7–15 дней!)',
@@ -481,6 +1490,7 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
       metabolism: 'CYP2D6, CYP2C9 (сильный ингибитор CYP2D6)',
       steadyState: '4–5 недель',
       activeMetabolites: 'Норфлуоксетин (очень длительный вымывной период)',
+      typicalDose: '20–60 мг/сут',
     },
     receptors: [
       {
@@ -501,10 +1511,113 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
         clinicalEffect: 'Растормаживание дофамина и норадреналина → активирующий эффект',
       },
     ],
+    effects: [
+      fx('sedation', 0, 'Не седатирует'),
+      fx(
+        'activation',
+        3,
+        'Наиболее активирующий СИОЗС (блокада 5-HT2C); может усиливать тревогу на старте',
+      ),
+      fx(
+        'antidepressant',
+        3,
+        'Выраженный антидепрессивный эффект, показан также при булимии и ОКР',
+      ),
+      fx('anxiolytic', 2, 'Помогает при тревоге после адаптации, но в начале возможна ажитация'),
+      fx('weight', 0, 'Часто снижает аппетит в начале курса; минимальная прибавка веса'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['пароксетин', 'paroxetine'],
+    aliases: ['паксил', 'рексетин', 'плизил', 'адепресс'],
+    classLabel: 'Антидепрессант (СИОЗС с лёгким М-холинолитическим компонентом)',
+    pk: {
+      halfLife: '~21 ч (нелинейная кинетика)',
+      tmax: '5 ч',
+      metabolism: 'CYP2D6 (сильный ингибитор собственного метаболизма CYP2D6)',
+      steadyState: '7–14 дней',
+      typicalDose: '20–50 мг/сут',
+    },
+    receptors: [
+      {
+        receptor: 'SERT',
+        action: 'Мощный ингибитор обратного захвата',
+        affinity: 'very-high',
+        kiNm: '~0.1 нМ',
+        pathway: 'Серотонинергические пути ЦНС',
+        clinicalEffect:
+          'Сильное противотревожное и антидепрессивное действие; выраженный синдром отмены',
+      },
+      {
+        receptor: 'M1',
+        action: 'Слабый антагонист',
+        affinity: 'moderate',
+        kiNm: '~70–110 нМ',
+        pathway: 'Холинергическая система',
+        clinicalEffect: 'Успокаивающий оттенок, но также сухость во рту, запор и сонливость',
+      },
+      {
+        receptor: 'NET',
+        action: 'Слабый ингибитор обратного захвата',
+        affinity: 'moderate',
+        kiNm: '~40–85 нМ',
+        pathway: 'Норадренергические проекции',
+        clinicalEffect: 'Небольшой дополнительный вклад на высоких дозах',
+      },
+    ],
+    effects: [
+      fx('sedation', 2, 'Наиболее седативный среди СИОЗС'),
+      fx('activation', 0, 'Не активирует'),
+      fx('antidepressant', 3, 'Выраженный антидепрессивный эффект'),
+      fx('anxiolytic', 3, 'Мощное противотревожное действие (ПР, ОКР, СФ, ГТР)'),
+      fx('anticholinergic', 1, 'Слабая М-холинолитическая нагрузка (выше, чем у других СИОЗС)'),
+      fx('weight', 2, 'Наибольший среди СИОЗС риск прибавки массы тела'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['флувоксамин', 'fluvoxamine'],
+    aliases: ['феварин', 'рокона'],
+    classLabel: 'Антидепрессант (СИОЗС / агонист σ1)',
+    pk: {
+      halfLife: '~15–19 ч',
+      tmax: '3–8 ч',
+      metabolism: 'CYP1A2, CYP2D6 (сильный ингибитор CYP1A2 и CYP2C19!)',
+      steadyState: '5–7 дней',
+      typicalDose: '50–300 мг/сут',
+    },
+    receptors: [
+      {
+        receptor: 'SERT',
+        action: 'Ингибитор обратного захвата',
+        affinity: 'very-high',
+        kiNm: '~2.2 нМ',
+        pathway: 'Серотонинергические пути ЦНС',
+        clinicalEffect: 'Выраженный антиобсессивный и антидепрессивный эффект',
+      },
+      {
+        receptor: 'σ1',
+        action: 'Мощный агонист',
+        affinity: 'very-high',
+        kiNm: '~17–36 нМ',
+        pathway: 'Эндоплазматический ретикулум нейронов коры и лимбики',
+        clinicalEffect:
+          'Анксиолитический, прокогнитивный и потенциальный противовоспалительный вклад',
+      },
+    ],
+    effects: [
+      fx('sedation', 2, 'Умеренно седативный СИОЗС (часто назначается на ночь)'),
+      fx('activation', 0, 'Не активирует'),
+      fx('antidepressant', 3, 'Эффективен при БДР и депрессии с тревогой/инсомнией'),
+      fx('anxiolytic', 3, 'Препарат выбора при ОКР и тревожных расстройствах'),
+      fx('weight', 0, 'Обычно нейтрален по массе тела'),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
   },
   {
     inns: ['венлафаксин', 'venlafaxine'],
+    aliases: ['велаксин', 'велафакс', 'алвента', 'дапфикс'],
     classLabel: 'Антидепрессант (СИОЗСН)',
     pk: {
       halfLife: '~5 ч (O-десметилвенлафаксин ~11 ч)',
@@ -512,6 +1625,7 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
       metabolism: 'CYP2D6 → O-десметилвенлафаксин (десвенлафаксин)',
       steadyState: '3 дня',
       activeMetabolites: 'O-десметилвенлафаксин',
+      typicalDose: '75–225 мг/сут (до 375 мг)',
     },
     receptors: [
       {
@@ -533,16 +1647,71 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
           'Энергия, внимание, обезболивание при нейропатической боли; дозозависимый рост АД',
       },
     ],
+    effects: [
+      fx('sedation', 0, 'Минимальная седация'),
+      fx('activation', 2, 'Умеренно активирующий, особенно с ≥150 мг/сут (вклад NET)'),
+      fx(
+        'antidepressant',
+        3,
+        'Мощный антидепрессант, эффективен при тяжёлой и меланхолической депрессии',
+      ),
+      fx('anxiolytic', 3, 'Эффективен при ГТР, паническом и социальном тревожном расстройстве'),
+      fx('weight', 0, 'Обычно нейтрален по массе тела'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['дулоксетин', 'duloxetine'],
+    aliases: ['симбалта', 'дулоксента', 'депратал'],
+    classLabel: 'Антидепрессант (сбалансированный СИОЗСН)',
+    pk: {
+      halfLife: '~12 ч',
+      tmax: '6 ч',
+      metabolism: 'CYP1A2, CYP2D6 (умеренный ингибитор CYP2D6)',
+      steadyState: '3 дня',
+      typicalDose: '30–120 мг/сут',
+    },
+    receptors: [
+      {
+        receptor: 'SERT',
+        action: 'Ингибитор обратного захвата',
+        affinity: 'very-high',
+        kiNm: '~0.8 нМ',
+        pathway: 'Серотонинергические пути и нисходящий болевой контроль',
+        clinicalEffect: 'Антидепрессивный, противотревожный и анальгетический эффект',
+      },
+      {
+        receptor: 'NET',
+        action: 'Ингибитор обратного захвата',
+        affinity: 'high',
+        kiNm: '~7.5 нМ',
+        pathway: 'Норадренергические проекции коры и спинного мозга',
+        clinicalEffect: 'Купирование нейропатической и хронической скелетно-мышечной боли, энергия',
+      },
+    ],
+    effects: [
+      fx('sedation', 1, 'Сбалансированный профиль (лёгкая сонливость или без неё)'),
+      fx(
+        'activation',
+        2,
+        'Умеренная активация за счёт сбалансированного NET-ингибирования с 60 мг',
+      ),
+      fx('antidepressant', 3, 'Высокая эффективность при БДР, особенно с болевым синдромом'),
+      fx('anxiolytic', 3, 'Препарат 1-й линии при ГТР'),
+      fx('weight', 0, 'Нейтрален по массе тела'),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
   },
   {
     inns: ['миртазапин', 'mirtazapine'],
+    aliases: ['ремерон', 'каликста', 'мирзатен', 'ноксвелл'],
     classLabel: 'Антидепрессант (NaSSA)',
     pk: {
       halfLife: '~20–40 ч',
       tmax: '2 ч',
       metabolism: 'CYP2D6, CYP1A2, CYP3A4',
       steadyState: '4–5 дней',
+      typicalDose: '7.5–15 мг (сон/аппетит) · 30–45 мг (депрессия)',
     },
     receptors: [
       {
@@ -578,10 +1747,138 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
         clinicalEffect: 'Противорвотный эффект, низкий риск тошноты',
       },
     ],
+    effects: [
+      fx('sedation', 3, 'Выраженная седация (парадоксально сильнее на 7.5–15 мг, чем на 30–45 мг)'),
+      fx(
+        'activation',
+        0,
+        'Не активирует (на 30–45 мг норадренергический эффект смягчает сонливость)',
+      ),
+      fx('antidepressant', 3, 'Эффективен при депрессии с инсомнией, тревогой и потерей веса'),
+      fx('anxiolytic', 2, 'Хороший противотревожный и снотворный эффект'),
+      fx('weight', 3, 'Выраженное повышение аппетита и прибавка массы тела'),
+      fx('anticholinergic', 0, 'Минимальное М-холиноблокирующее действие'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['тразодон', 'trazodone'],
+    aliases: ['триттико'],
+    classLabel: 'Антидепрессант (SARI — антагонист 5-HT2A и слабый ингибитор SERT)',
+    pk: {
+      halfLife: '~5–9 ч',
+      tmax: '1–2 ч',
+      metabolism: 'CYP3A4 → mCPP (активный метаболит)',
+      steadyState: '2–3 дня',
+      activeMetabolites: 'mCPP (мета-хлорфенилпиперазин)',
+      typicalDose: '25–100 мг (сон) · 150–300 мг (депрессия)',
+    },
+    receptors: [
+      {
+        receptor: '5-HT2A',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~20–36 нМ',
+        pathway: 'Кора и центры регуляции сна',
+        clinicalEffect: 'Углубление медленноволнового сна, снижение тревоги, сохранность либидо',
+      },
+      {
+        receptor: 'α1',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~12–42 нМ',
+        pathway: 'Сосудистая стенка',
+        clinicalEffect:
+          'Ортостатическая гипотензия и риск падений у пожилых; редкий риск приапизма',
+      },
+      {
+        receptor: 'H1',
+        action: 'Антагонист',
+        affinity: 'moderate',
+        kiNm: '~220 нМ',
+        pathway: 'Гипоталамус',
+        clinicalEffect: 'Дополнительный седативный вклад без выраженной прибавки веса',
+      },
+      {
+        receptor: 'SERT',
+        action: 'Ингибитор обратного захвата',
+        affinity: 'moderate',
+        kiNm: '~160–360 нМ (клинически значим с ≥150 мг/сут)',
+        pathway: 'Серотонинергические пути',
+        clinicalEffect: 'Антидепрессивный эффект на средних и высоких дозах',
+      },
+    ],
+    effects: [
+      fx('sedation', 3, 'Выраженный снотворный и седативный эффект с 25–100 мг'),
+      fx('activation', 0, 'Не активирует'),
+      fx('antidepressant', 2, 'Антидепрессивное действие реализуется при дозах 150–300 мг/сут'),
+      fx(
+        'anxiolytic',
+        2,
+        'Снижает тревогу и нормализует сон без риска бензодиазепиновой зависимости',
+      ),
+      fx('orthostasis', 2, 'Умеренный риск ортостаза за счёт α1-блокады'),
+      fx('weight', 0, 'Не вызывает значимой прибавки массы тела'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['вортиоксетин', 'vortioxetine'],
+    aliases: ['бринтелликс'],
+    classLabel: 'Мультимодальный антидепрессант (ингибитор SERT + модулятор 5-HT)',
+    pk: {
+      halfLife: '~66 ч',
+      tmax: '7–11 ч',
+      metabolism: 'CYP2D6 (основной), CYP3A4, CYP2C9',
+      steadyState: '~14 дней',
+      typicalDose: '5–20 мг/сут',
+    },
+    receptors: [
+      {
+        receptor: 'SERT',
+        action: 'Ингибитор обратного захвата',
+        affinity: 'very-high',
+        kiNm: '~1.6 нМ',
+        pathway: 'Серотонинергические пути ЦНС',
+        clinicalEffect: 'Базовый антидепрессивный эффект',
+      },
+      {
+        receptor: '5-HT3',
+        action: 'Антагонист',
+        affinity: 'very-high',
+        kiNm: '~3.7 нМ',
+        pathway: 'ГАМК-интернейроны коры и гиппокампа',
+        clinicalEffect: 'Растормаживание глутамата и ацетилхолина → прокогнитивный эффект',
+      },
+      {
+        receptor: '5-HT1A',
+        action: 'Полный агонист',
+        affinity: 'high',
+        kiNm: '~15 нМ',
+        pathway: 'Ядра шва и гиппокамп',
+        clinicalEffect: 'Анксиолитический эффект и снижение риска сексуальной дисфункции',
+      },
+      {
+        receptor: '5-HT7',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~19 нМ',
+        pathway: 'Гиппокамп и кора',
+        clinicalEffect: 'Улучшение когнитивной гибкости и настроения',
+      },
+    ],
+    effects: [
+      fx('sedation', 0, 'Не седатирует'),
+      fx('activation', 1, 'Мягкий прокогнитивный и слегка активирующий профиль'),
+      fx('antidepressant', 3, 'Выраженный антидепрессивный и прокогнитивный эффект'),
+      fx('anxiolytic', 2, 'Умеренный противотревожный эффект'),
+      fx('weight', 0, 'Нейтрален по массе тела'),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
   },
   {
     inns: ['амитриптилин', 'amitriptyline'],
+    aliases: ['саротен'],
     classLabel: 'Трициклический антидепрессант (ТЦА)',
     pk: {
       halfLife: '~10–28 ч (нортриптилин ~18–44 ч)',
@@ -589,6 +1886,7 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
       metabolism: 'CYP2C19 → нортриптилин, CYP2D6 → гидроксиметаболиты',
       steadyState: '4–7 дней',
       activeMetabolites: 'Нортриптилин',
+      typicalDose: '10–50 мг (боль/мигрень) · 75–150 мг (депрессия)',
     },
     receptors: [
       {
@@ -632,10 +1930,85 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
         clinicalEffect: 'Ортостатическая гипотензия и риск падений',
       },
     ],
+    effects: [
+      fx('sedation', 3, 'Выраженная седация и снотворный эффект'),
+      fx('activation', 0, 'Не активирует'),
+      fx('antidepressant', 3, 'Высокая эффективность при тяжёлой депрессии и хронической боли'),
+      fx('anticholinergic', 3, 'Высокая антихолинергическая нагрузка (нежелателен у пожилых)'),
+      fx('orthostasis', 3, 'Выраженная ортостатическая гипотензия'),
+      fx('weight', 3, 'Заметная прибавка массы тела'),
+      fx('qtc', 2, 'Риск удлинения QRS/QTc и кардиотоксичность при передозировке'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['кломипрамин', 'clomipramine'],
+    aliases: ['анафранил', 'клофранил'],
+    classLabel: 'Трициклический антидепрессант (наиболее серотонинергический ТЦА)',
+    pk: {
+      halfLife: '~21–32 ч (десметилкломипрамин ~36–70 ч)',
+      tmax: '2–6 ч',
+      metabolism: 'CYP2C19, CYP1A2, CYP3A4 → десметилкломипрамин (мощный NET-ингибитор)',
+      steadyState: '7–14 дней',
+      activeMetabolites: 'Десметилкломипрамин',
+      typicalDose: '75–250 мг/сут',
+    },
+    receptors: [
+      {
+        receptor: 'SERT',
+        action: 'Мощный ингибитор обратного захвата',
+        affinity: 'very-high',
+        kiNm: '~0.14 нМ',
+        pathway: 'Серотонинергические пути ЦНС',
+        clinicalEffect: 'Эталонная эффективность при резистентном ОКР и тяжёлой депрессии',
+      },
+      {
+        receptor: 'H1',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~31 нМ',
+        pathway: 'Гипоталамус',
+        clinicalEffect: 'Седация и прибавка массы тела',
+      },
+      {
+        receptor: 'M1',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~37 нМ',
+        pathway: 'Холинергическая система',
+        clinicalEffect: 'Сухость во рту, запор, потливость, задержка мочи',
+      },
+      {
+        receptor: 'α1',
+        action: 'Антагонист',
+        affinity: 'high',
+        kiNm: '~38 нМ',
+        pathway: 'Сосуды',
+        clinicalEffect: 'Ортостатическая гипотензия',
+      },
+      {
+        receptor: 'NET',
+        action: 'Ингибитор (особенно через десметилкломипрамин)',
+        affinity: 'very-high',
+        kiNm: '~0.3 нМ (метаболит)',
+        pathway: 'Норадренергические проекции',
+        clinicalEffect: 'Усиление антидепрессивного эффекта',
+      },
+    ],
+    effects: [
+      fx('sedation', 2, 'Умеренная/выраженная седация'),
+      fx('activation', 0, 'Не активирует'),
+      fx('antidepressant', 3, 'Высокая эффективность при тяжёлой депрессии и ОКР'),
+      fx('anxiolytic', 3, 'Эталонный эффект при ОКР и паническом расстройстве'),
+      fx('anticholinergic', 3, 'Выраженная антихолинергическая нагрузка'),
+      fx('orthostasis', 2, 'Умеренный ортостаз'),
+      fx('qtc', 2, 'Кардиотоксичность ТЦА; снижает судорожный порог (>250 мг)'),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
   },
   {
     inns: ['ламотриджин', 'lamotrigine'],
+    aliases: ['ламиктал', 'ламолеп', 'сейзар', 'конвульсан'],
     classLabel: 'Нормотимик / противоэпилептическое средство',
     pk: {
       halfLife: '~25–33 ч (с вальпроатом ~60–70 ч; с карбамазепином ~13–14 ч)',
@@ -643,6 +2016,7 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
       metabolism:
         'UGT1A4 (глюкуронирование; ингибируется вальпроатом, индуцируется карбамазепином/эстрогенами)',
       steadyState: '5–7 дней',
+      typicalDose: '100–200 мг/сут (медленная титрация из-за риска сыпи/SJS!)',
     },
     receptors: [
       {
@@ -654,16 +2028,28 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
           'Снижение избыточного выброса глутамата; профилактика депрессивных фаз при БАР и судорог',
       },
     ],
+    effects: [
+      fx('sedation', 0, 'Практически не седатирует'),
+      fx('activation', 1, 'Лёгкий активирующий оттенок у части пациентов'),
+      fx(
+        'antidepressant',
+        2,
+        'Профилактика и терапия депрессивных фаз БАР (слабее при острой мании)',
+      ),
+      fx('weight', 0, 'Нейтрален по массе тела'),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
   },
   {
     inns: ['лития карбонат', 'литий', 'lithium', 'lithium carbonate'],
+    aliases: ['седолит', 'контемнол'],
     classLabel: 'Нормотимик',
     pk: {
       halfLife: '~18–24 ч (у пожилых до 36 ч)',
       tmax: '1–2 ч (пролонгированные ~4 ч)',
       metabolism: 'Не метаболизируется; выводится почками (реабсорбция конкурирует с Na+)',
       steadyState: '5–7 дней (контроль концентрации в сыворотке через 12 ч после вечерней дозы)',
+      typicalDose: '600–1200 мг/сут (целевой уровень 0.6–1.0 ммоль/л)',
     },
     receptors: [
       {
@@ -675,10 +2061,178 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
           'Нормотимический, нейропротективный и доказанный антисуицидальный эффект при БАР',
       },
     ],
+    effects: [
+      fx('sedation', 1, 'Слабая утомляемость или отсутствие седации при терапевтическом уровне'),
+      fx('activation', 0, 'Не активирует; купирует манию'),
+      fx(
+        'antidepressant',
+        2,
+        'Профилактика фаз БАР, аугментация при резистентной депрессии, антисуицидальный эффект',
+      ),
+      fx('weight', 2, 'Умеренная прибавка массы тела (плюс контроль ТТГ и функции почек)'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['вальпроевая кислота', 'вальпроат натрия', 'valproic acid', 'valproate'],
+    aliases: ['депакин', 'депакин хроно', 'конвулекс', 'энкорат'],
+    classLabel: 'Нормотимик / противоэпилептическое средство',
+    pk: {
+      halfLife: '~9–16 ч',
+      tmax: '1–4 ч (хроно ~3–8 ч)',
+      metabolism: 'UGT-глюкуронирование и β-окисление (ингибитор UGT1A4 и CYP2C9!)',
+      steadyState: '2–4 дня',
+      typicalDose: '500–1500 мг/сут (целевой уровень 50–100 мкг/мл)',
+    },
+    receptors: [
+      {
+        receptor: 'GABA (ГАМК-трансаминаза)',
+        action: 'Усиление ГАМКергической передачи',
+        affinity: 'high',
+        pathway: 'Кора и лимбические структуры',
+        clinicalEffect: 'Антиманиакальный и противосудорожный эффект',
+      },
+      {
+        receptor: 'Nav / Cav (T-тип)',
+        action: 'Блокатор вольтаж-зависимых каналов',
+        affinity: 'moderate',
+        pathway: 'Таламокортикальные и корковые сети',
+        clinicalEffect: 'Стабилизация мембранного потенциала при мании и эпилепсии',
+      },
+    ],
+    effects: [
+      fx('sedation', 2, 'Умеренная сонливость и утомляемость'),
+      fx('activation', 0, 'Не активирует; эффективен при острой мании и смешанных состояниях'),
+      fx('weight', 3, 'Значимая прибавка массы тела и метаболические риски (тератогенен!)'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['карбамазепин', 'carbamazepine'],
+    aliases: ['финлепсин', 'тегретол'],
+    classLabel: 'Нормотимик / противоэпилептическое средство',
+    pk: {
+      halfLife: '~25–65 ч в начале, затем ~12–17 ч (аутоиндукция CYP3A4!)',
+      tmax: '4–8 ч',
+      metabolism: 'CYP3A4 (мощный индуктор CYP3A4/1A2/2C9 и UGT!)',
+      steadyState: '2–4 недели (с учётом аутоиндукции)',
+      activeMetabolites: 'Карбамазепин-10,11-эпоксид',
+      typicalDose: '400–1200 мг/сут',
+    },
+    receptors: [
+      {
+        receptor: 'Nav (вольтаж-зависимые Na+-каналы)',
+        action: 'Блокатор каналов',
+        affinity: 'very-high',
+        pathway: 'Кора, лимбическая система, тройничный нерв',
+        clinicalEffect:
+          'Антиманиакальный, противосудорожный и анальгетический эффект (невралгия тройничного нерва)',
+      },
+    ],
+    effects: [
+      fx('sedation', 2, 'Умеренная седация и головокружение при титрации'),
+      fx('activation', 0, 'Не активирует'),
+      fx('weight', 1, 'Небольшая прибавка веса; риск гипонатриемии (SIADH)'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['гидроксизин', 'hydroxyzine'],
+    aliases: ['атаракс'],
+    classLabel: 'Анксиолитик (блокатор H1-рецепторов, не бензодиазепин)',
+    pk: {
+      halfLife: '~14–20 ч',
+      tmax: '2 ч',
+      metabolism: 'Печёночное окисление → цетиризин (активный метаболит)',
+      steadyState: '3 дня',
+      activeMetabolites: 'Цетиризин',
+      typicalDose: '25–100 мг/сут',
+    },
+    receptors: [
+      {
+        receptor: 'H1',
+        action: 'Мощный обратный агонист / антагонист',
+        affinity: 'very-high',
+        kiNm: '~2 нМ',
+        pathway: 'Гипоталамус (туберомамиллярное ядро)',
+        clinicalEffect:
+          'Быстрый седативный, анксиолитический и противозудный эффект без бензодиазепиновой зависимости',
+      },
+      {
+        receptor: '5-HT2A',
+        action: 'Антагонист',
+        affinity: 'moderate',
+        kiNm: '~50–170 нМ',
+        pathway: 'Кора и лимбические структуры',
+        clinicalEffect: 'Дополнительный противотревожный вклад',
+      },
+      {
+        receptor: 'M1',
+        action: 'Слабый антагонист',
+        affinity: 'low',
+        kiNm: '~300–500 нМ',
+        pathway: 'Холинергическая система',
+        clinicalEffect: 'Лёгкая сухость во рту, нежелателен у пожилых',
+      },
+    ],
+    effects: [
+      fx('sedation', 3, 'Выраженная седация и сонливость'),
+      fx('activation', 0, 'Не активирует'),
+      fx('anxiolytic', 2, 'Умеренный и быстрый анксиолизис при ГТР и ситуационной тревоге'),
+      fx('anticholinergic', 1, 'Слабая антихолинергическая нагрузка'),
+      fx('qtc', 2, 'Дозозависимое удлинение QTc (максимум 100 мг/сут у взрослых, 50 мг у пожилых)'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['буспирон', 'buspirone'],
+    aliases: ['спитомин'],
+    classLabel: 'Небензодиазепиновый анксиолитик (азапирон)',
+    pk: {
+      halfLife: '~2–4 ч',
+      tmax: '0.5–1.5 ч',
+      metabolism: 'CYP3A4',
+      steadyState: '1–2 дня (клинический эффект через 2–4 недели)',
+      typicalDose: '15–60 мг/сут (в 2–3 приёма)',
+    },
+    receptors: [
+      {
+        receptor: '5-HT1A',
+        action: 'Частичный агонист (пре- и постсинаптический)',
+        affinity: 'very-high',
+        kiNm: '~15–20 нМ',
+        pathway: 'Ядра шва, гиппокамп, амигдала',
+        clinicalEffect:
+          'Постепенный анксиолитический эффект без седации и зависимости; аугментация СИОЗС',
+      },
+      {
+        receptor: 'D2L',
+        action: 'Слабый антагонист',
+        affinity: 'low',
+        kiNm: '~240–480 нМ',
+        pathway: 'Стриатум',
+        clinicalEffect: 'Клинически незначим на стандартных дозах',
+      },
+    ],
+    effects: [
+      fx('sedation', 0, 'Практически не вызывает седации и не нарушает когницию'),
+      fx('activation', 0, 'Не стимулирует; изредка лёгкое головокружение'),
+      fx(
+        'anxiolytic',
+        2,
+        'Эффективен при ГТР (развивается за 2–4 недели, не купирует острые панические атаки)',
+      ),
+      fx(
+        'antidepressant',
+        1,
+        'Используется для аугментации СИОЗС и коррекции СИОЗС-индуцированной сексуальной дисфункции',
+      ),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
   },
   {
     inns: ['диазепам', 'diazepam'],
+    aliases: ['релиум', 'сибазон', 'седуксен', 'валиум'],
     classLabel: 'Бензодиазепин (длительного действия)',
     pk: {
       halfLife: '~20–50 ч (десметилдиазепам ~36–100 ч)',
@@ -686,6 +2240,7 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
       metabolism: 'CYP2C19, CYP3A4 → десметилдиазепам, темазепам, оксазепам',
       steadyState: '1–2 недели (кумуляция при повторном приёме)',
       activeMetabolites: 'Десметилдиазепам (нордиазепам), оксазепам',
+      typicalDose: '5–20 мг/сут (короткий курс)',
     },
     receptors: [
       {
@@ -699,16 +2254,23 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
           'Быстрое купирование тревоги, судорог и алкогольной абстиненции; риск седации, зависимости и кумуляции',
       },
     ],
+    effects: [
+      fx('sedation', 3, 'Выраженная седация, миорелаксация и риск дневной сонливости (кумуляция)'),
+      fx('activation', 0, 'Не активирует (редкие парадоксальные реакции у пожилых/детей)'),
+      fx('anxiolytic', 3, 'Быстрое и мощное купирование острой тревоги и паники'),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL],
   },
   {
     inns: ['лоразепам', 'lorazepam'],
+    aliases: ['лорафен', 'ативан'],
     classLabel: 'Бензодиазепин (средней длительности, без активных метаболитов)',
     pk: {
       halfLife: '~10–20 ч',
       tmax: '2 ч',
       metabolism: 'Прямое глюкуронирование (UGT) — без CYP и без активных метаболитов',
       steadyState: '2–3 дня',
+      typicalDose: '1–4 мг/сут (короткий курс)',
     },
     receptors: [
       {
@@ -721,9 +2283,140 @@ export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfil
           'Анксиолитический, противосудорожный, антикататонический эффект; предпочтителен при патологии печени',
       },
     ],
+    effects: [
+      fx('sedation', 3, 'Выраженная седация и амнестический эффект'),
+      fx('activation', 0, 'Не активирует'),
+      fx('anxiolytic', 3, 'Быстрый анксиолитический и антикататонический эффект'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL],
+  },
+  {
+    inns: ['алпразолам', 'alprazolam'],
+    aliases: ['ксанакс', 'хелекс', 'неурол', 'золомакс'],
+    classLabel: 'Триазолобензодиазепин (быстрого и короткого действия)',
+    pk: {
+      halfLife: '~11–15 ч',
+      tmax: '1–2 ч',
+      metabolism: 'CYP3A4',
+      steadyState: '2–3 дня',
+      typicalDose: '0.5–3 мг/сут (короткий курс)',
+    },
+    receptors: [
+      {
+        receptor: 'GABA-A (α1, α2, α3)',
+        action: 'Положительный аллостерический модулятор',
+        affinity: 'very-high',
+        kiNm: '~3–5 нМ',
+        pathway: 'Амигдала и лимбические цепи',
+        clinicalEffect:
+          'Очень быстрое купирование панических атак; высокий риск зависимости и рикошетной тревоги',
+      },
+    ],
+    effects: [
+      fx('sedation', 2, 'Умеренная/выраженная седация'),
+      fx('activation', 0, 'Не активирует'),
+      fx('anxiolytic', 3, 'Быстрое купирование панических атак и острой тревоги'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['бромдигидрохлорфенилбензодиазепин', 'феназепам', 'phenazepam'],
+    aliases: ['элзепам', 'фензитат', 'транквезипам'],
+    classLabel: 'Бензодиазепин (длительного действия)',
+    pk: {
+      halfLife: '~6–18 ч (до 60 ч с учётом кумуляции)',
+      tmax: '1–2 ч',
+      metabolism: 'CYP3A4 / печёночное гидроксилирование',
+      steadyState: '3–5 дней',
+      typicalDose: '0.5–2 мг/сут (короткий курс)',
+    },
+    receptors: [
+      {
+        receptor: 'GABA-A (α1, α2, α3)',
+        action: 'Положительный аллостерический модулятор',
+        affinity: 'very-high',
+        kiNm: '~1–3 нМ',
+        pathway: 'Амигдала, кора, спинной мозг',
+        clinicalEffect:
+          'Мощный анксиолитический, снотворный и противосудорожный эффект; риск зависимости и падений',
+      },
+    ],
+    effects: [
+      fx('sedation', 3, 'Выраженная седация, миорелаксация и дневная сонливость'),
+      fx('activation', 0, 'Не активирует'),
+      fx('anxiolytic', 3, 'Сильный и быстрый противотревожный и снотворный эффект'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL],
+  },
+  {
+    inns: ['клоназепам', 'clonazepam'],
+    aliases: ['ривотрил'],
+    classLabel: 'Бензодиазепин (длительного действия)',
+    pk: {
+      halfLife: '~30–40 ч',
+      tmax: '1–4 ч',
+      metabolism: 'CYP3A4',
+      steadyState: '5–7 дней',
+      typicalDose: '0.5–2 мг/сут',
+    },
+    receptors: [
+      {
+        receptor: 'GABA-A (α1, α2, α3)',
+        action: 'Положительный аллостерический модулятор',
+        affinity: 'very-high',
+        kiNm: '~1–2 нМ',
+        pathway: 'Кора, лимбическая система',
+        clinicalEffect:
+          'Длительный анксиолитический и противосудорожный эффект; риск зависимости и когнитивной заторможенности',
+      },
+    ],
+    effects: [
+      fx('sedation', 3, 'Выраженная седация и атаксия, особенно у пожилых'),
+      fx('activation', 0, 'Не активирует'),
+      fx('anxiolytic', 3, 'Ровный и длительный анксиолитический эффект'),
+    ],
+    sources: [SOURCE_IUPHAR, SOURCE_STAHL, SOURCE_MAUDSLEY],
+  },
+  {
+    inns: ['тофизопам', 'tofisopam'],
+    aliases: ['грандаксин'],
+    classLabel: 'Атипичный 2,3-бензодиазепин (дневной анксиолитик)',
+    pk: {
+      halfLife: '~6–8 ч',
+      tmax: '2 ч',
+      metabolism: 'Печёночное деметилирование',
+      steadyState: '1–2 дня',
+      typicalDose: '50–150 мг/сут (утром и днём)',
+    },
+    receptors: [
+      {
+        receptor: 'PDE4 / 2,3-бензодиазепиновый сайт',
+        action: 'Не связывается с классическим бензодиазепиновым сайтом GABA-A',
+        affinity: 'moderate',
+        pathway: 'Лимбические структуры и вегетативные центры',
+        clinicalEffect:
+          'Мягкий анксиолитический и вегетостабилизирующий эффект без миорелаксации и выраженной седации',
+      },
+    ],
+    effects: [
+      fx('sedation', 0, 'Не вызывает выраженной седации и миорелаксации'),
+      fx('activation', 2, 'Лёгкий активирующий эффект (не рекомендуется принимать поздно вечером)'),
+      fx('anxiolytic', 2, 'Мягкое дневное противотревожное и вегетостабилизирующее действие'),
+    ],
     sources: [SOURCE_IUPHAR, SOURCE_STAHL],
   },
 ];
+
+export const PSYCHOTROPIC_PHARMACOLOGY_PROFILES: readonly DrugPharmacologyProfile[] =
+  RAW_PSYCHOTROPIC_PROFILES.map((profile) => {
+    const bbb = profile.pk.bbb ?? lookupBbbProfile(profile.inns);
+    const regimenSchemas = profile.regimenSchemas ?? lookupPsychotropicRegimenSchemas(profile.inns);
+    return {
+      ...profile,
+      pk: bbb ? { ...profile.pk, bbb } : profile.pk,
+      ...(regimenSchemas ? { regimenSchemas } : {}),
+    };
+  });
 
 const BY_INN: ReadonlyMap<string, DrugPharmacologyProfile> = (() => {
   const index = new Map<string, DrugPharmacologyProfile>();
@@ -731,11 +2424,14 @@ const BY_INN: ReadonlyMap<string, DrugPharmacologyProfile> = (() => {
     for (const inn of profile.inns) {
       index.set(normalizeInnLookupKey(inn), profile);
     }
+    for (const alias of profile.aliases ?? []) {
+      index.set(normalizeInnLookupKey(alias), profile);
+    }
   }
   return index;
 })();
 
-/** Looks up a pharmacology profile by Russian/Latin INN (exact or first component before «+»). */
+/** Looks up a pharmacology profile by Russian/Latin INN or trade-name alias (exact, hyphen-stem, or first word). */
 export function lookupDrugPharmacology(
   inn: string | null | undefined,
 ): DrugPharmacologyProfile | null {
@@ -744,11 +2440,14 @@ export function lookupDrugPharmacology(
   if (!key) return null;
   const exact = BY_INN.get(key);
   if (exact) return exact;
-  // Some registry titles append salt forms («рисперидон», «биперидена гидрохлорид», «лития карбонат»).
-  const firstWord = key.split(/\s+/u)[0] ?? '';
-  if (firstWord && firstWord.length >= 4) {
-    const byFirstWord = BY_INN.get(firstWord);
-    if (byFirstWord) return byFirstWord;
+  // Strip manufacturer/dosage suffixes («алимемазин-сз», «кветиапин канон», «тералиджен валента»).
+  const beforeColon = key.split(':')[0]?.trim() ?? key;
+  const exactBeforeColon = BY_INN.get(beforeColon);
+  if (exactBeforeColon) return exactBeforeColon;
+  const firstToken = beforeColon.split(/[\s-]+/u)[0] ?? '';
+  if (firstToken && firstToken.length >= 4) {
+    const byFirstToken = BY_INN.get(firstToken);
+    if (byFirstToken) return byFirstToken;
   }
   return null;
 }

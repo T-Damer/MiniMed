@@ -105,6 +105,15 @@ async function identity(options: ResumableDownloadOptions): Promise<string> {
   return Array.from(hash, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
+function withIdentityEncoding(
+  headers: Readonly<Record<string, string>> | undefined,
+): Readonly<Record<string, string>> {
+  if (headers && Object.keys(headers).some((key) => key.toLowerCase() === 'accept-encoding')) {
+    return headers;
+  }
+  return { ...(headers ?? {}), 'Accept-Encoding': 'identity' };
+}
+
 /** Persistent system transfers; same-ID consumers are serialized until the prior file is released. */
 export function createNativeDownloadTransport(
   plugin: AndroidDownloadPlugin,
@@ -138,7 +147,7 @@ export function createNativeDownloadTransport(
         id,
         url: options.url,
         destination,
-        ...(options.headers ? { headers: options.headers } : {}),
+        headers: withIdentityEncoding(options.headers),
         notification: 'visible',
       });
       acquired = true;

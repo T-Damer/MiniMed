@@ -20,6 +20,7 @@ import { atcMatchOf, singleAtcGroup } from '@/features/medications/atc-groups';
 import { joinProductAndSubstance, sameDrugName } from '@/features/medications/drug-label';
 import { displayDrugName } from '@/features/medications/drug-screen';
 import { ScopedMedicalCore } from '@/features/search/ScopedMedicalCore';
+import { loadComparisonIndex } from './comparison-load';
 
 /** A drug found for a name: the substance card, and the trade name when the search found one. */
 export interface FoundDrug {
@@ -41,8 +42,44 @@ function wordsOf(text: string): readonly string[] {
   return text.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').match(WORD) ?? [];
 }
 
+async function atcDirectoryGroups(
+  text: string,
+  limit: number,
+): Promise<readonly SearchResultGroup[]> {
+  const parsed = parseAtcQuery(text);
+  if (!parsed) return [];
+  try {
+    const index = await loadComparisonIndex();
+    const prefix = parsed.code;
+    const matched: {
+      readonly slug: string;
+      readonly name: string;
+      readonly code: string;
+      readonly regs: number;
+    }[] = [];
+    for (const card of index.asset.cards) {
+      const code = card.a.find((entry) => entry.toUpperCase().startsWith(prefix));
+      if (!code) continue;
+      matched.push({ slug: card.s, name: card.n, code, regs: card.r });
+    }
+    matched.sort((a, b) => b.regs - a.regs);
+    return matched.slice(0, limit).map(
+      (entry, idx): SearchResultGroup => ({
+        documentId: `${MNN_PREFIX}${entry.slug}`,
+        title: entry.name,
+        bestScore: 0.02 + (limit - idx) / (limit * 100),
+        categories: [],
+        results: [],
+        atcMatch: { code: entry.code },
+      }),
+    );
+  } catch {
+    return [];
+  }
+}
+
 async function searchGroups(
-  core: MedicalCore,
+  core: MedicalCore | undefined,
   text: string,
   limit: number,
 ): Promise<{
@@ -52,22 +89,30 @@ async function searchGroups(
   rewritten: boolean;
 } | null> {
   const [result, directory] = await Promise.all([
-    new ScopedMedicalCore(core, 'medications').search({
-      query: text,
-      mode: 'lexical',
-      analysisMode: 'lookup',
-      filters: {},
-      limit,
-      includeSuggestions: false,
-    }),
+    core
+      ? new ScopedMedicalCore(core, 'medications')
+          .search({
+            query: text,
+            mode: 'lexical',
+            analysisMode: 'lookup',
+            filters: {},
+            limit,
+            includeSuggestions: false,
+          })
+          .catch(() => null)
+      : Promise.resolve(null),
     drugDirectoryGroups(text),
   ]);
-  if (!result.ok) return null;
+  const coreGroups = result?.ok ? result.value.groups : [];
+  const atcFallback = result?.ok ? [] : await atcDirectoryGroups(text, limit);
+  const mergedExtra = directoryExtras(coreGroups, [...atcFallback, ...directory]);
   return {
-    groups: result.value.groups,
-    extra: directoryExtras(result.value.groups, directory),
-    rewritten:
-      result.value.queryRewrite !== undefined || result.value.queryCorrection !== undefined,
+    groups: coreGroups,
+    extra: mergedExtra,
+    rewritten: Boolean(
+      result?.ok &&
+        (result.value.queryRewrite !== undefined || result.value.queryCorrection !== undefined),
+    ),
   };
 }
 
@@ -81,7 +126,7 @@ function splitTitle(title: string): { product: string | null; substance: string 
 }
 
 async function drugOfGroup(
-  core: MedicalCore,
+  core: MedicalCore | undefined,
   group: Pick<SearchResultGroup, 'documentId' | 'title' | 'atcMatch'>,
 ): Promise<{ drug: FoundDrug; names: readonly string[] } | null> {
   const slug = cardSlugOfDocumentId(group.documentId);
@@ -98,6 +143,7 @@ async function drugOfGroup(
     };
   }
   if (group.documentId.startsWith(ALLMED_PREFIX)) {
+    if (!core) return null;
     const loaded = await core.getDocument(group.documentId);
     const linked = loaded.ok ? loaded.value.metadata['linkedMnnDocumentId'] : undefined;
     if (typeof linked !== 'string' || !linked.startsWith(MNN_PREFIX)) return null;
@@ -137,7 +183,7 @@ interface Picked {
 }
 
 async function pick(
-  core: MedicalCore,
+  core: MedicalCore | undefined,
   text: string,
   typed: readonly string[],
 ): Promise<Picked | null> {
@@ -172,13 +218,16 @@ async function pick(
  * («нурофе»). A name in an oblique case («лизиноприла») that the search does not find as the
  * single substance is looked up again as its stem.
  */
-export async function resolveDrugName(core: MedicalCore, name: string): Promise<FoundDrug | null> {
+export async function resolveDrugName(
+  core: MedicalCore | undefined,
+  name: string,
+): Promise<FoundDrug | null> {
   const text = name.trim();
   if (text.length < 3) return null;
   // An ATC code names its drug through the code search; a prefix only when it holds one drug.
   if (parseAtcQuery(text)) {
     const searched = await searchGroups(core, text, 24);
-    const group = searched ? singleAtcGroup(text, searched.groups) : null;
+    const group = searched ? singleAtcGroup(text, [...searched.groups, ...searched.extra]) : null;
     const byCode = group ? await drugOfGroup(core, group) : null;
     if (byCode) return byCode.drug;
   }
@@ -196,7 +245,7 @@ export async function resolveDrugName(core: MedicalCore, name: string): Promise<
 
 /** Drugs for the picker: every distinct substance or product among the first groups, best first. */
 export async function findDrugs(
-  core: MedicalCore,
+  core: MedicalCore | undefined,
   query: string,
   limit = 8,
 ): Promise<readonly FoundDrug[]> {

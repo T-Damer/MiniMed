@@ -39,13 +39,34 @@ function installKey(moduleId: string, version: string): string {
   return `${moduleId}@${version}`;
 }
 
+let batchDepth = 0;
+let batchBuffer: PendingModuleInstall[] | null = null;
+let batchDirty = false;
+
+/** Coalesces rapid localStorage reads/writes when queueing or cancelling hundreds of modules at once. */
+export function batchPendingModuleInstalls<T>(fn: () => T): T {
+  batchDepth += 1;
+  try {
+    return fn();
+  } finally {
+    batchDepth -= 1;
+    if (batchDepth === 0) {
+      const toWrite = batchDirty ? batchBuffer : null;
+      batchBuffer = null;
+      batchDirty = false;
+      if (toWrite) writeQueue(toWrite);
+    }
+  }
+}
+
 function readQueue(): PendingModuleInstall[] {
+  if (batchDepth > 0 && batchBuffer) return batchBuffer;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const value: unknown = JSON.parse(raw);
     if (!Array.isArray(value)) return [];
-    return value.filter((item): item is PendingModuleInstall => {
+    const parsed = value.filter((item): item is PendingModuleInstall => {
       return (
         typeof item === 'object' &&
         item !== null &&
@@ -55,12 +76,19 @@ function readQueue(): PendingModuleInstall[] {
         typeof item.queuedAt === 'string'
       );
     });
+    if (batchDepth > 0) batchBuffer = parsed;
+    return parsed;
   } catch {
     return [];
   }
 }
 
 function writeQueue(queue: readonly PendingModuleInstall[]): void {
+  if (batchDepth > 0) {
+    batchBuffer = [...queue];
+    batchDirty = true;
+    return;
+  }
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
 }
 
@@ -112,7 +140,9 @@ export function dequeuePendingModuleInstall(moduleId: string, version: string): 
 
 export function discardPendingModuleInstall(moduleId: string, version: string): void {
   const key = installKey(moduleId, version);
-  writeQueue(readQueue().filter((item) => installKey(item.moduleId, item.version) !== key));
+  const current = readQueue();
+  const next = current.filter((item) => installKey(item.moduleId, item.version) !== key);
+  if (next.length !== current.length) writeQueue(next);
 }
 
 export function listPendingModuleInstalls(): readonly PendingModuleInstall[] {

@@ -65,20 +65,32 @@ class LocalMedTranscriberPlugin : Plugin() {
         private const val MAX_PCM_SECONDS = 120
         private const val SPEECH_IDLE_RELEASE_MINUTES = 5L
         private const val PCM_SAMPLE_RATE = 16_000
-        private const val SPEECH_MODEL = "gigaam-v3-punct.int8.onnx"
-        private const val SPEECH_TOKENS = "gigaam-v3-punct.tokens.txt"
+        private const val SPEECH_ENCODER = "gigaam-v3-rnnt-punct.encoder.int8.onnx"
+        private const val SPEECH_DECODER = "gigaam-v3-rnnt-punct.decoder.onnx"
+        private const val SPEECH_JOINER = "gigaam-v3-rnnt-punct.joiner.onnx"
+        private const val SPEECH_TOKENS = "gigaam-v3-rnnt-punct.tokens.txt"
 
         private val MODEL_SPECS =
             listOf(
                     ModelSpec(
-                        "gigaam-v3-punct.int8.onnx",
-                        224_893_661L,
-                        "d5fea8df94263c285e54b21e5774b707c707192d3bdbeffd7b1eb07fb6743b35",
+                        SPEECH_ENCODER,
+                        224_570_820L,
+                        "369f35a71bf288d3b8e0391fabd8dba5f2314088d440bca474056b7b4b6e66bf",
                     ),
                     ModelSpec(
-                        "gigaam-v3-punct.tokens.txt",
-                        2_007L,
-                        "142de7570b3de5b3035ce111a89c228e80e6085273731d944093ddf24fa539cd",
+                        SPEECH_DECODER,
+                        4_600_132L,
+                        "38fc7475443ea2a26f63211ca350f73ac50fff824ab7a3876ee2bd610c53bbc4",
+                    ),
+                    ModelSpec(
+                        SPEECH_JOINER,
+                        2_712_896L,
+                        "602ff7017a93311aad34df1437c8d7f49911353c13d6eae7a6ee7b041339465c",
+                    ),
+                    ModelSpec(
+                        SPEECH_TOKENS,
+                        13_354L,
+                        "39abae20e692998290c574e606f11a9edef2902a1995463fcff63d1490cf22b7",
                     ),
                     ModelSpec(
                         "pyannote-segmentation-3.0.int8.onnx",
@@ -114,7 +126,9 @@ class LocalMedTranscriberPlugin : Plugin() {
         speechIdleRelease = null
         return speechRecognizer
             ?: run {
-                verifyModel(MODEL_SPECS.getValue(SPEECH_MODEL))
+                verifyModel(MODEL_SPECS.getValue(SPEECH_ENCODER))
+                verifyModel(MODEL_SPECS.getValue(SPEECH_DECODER))
+                verifyModel(MODEL_SPECS.getValue(SPEECH_JOINER))
                 verifyModel(MODEL_SPECS.getValue(SPEECH_TOKENS))
                 NativeSherpaTranscriber.createRecognizer(modelDirectory()).also {
                     speechRecognizer = it

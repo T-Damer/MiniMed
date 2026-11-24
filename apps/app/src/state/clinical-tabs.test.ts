@@ -110,14 +110,22 @@ describe('clinical-tabs state', () => {
     expect(onlyPinnedAndActive.tabs).toHaveLength(2);
   });
 
-  it('tracks diaries, patients, calculators, assessments, and modules as tabs while ignoring settings', () => {
-    syncRouteToClinicalTabs('#/notes/diaries', { now: 10 });
+  it('tracks concrete diaries, patients, calculators, and assessments as tabs while skipping hub/list routes and settings', () => {
+    syncRouteToClinicalTabs('#/modules', { now: 5 });
+    syncRouteToClinicalTabs('#/notes', { now: 6 });
+    syncRouteToClinicalTabs('#/notes/diaries', { now: 7 });
+    syncRouteToClinicalTabs('#/calculators', { now: 8 });
+    expect(loadClinicalTabsState().tabs).toHaveLength(1);
+
+    syncRouteToClinicalTabs('#/notes/diaries/d-1', { title: 'Дневник Иванова', now: 10 });
+    syncRouteToClinicalTabs('#/notes/patients/p-1', { title: 'Иванов И.И.', now: 15 });
     syncRouteToClinicalTabs('#/calculators/ckd-epi', { title: 'СКФ (CKD-EPI)', now: 20 });
     syncRouteToClinicalTabs('#/assessments/clinical/phq-9', { title: 'PHQ-9', now: 30 });
     const afterSettings = syncRouteToClinicalTabs('#/settings/appearance', { now: 40 });
     expect(afterSettings.tabs.map((tab) => tab.kind)).toEqual([
       'search',
       'diary',
+      'patients',
       'calculator',
       'assessment',
     ]);

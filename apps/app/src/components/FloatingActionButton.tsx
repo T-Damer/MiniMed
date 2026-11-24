@@ -7,6 +7,7 @@ import '@/components/floating-action-button.css';
 
 /** The column of floating controls (scroll-to-top, small window) mounted once by `App`. */
 export const FLOATING_CONTROLS_HOST_ID = 'app-floating-controls';
+export const BOTTOM_LEFT_CONTROLS_HOST_ID = 'app-bottom-left-controls';
 
 export interface FloatingActionButtonProps {
   /** What the button does: «Добавить пациента». Names the button for assistive tech and as a tooltip. */

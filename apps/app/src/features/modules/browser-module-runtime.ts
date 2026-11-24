@@ -623,6 +623,8 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
 
 export class BrowserModuleBackend implements ContentModuleArtifactBackend {
   private readonly staged = new Map<string, StagedBytes>();
+  /** Serializes large-index OPFS streaming so 3 parallel downloads never decode 3 big packs in RAM at once. */
+  private largeStageTail: Promise<void> = Promise.resolve();
 
   public async stage(
     module: ContentModuleCatalogEntry,
@@ -678,42 +680,54 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
     const { decodedSizeBytes, decodedSha256 } = artifact;
     if (
       artifact.kind !== 'index' ||
-      artifact.compression !== 'zstd' ||
+      (artifact.compression !== 'zstd' && artifact.compression !== 'gzip') ||
       !decodedSizeBytes ||
       !decodedSha256 ||
       !isLargeIndex(decodedSizeBytes) ||
       typeof Worker === 'undefined' ||
-      !canStreamEncodedIndex(encoded)
+      !canStreamEncodedIndex(encoded, artifact.compression)
     ) {
       return null;
     }
-    signal.throwIfAborted();
-    const token = `${module.id}@${module.version}:${artifact.id}`;
-    const opfsPool = moduleOpfsPoolName(module.id, module.version, decodedSha256);
-    const releaseStaging = await holdModuleStagingLock();
-    const staged: StagedBytes = {
-      moduleId: module.id,
-      version: module.version,
-      artifact,
-      opfsBytes: decodedSizeBytes,
-      opfsPool,
-      releaseStaging,
-    };
-    this.staged.set(token, staged);
+    const compression = artifact.compression;
+    const previous = this.largeStageTail;
+    let releaseQueue = (): void => {};
+    const gate = new Promise<void>((resolve) => {
+      releaseQueue = resolve;
+    });
+    this.largeStageTail = previous.then(() => gate);
     try {
-      const store = await WorkerOpfsMedicalStore.open({
-        encoded: { bytes: encoded, decodedSizeBytes, decodedSha256 },
-        databaseName: `${opfsPool}.db`,
-        fetchTimeoutMs: MODULE_OPFS_FETCH_TIMEOUT_MS,
-        poolName: opfsPool,
-      });
-      await timeInstallPhase('stage-close', () => store.close());
+      await previous;
       signal.throwIfAborted();
-    } catch (cause) {
-      await this.discardStaging(module.id, module.version);
-      throw cause;
+      const token = `${module.id}@${module.version}:${artifact.id}`;
+      const opfsPool = moduleOpfsPoolName(module.id, module.version, decodedSha256);
+      const releaseStaging = await holdModuleStagingLock();
+      const staged: StagedBytes = {
+        moduleId: module.id,
+        version: module.version,
+        artifact,
+        opfsBytes: decodedSizeBytes,
+        opfsPool,
+        releaseStaging,
+      };
+      this.staged.set(token, staged);
+      try {
+        const store = await WorkerOpfsMedicalStore.open({
+          encoded: { bytes: encoded, compression, decodedSizeBytes, decodedSha256 },
+          databaseName: `${opfsPool}.db`,
+          fetchTimeoutMs: MODULE_OPFS_FETCH_TIMEOUT_MS,
+          poolName: opfsPool,
+        });
+        await timeInstallPhase('stage-close', () => store.close());
+        signal.throwIfAborted();
+      } catch (cause) {
+        await this.discardStaging(module.id, module.version);
+        throw cause;
+      }
+      return { artifactId: artifact.id, kind: artifact.kind, sizeBytes: decodedSizeBytes, token };
+    } finally {
+      releaseQueue();
     }
-    return { artifactId: artifact.id, kind: artifact.kind, sizeBytes: decodedSizeBytes, token };
   }
 
   public activate(
@@ -773,10 +787,16 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
         if (source.artifact.compression !== 'zip' || !source.bytes) {
           throw new Error(`Source-assets артефакт ${artifact.id} должен быть ZIP.`);
         }
+        const exactBuffer =
+          source.bytes.byteOffset === 0 &&
+          source.bytes.byteLength === source.bytes.buffer.byteLength &&
+          source.bytes.buffer instanceof ArrayBuffer
+            ? source.bytes.buffer
+            : Uint8Array.from(source.bytes).buffer;
         return {
           artifactId: artifact.id,
           compression: 'zip' as const,
-          bytes: Uint8Array.from(source.bytes).buffer,
+          bytes: exactBuffer,
         };
       })
       .filter((artifact): artifact is StoredModuleArtifact => artifact !== null);

@@ -40,10 +40,9 @@ body {
   position: relative;
   min-height: 100dvh;
   padding-top: var(--shell-top-inset);
-  padding-right: var(--safe-right);
-  /* No bottom padding: the floating bar overlays the page and every route leaves its own clearance;
-     a padded 100dvh shell scrolled the document past the page onto a darker desk strip. */
-  padding-left: var(--safe-left);
+  /* No side or bottom padding on the shell: page surfaces and dark header bands extend
+     edge-to-edge under the camera cutout on both sides, while each surface pads its own
+     content clear of `--safe-left` / `--safe-right` and leaves room for the floating bar. */
   background: var(--desk);
 }
 
@@ -387,7 +386,8 @@ body {
 
 .page-surface {
   min-height: 100dvh;
-  padding: clamp(1.75rem, 5vw, 4rem) clamp(1rem, 5vw, 4.5rem) calc(2.25rem + var(--safe-bottom));
+  padding: clamp(1.75rem, 5vw, 4rem) max(clamp(1rem, 5vw, 4.5rem), var(--safe-right))
+    calc(2.25rem + var(--safe-bottom)) max(clamp(1rem, 5vw, 4.5rem), var(--safe-left));
   background:
     var(--theme-grain-layer), linear-gradient(90deg, rgb(255 255 255 / 6%), transparent 17%),
     var(--route-desk-gradient);
@@ -462,7 +462,8 @@ body {
 .case-folder {
   width: 100%;
   min-height: inherit;
-  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 7vw, 6.875rem) calc(3.375rem + var(--safe-bottom));
+  padding: clamp(2rem, 5vw, 4rem) max(clamp(1rem, 7vw, 6.875rem), var(--safe-right))
+    calc(3.375rem + var(--safe-bottom)) max(clamp(1rem, 7vw, 6.875rem), var(--safe-left));
   border-right: 0;
 }
 

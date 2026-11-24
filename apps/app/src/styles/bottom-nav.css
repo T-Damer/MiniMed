@@ -184,6 +184,40 @@
   justify-content: center;
 }
 
+/* Shared bottom-left stack for satellite controls (clinical tabs + active recording indicator),
+   mirroring `#app-floating-controls` on the right so left-edge buttons never overlap each other
+   or a crowded bottom navigation bar. */
+.bottom-left-controls {
+  --bottom-left-dock: calc(var(--bottom-nav-offset, 0.625rem) + 0.25rem);
+  --bottom-left-above-nav: calc(var(--bottom-nav-clearance, 4.75rem) + 0.25rem);
+  position: fixed;
+  z-index: var(--z-bottom-nav);
+  left: max(0.75rem, var(--safe-left, 0px));
+  bottom: calc(
+    var(--bottom-left-dock) *
+    (1 - var(--nav-crowded, 0)) +
+    var(--bottom-left-above-nav) *
+    var(--nav-crowded, 0)
+  );
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 0.5rem;
+  pointer-events: none;
+  transition: bottom var(--motion-base, 180ms) var(--motion-ease, ease);
+}
+
+.bottom-left-controls--no-nav,
+html:not(:has(.app-bottom-nav)) .bottom-left-controls {
+  bottom: max(0.75rem, calc(0.75rem + var(--safe-bottom, 0px)));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bottom-left-controls {
+    transition: none;
+  }
+}
+
 @media (max-width: 760px) {
   .app-bottom-nav .app-nav-button,
   .app-bottom-nav .app-nav-button--active {

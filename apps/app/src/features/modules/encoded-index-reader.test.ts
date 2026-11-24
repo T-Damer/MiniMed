@@ -1,7 +1,11 @@
 import { createHash } from 'node:crypto';
 import * as zlib from 'node:zlib';
 import { describe, expect, it } from 'vitest';
-import { createDecodedIndexReader, type EncodedModuleIndex } from './encoded-index-reader';
+import {
+  canStreamEncodedIndex,
+  createDecodedIndexReader,
+  type EncodedModuleIndex,
+} from './encoded-index-reader';
 import { listZstdFrames } from './zstd-frames';
 
 const zstdCompressSync = (zlib as { zstdCompressSync?: typeof zlib.zstdCompressSync })
@@ -138,5 +142,46 @@ describe('zstd frame table', () => {
     expect(() => listZstdFrames(new TextEncoder().encode('SQLite format 3\0 not zstd'))).toThrow(
       'не похож',
     );
+  });
+});
+
+describe('gzip streamed index reader', () => {
+  const decoded = pseudoRandomText(300_000);
+  const gzipped = new Uint8Array(zlib.gzipSync(decoded));
+  const sha = `sha256:${createHash('sha256').update(decoded).digest('hex')}`;
+
+  it('detects valid gzip archives for streaming and rejects non-gzip bytes', () => {
+    expect(canStreamEncodedIndex(gzipped, 'gzip')).toBe(true);
+    expect(canStreamEncodedIndex(new Uint8Array([0x28, 0xb5, 0x2f, 0xfd]), 'gzip')).toBe(false);
+  });
+
+  it('streams verified gzip bytes and rejects checksum/size mismatches', async () => {
+    const encoded: EncodedModuleIndex = {
+      bytes: gzipped,
+      compression: 'gzip',
+      decodedSizeBytes: decoded.byteLength,
+      decodedSha256: sha,
+    };
+    const read = createDecodedIndexReader(encoded, { yieldToEventLoop: noYield });
+    expect(Buffer.from(await drain(read)).equals(Buffer.from(decoded))).toBe(true);
+    await expect(read()).resolves.toBeUndefined();
+
+    await expect(
+      drain(
+        createDecodedIndexReader(
+          { ...encoded, decodedSha256: `sha256:${'0'.repeat(64)}` },
+          { yieldToEventLoop: noYield },
+        ),
+      ),
+    ).rejects.toThrow('Контрольная сумма');
+
+    await expect(
+      drain(
+        createDecodedIndexReader(
+          { ...encoded, decodedSizeBytes: decoded.byteLength - 1 },
+          { yieldToEventLoop: noYield },
+        ),
+      ),
+    ).rejects.toThrow('размер');
   });
 });

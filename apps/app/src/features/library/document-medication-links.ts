@@ -733,20 +733,40 @@ export function buildMedicationLinkPhrases(
     );
 }
 
-function documentPhraseCandidates(document: MedicalDocumentSummary): readonly string[] {
-  const title = document.title
-    .replace(/^клинические рекомендации\s*[—:.-]\s*/iu, '')
-    .replace(/\s*\([^)]*\)\s*$/u, '')
+function stripUnbalancedEdgePunctuation(value: string): string {
+  let cleaned = value.trim();
+  // Strip any trailing parenthetical qualifier (even nested) and stray unmatched edge brackets.
+  cleaned = cleaned.replace(/\s*\([^()]*\)\s*$/u, '').trim();
+  cleaned = cleaned
+    .replace(/^[,;:!?…)\]]+/u, '')
+    .replace(/[,;:!?…([]+$/u, '')
     .trim();
+  if (cleaned.endsWith(')') && !cleaned.includes('(')) {
+    cleaned = cleaned.replace(/\)+$/u, '').trim();
+  }
+  if (cleaned.startsWith('(') && !cleaned.includes(')')) {
+    cleaned = cleaned.replace(/^\(+/u, '').trim();
+  }
+  return cleaned;
+}
+
+function documentPhraseCandidates(document: MedicalDocumentSummary): readonly string[] {
+  const title = stripUnbalancedEdgePunctuation(
+    document.title.replace(/^клинические рекомендации\s*[—:.-]\s*/iu, ''),
+  );
   // Search expansions can name a symptom or a broader condition, not the target itself.
   // Only editorial navigation aliases are evidence for an inline document link.
   const value = document.metadata?.['navigationAliases'];
   const metadataPhrases = Array.isArray(value)
     ? value.filter((item): item is string => typeof item === 'string')
     : [];
-  return [document.shortTitle?.trim() ?? '', title.split('—')[0]?.trim() ?? '', ...metadataPhrases]
-    .map((value) => value.trim())
-    .filter((value) => value.length >= PREFIX_LENGTH);
+  return [
+    stripUnbalancedEdgePunctuation(document.shortTitle ?? ''),
+    stripUnbalancedEdgePunctuation(title.split('—')[0] ?? ''),
+    ...metadataPhrases.map(stripUnbalancedEdgePunctuation),
+  ]
+    .map((item) => item.trim())
+    .filter((item) => item.length >= PREFIX_LENGTH);
 }
 
 function documentLinkPreview(
