@@ -82,6 +82,29 @@
   content: "";
 }
 
+/* Use the same canvas for the band and its two concave corners. */
+.page-hero.page-hero--clouds {
+  clip-path: none;
+  mask:
+    linear-gradient(black 0 0) center top / 100% calc(100% - var(--page-hero-lip) + 0.5px) no-repeat,
+    radial-gradient(
+      circle at 100% 100%,
+      transparent calc(var(--page-hero-lip) - 0.5px),
+      black var(--page-hero-lip)
+    )
+    left bottom / var(--page-hero-lip) var(--page-hero-lip) no-repeat,
+    radial-gradient(
+      circle at 0 100%,
+      transparent calc(var(--page-hero-lip) - 0.5px),
+      black var(--page-hero-lip)
+    )
+    right bottom / var(--page-hero-lip) var(--page-hero-lip) no-repeat;
+}
+
+.page--hero-clouds::after {
+  display: none;
+}
+
 .page-hero__art {
   position: absolute;
   inset: 0;
@@ -190,6 +213,20 @@
    content box, and padding there kept it 2–4 rem above the status bar line. */
 .page__hero-room {
   height: calc(var(--page-hero-lip) + 2rem);
+}
+
+.page.page--hero-clouds {
+  position: sticky;
+  top: var(--page-hero-inset-top);
+  flex: none;
+}
+
+.page-hero__art.page-hero__art--persistent {
+  animation: none;
+}
+
+.page__hero-room--clouds {
+  height: calc(var(--page-hero-lip) + 0.35rem);
 }
 
 /* A row of the page's own in the room (`Page` `room`): it sits at the top of the room, clear of the

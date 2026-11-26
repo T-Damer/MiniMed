@@ -157,6 +157,12 @@ export function WorksheetFieldCard(props: {
           />
         </div>
       </Show>
+      <TextField
+        label="Вопрос или просьба пациенту"
+        value={props.field.patientPrompt ?? ''}
+        placeholder={props.field.label}
+        onInput={(event) => patch({ patientPrompt: event.currentTarget.value || undefined })}
+      />
       <TextArea
         label="Что значит поле — для пациента"
         value={props.field.patientHint}

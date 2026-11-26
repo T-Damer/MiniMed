@@ -161,6 +161,7 @@ function TimesEditor(props: {
   readonly times: readonly CareDoseDraft[];
   readonly meals: boolean;
   readonly emptyText: string;
+  readonly blankNewTime?: boolean | undefined;
   readonly onChange: (times: CareDoseDraft[]) => void;
 }): JSX.Element {
   const patch = (index: number, next: Partial<CareDoseDraft>): void =>
@@ -180,6 +181,7 @@ function TimesEditor(props: {
               hideLabel
               class="screen-editor__time-field"
               value={time().time}
+              reportIncomplete={props.blankNewTime}
               onChange={(value) => patch(index, { time: value })}
             />
             <span class="screen-editor__leader" aria-hidden="true" />
@@ -216,7 +218,10 @@ function TimesEditor(props: {
           const hour = last ? Math.min(23, Number(last.slice(0, 2)) + 4) : 9;
           props.onChange([
             ...props.times,
-            { time: `${String(hour).padStart(2, '0')}:00`, meal: undefined },
+            {
+              time: props.blankNewTime ? '' : `${String(hour).padStart(2, '0')}:00`,
+              meal: undefined,
+            },
           ]);
         }}
       >
@@ -231,11 +236,12 @@ function TimesEditor(props: {
  * chosen from the list, or a name of the doctor's own is typed and left (owner 2026-11-04: a short
  * sheet, no suggestions under an empty name).
  */
-function DrugFields(props: {
+export function DrugFields(props: {
   readonly section: CareSectionDraft;
   readonly patch: (next: Partial<CareSectionDraft>) => void;
   readonly chosen: boolean;
   readonly onChosen: () => void;
+  readonly reviewingDictation?: boolean;
 }): JSX.Element {
   const [forms, setForms] = createSignal<readonly DrugSuggestionForm[]>([]);
   const [calendar, setCalendar] = createSignal(false);
@@ -277,7 +283,9 @@ function DrugFields(props: {
               atc: atc.length ? atc : undefined,
               title: picked.product ?? picked.name,
               form: first?.form ?? props.section.form,
-              dose: first?.strengths[0] ?? props.section.dose,
+              dose: props.reviewingDictation
+                ? props.section.dose
+                : (first?.strengths[0] ?? props.section.dose),
             });
             props.onChosen();
           }}
@@ -321,7 +329,9 @@ function DrugFields(props: {
                     onClick={() =>
                       props.patch({
                         form: form.form,
-                        dose: form.strengths[0] ?? props.section.dose,
+                        dose: props.reviewingDictation
+                          ? props.section.dose
+                          : (form.strengths[0] ?? props.section.dose),
                       })
                     }
                   >
@@ -355,7 +365,12 @@ function DrugFields(props: {
             <TimesEditor
               times={props.section.times}
               meals
-              emptyText="Без времени — пациент отметит приём сам"
+              blankNewTime={props.reviewingDictation}
+              emptyText={
+                props.reviewingDictation
+                  ? 'Укажите время приёма'
+                  : 'Без времени — пациент отметит приём сам'
+              }
               onChange={(times) => props.patch({ times })}
             />
           </Show>
@@ -363,11 +378,13 @@ function DrugFields(props: {
             textareaClass="screen-editor__input"
             label="Signa — как принимать"
             maxLength={300}
-            placeholder={suggestedSigna(props.section)}
+            placeholder={
+              props.reviewingDictation ? 'Уточнения врача' : suggestedSigna(props.section)
+            }
             value={props.section.signa}
             onInput={(event) => props.patch({ signa: event.currentTarget.value })}
           />
-          <Show when={!props.section.signa.trim()}>
+          <Show when={!props.reviewingDictation && !props.section.signa.trim()}>
             <div class="screen-editor__chips">
               <ChoiceChip
                 compact

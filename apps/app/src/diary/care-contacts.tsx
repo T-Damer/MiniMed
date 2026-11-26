@@ -1,7 +1,9 @@
-import { For, type JSX, Show } from 'solid-js';
+import { createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
 import { DiarySheet } from '@/diary/DiarySheet';
+import type { SyncStatus } from '@/features/diary/connected/patient-connection';
 import { crisisLineParts } from '@/features/diary/crisis-lines';
 import type { DiaryContact, DiaryInvitation } from '@/features/diary/diary-model';
 
@@ -126,8 +128,30 @@ export function CrisisSheet(props: {
   readonly invitation: DiaryInvitation;
   /** Opened by an answer of a questionnaire rather than by the patient. */
   readonly raised: boolean;
+  readonly onRequestHelp?: (() => Promise<SyncStatus>) | undefined;
   readonly onClose: () => void;
 }): JSX.Element {
+  const [sending, setSending] = createSignal(false);
+  const [status, setStatus] = createSignal('');
+  const requestHelp = async () => {
+    if (!props.onRequestHelp || sending() || status()) return;
+    setSending(true);
+    try {
+      const result = await props.onRequestHelp();
+      setStatus(
+        result.phase === 'idle' && result.pending === 0
+          ? 'Запрос отправлен врачу.'
+          : result.phase === 'ended'
+            ? 'Связь с врачом недоступна. Воспользуйтесь контактами ниже.'
+            : 'Запрос сохранён и будет отправлен при следующей синхронизации.',
+      );
+    } catch (cause) {
+      console.warn('Не удалось сохранить запрос помощи:', cause);
+      setStatus('Не удалось отправить запрос. Воспользуйтесь контактами ниже.');
+    } finally {
+      setSending(false);
+    }
+  };
   return (
     <DiarySheet
       title="Если вам очень плохо"
@@ -135,6 +159,22 @@ export function CrisisSheet(props: {
       onClose={props.onClose}
     >
       <CrisisContent invitation={props.invitation} />
+      <Show when={props.onRequestHelp && !props.raised}>
+        <Button
+          type="button"
+          variant="secondary"
+          class="diary-button"
+          disabled={sending() || Boolean(status())}
+          onClick={() => void requestHelp()}
+        >
+          Попросить врача связаться со мной
+        </Button>
+        <Show when={status()}>
+          <p role="status" class="diary-crisis__request-status">
+            {status()}
+          </p>
+        </Show>
+      </Show>
     </DiarySheet>
   );
 }

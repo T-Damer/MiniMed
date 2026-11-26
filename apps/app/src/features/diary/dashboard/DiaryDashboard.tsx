@@ -37,6 +37,7 @@ import {
 import { privacyAcceptanceNeeded } from '@/features/diary/consent/service-privacy';
 import { CuratorStack } from '@/features/diary/dashboard/CuratorStack';
 import { DiaryPatientPage } from '@/features/diary/dashboard/DiaryPatientPage';
+import { DictatedPlanPage } from '@/features/diary/dashboard/DictatedPlanPage';
 import { DoctorSignIn } from '@/features/diary/dashboard/DoctorSignIn';
 import { DEMO_LABEL_PREFIX, hasDemoSet } from '@/features/diary/dashboard/demo-patients';
 import { adherence } from '@/features/diary/dashboard/diary-insights';
@@ -73,7 +74,7 @@ import { PatientAssignmentPage } from '@/features/diary/dashboard/PatientAssignm
 import { PatientChartsPage } from '@/features/diary/dashboard/PatientChartsPage';
 import { PatientDayView } from '@/features/diary/dashboard/PatientDayView';
 import { PatientListTools } from '@/features/diary/dashboard/PatientListTools';
-import { PatientScreenPage } from '@/features/diary/dashboard/PatientScreenPage';
+import { PatientPlanPage, PatientScreenPage } from '@/features/diary/dashboard/PatientScreenPage';
 import { PushHelpDialog } from '@/features/diary/dashboard/PushHelpDialog';
 import { telHref } from '@/features/diary/dashboard/patient-contact';
 import {
@@ -212,7 +213,15 @@ function PatientRow(props: {
 export function DiaryDashboard(props: {
   readonly patientId: string | undefined;
   /** The patient view to edit, one day as the patient saw it, or the patient's charts. */
-  readonly view?: 'screen' | 'day' | 'charts' | 'task' | undefined;
+  readonly view?:
+    | 'screen'
+    | 'day'
+    | 'charts'
+    | 'task'
+    | 'monitoring'
+    | 'plan'
+    | 'plan-draft'
+    | undefined;
   readonly day?: string | undefined;
   /** The chart the charts page opens at. */
   readonly chart?: string | undefined;
@@ -658,6 +667,7 @@ export function DiaryDashboard(props: {
       classList={{
         'diary-dash--garden': Boolean(session()) && !props.patientId,
         'diary-dash--signed-out': !session(),
+        'diary-dash--chat': Boolean(current() && !props.view),
       }}
       aria-label="Дневники пациентов"
     >
@@ -761,72 +771,106 @@ export function DiaryDashboard(props: {
       <Show when={overviewing() && isAdmin() ? session() : undefined}>
         {(signedIn) => <ServiceOverviewPage session={signedIn()} onBack={toList} />}
       </Show>
-      <Show when={props.patientId ? current() : undefined}>
-        {(patient) => (
-          <Show when={workspace()}>
-            {(diaries) => (
-              <Switch
-                fallback={
-                  <DiaryPatientPage
-                    workspace={diaries()}
-                    patient={patient()}
-                    version={version()}
-                    onBack={toList}
-                    onOpen={(sub) => openPatient(patient().summary.id, sub)}
-                  />
-                }
-              >
-                <Match when={props.view === 'screen' && replicaResults(patient().replica)}>
-                  {(ready) => (
-                    <PatientScreenPage
-                      workspace={diaries()}
-                      patient={patient()}
-                      invitation={ready().invitation}
-                      onClose={() => toPatient(patient().summary.id)}
-                    />
-                  )}
-                </Match>
-                <Match when={props.view === 'charts' && replicaResults(patient().replica)}>
-                  {(ready) => (
-                    <PatientChartsPage
-                      workspace={diaries()}
-                      patient={patient()}
-                      results={ready()}
-                      version={version()}
-                      focus={props.chart}
-                      onBack={() => toPatient(patient().summary.id)}
-                      onFill={(day) => openPatient(patient().summary.id, `day/${day}`)}
-                    />
-                  )}
-                </Match>
-                <Match
-                  when={
-                    props.view === 'task' && props.task
-                      ? replicaResults(patient().replica)
-                      : undefined
-                  }
-                >
-                  {(ready) => (
-                    <PatientAssignmentPage
-                      results={ready()}
-                      assignmentId={props.task ?? ''}
-                      patientLabel={patient().replica.profile?.label ?? ''}
-                      onBack={() => toPatient(patient().summary.id)}
-                    />
-                  )}
-                </Match>
-                <Match when={props.view === 'day' && props.day}>
-                  {(day) => (
-                    <PatientDayView
-                      workspace={diaries()}
-                      patient={patient()}
-                      version={version()}
-                      day={day()}
-                      onBack={() => toPatient(patient().summary.id)}
-                    />
-                  )}
-                </Match>
-              </Switch>
+      <Show when={current()?.summary.id} keyed>
+        {(patientId) => (
+          <Show when={current()?.summary.id === patientId ? current() : undefined}>
+            {(patient) => (
+              <Show when={workspace()}>
+                {(diaries) => (
+                  <>
+                    <div
+                      class="diary-dash__patient"
+                      classList={{ 'diary-dash__patient--chat': !props.view }}
+                      hidden={Boolean(props.view && props.view !== 'monitoring')}
+                    >
+                      <DiaryPatientPage
+                        workspace={diaries()}
+                        patient={patient()}
+                        version={version()}
+                        monitoring={props.view === 'monitoring'}
+                        onBack={() =>
+                          props.view === 'monitoring' ? toPatient(patient().summary.id) : toList()
+                        }
+                        onOpen={(sub) => openPatient(patient().summary.id, sub)}
+                      />
+                    </div>
+                    <Switch>
+                      <Match when={props.view === 'plan-draft'}>
+                        <DictatedPlanPage
+                          workspace={diaries()}
+                          patient={patient()}
+                          onClose={() => toPatient(patient().summary.id)}
+                        />
+                      </Match>
+                      <Match
+                        when={props.view === 'plan' ? patient().replica.invitation : undefined}
+                      >
+                        {(plan) => (
+                          <PatientPlanPage
+                            invitation={plan()}
+                            onClose={() => toPatient(patient().summary.id)}
+                            onEdit={
+                              patient().summary.role === 'reader'
+                                ? undefined
+                                : () => openPatient(patient().summary.id, 'screen')
+                            }
+                          />
+                        )}
+                      </Match>
+                      <Match when={props.view === 'screen' && replicaResults(patient().replica)}>
+                        {(ready) => (
+                          <PatientScreenPage
+                            workspace={diaries()}
+                            patient={patient()}
+                            invitation={ready().invitation}
+                            onClose={() => toPatient(patient().summary.id)}
+                          />
+                        )}
+                      </Match>
+                      <Match when={props.view === 'charts' && replicaResults(patient().replica)}>
+                        {(ready) => (
+                          <PatientChartsPage
+                            workspace={diaries()}
+                            patient={patient()}
+                            results={ready()}
+                            version={version()}
+                            focus={props.chart}
+                            onBack={() => toPatient(patient().summary.id)}
+                            onFill={(day) => openPatient(patient().summary.id, `day/${day}`)}
+                          />
+                        )}
+                      </Match>
+                      <Match
+                        when={
+                          props.view === 'task' && props.task
+                            ? replicaResults(patient().replica)
+                            : undefined
+                        }
+                      >
+                        {(ready) => (
+                          <PatientAssignmentPage
+                            results={ready()}
+                            assignmentId={props.task ?? ''}
+                            patientLabel={patient().replica.profile?.label ?? ''}
+                            onBack={() => toPatient(patient().summary.id)}
+                          />
+                        )}
+                      </Match>
+                      <Match when={props.view === 'day' && props.day}>
+                        {(day) => (
+                          <PatientDayView
+                            workspace={diaries()}
+                            patient={patient()}
+                            version={version()}
+                            day={day()}
+                            onBack={() => toPatient(patient().summary.id)}
+                          />
+                        )}
+                      </Match>
+                    </Switch>
+                  </>
+                )}
+              </Show>
             )}
           </Show>
         )}

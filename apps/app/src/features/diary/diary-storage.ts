@@ -21,7 +21,12 @@ import {
   parseDiaryInvitation,
   parseDiaryResults,
 } from '@/features/diary/diary-model';
-import { type DiaryPlanChange, MAX_PLAN_CHANGE_LINES } from '@/features/diary/plan-changes';
+import {
+  type DiaryPlanChange,
+  MAX_PLAN_CHANGE_LINES,
+  planChanges,
+  prescriptionChanges,
+} from '@/features/diary/plan-changes';
 
 /** Entries live only in the patient's browser; there is no server copy. */
 const KEY_PREFIX = 'minimed.diary.v1.';
@@ -31,6 +36,7 @@ const META_PREFIX = 'minimed.diary.meta.v1.';
 /** A record that could not be read as a whole is kept here, untouched, before it is repaired. */
 const SALVAGE_PREFIX = 'minimed.diary.salvage.v1.';
 const UI_KEY = 'minimed.diary.ui.v1';
+const MAX_CHAT_PLAN_CHANGES = 30;
 
 export interface DiaryMeta {
   readonly lastOpenedAt?: string;
@@ -47,6 +53,7 @@ export interface DiaryMeta {
   readonly removedByDoctor?: readonly DiaryRemoval[];
   /** What the doctor's latest plan changed, until the patient closes it on «Сегодня». */
   readonly planChange?: DiaryPlanChange;
+  readonly chatPlanChanges?: readonly DiaryPlanChange[];
 }
 
 /** A patient's mark the doctor deleted: what it said and when, shown struck out in «Записи». */
@@ -153,13 +160,32 @@ function parseRemovals(value: unknown): DiaryRemoval[] {
 }
 
 function parsePlanChange(value: unknown): DiaryPlanChange | undefined {
-  if (!isRecord(value) || typeof value['at'] !== 'string' || !Array.isArray(value['lines'])) {
+  if (
+    !isRecord(value) ||
+    typeof value['at'] !== 'string' ||
+    !Number.isFinite(Date.parse(value['at'])) ||
+    !Array.isArray(value['lines'])
+  ) {
     return undefined;
   }
   const lines = value['lines']
     .filter((line): line is string => typeof line === 'string')
     .slice(-MAX_PLAN_CHANGE_LINES);
-  return lines.length ? { at: value['at'], lines } : undefined;
+  const prescriptions = Array.isArray(value['prescriptions'])
+    ? value['prescriptions'].flatMap((item: unknown) => {
+        if (!isRecord(item) || typeof item['label'] !== 'string') return [];
+        return [
+          {
+            label: item['label'],
+            ...(typeof item['before'] === 'string' ? { before: item['before'] } : {}),
+            ...(typeof item['after'] === 'string' ? { after: item['after'] } : {}),
+          },
+        ];
+      })
+    : [];
+  return lines.length || prescriptions.length
+    ? { at: value['at'], lines, ...(prescriptions.length ? { prescriptions } : {}) }
+    : undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -217,6 +243,12 @@ export function createDiaryStore(storage: Storage, now: () => number = Date.now)
       const sent = parseSent(value['sent']);
       const removed = parseRemovals(value['removedByDoctor']);
       const planChange = parsePlanChange(value['planChange']);
+      const chatPlanChanges = Array.isArray(value['chatPlanChanges'])
+        ? value['chatPlanChanges'].slice(-MAX_CHAT_PLAN_CHANGES).flatMap((item: unknown) => {
+            const parsed = parsePlanChange(item);
+            return parsed ? [parsed] : [];
+          })
+        : [];
       const consents = parseJoiningAcceptances(value['consents']);
       const study = parseStudyAnswer(value['study']);
       return {
@@ -234,6 +266,7 @@ export function createDiaryStore(storage: Storage, now: () => number = Date.now)
           : {}),
         ...(removed.length ? { removedByDoctor: removed.slice(-MAX_DIARY_REMOVALS) } : {}),
         ...(planChange ? { planChange } : {}),
+        ...(chatPlanChanges.length ? { chatPlanChanges } : {}),
       };
     } catch {
       return {};
@@ -387,6 +420,27 @@ export function createDiaryStore(storage: Storage, now: () => number = Date.now)
         record.skipped > 0
       ) {
         save(results);
+      }
+      if (merged.outcome === 'updated') {
+        const before = record.results.invitation;
+        const after = results.invitation;
+        const prescriptions = prescriptionChanges(before, after);
+        const lines = planChanges(before, after).filter((line) => {
+          if (before.issuedAt === after.issuedAt && line === 'Врач обновил дневник') return false;
+          return !prescriptions.some(
+            ({ label }) =>
+              line.startsWith(`${label}: `) ||
+              line.startsWith(`Новое: ${label}`) ||
+              line === `Отменено: ${label}`,
+          );
+        });
+        if (lines.length || prescriptions.length) {
+          const chatPlanChanges = [
+            ...(meta(incoming.id).chatPlanChanges ?? []),
+            { at: new Date(now()).toISOString(), lines, prescriptions },
+          ].slice(-MAX_CHAT_PLAN_CHANGES);
+          setMeta(incoming.id, { chatPlanChanges });
+        }
       }
       return { results, outcome: merged.outcome, salvagedSkipped: record.skipped };
     },

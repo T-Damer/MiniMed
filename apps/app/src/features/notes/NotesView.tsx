@@ -1004,6 +1004,15 @@ export function NotesView(props: {
     const current = route();
     return current.kind === 'diaries' ? current : null;
   });
+  const diaryChatOpen = () => {
+    const current = diariesRoute();
+    return Boolean(
+      current?.patientId &&
+        current.patientId !== 'new' &&
+        current.patientId !== 'service' &&
+        !current.view,
+    );
+  };
   const vaccinationRoute = createMemo(() => {
     const current = route();
     return current.kind === 'vaccination' ? current : null;
@@ -1319,7 +1328,10 @@ export function NotesView(props: {
   return (
     <section
       class="patient-notes-view page-surface page-grain"
-      classList={{ 'patient-notes-view--document-reader': activeTemplateId() !== null }}
+      classList={{
+        'patient-notes-view--document-reader': activeTemplateId() !== null,
+        'patient-notes-view--diary-chat': diaryChatOpen(),
+      }}
       aria-label="Личные заметки"
       inert={editorFullscreen()}
     >

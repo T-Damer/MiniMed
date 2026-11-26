@@ -21,7 +21,7 @@ export type NotesRoute =
   | {
       readonly kind: 'diaries';
       readonly patientId?: string;
-      readonly view?: 'screen' | 'day' | 'charts' | 'task';
+      readonly view?: 'screen' | 'day' | 'charts' | 'task' | 'monitoring' | 'plan' | 'plan-draft';
       readonly day?: string;
       readonly chart?: string;
       readonly task?: string;
@@ -133,6 +133,12 @@ export function readNotesRoute(
     }
     if (!patientId || !/^[a-z0-9]{12,32}$/u.test(patientId)) return { kind: 'diaries' };
     if (parts.length === 3) return { kind: 'diaries', patientId };
+    if (parts[3] === 'monitoring' && parts.length === 4)
+      return { kind: 'diaries', patientId, view: 'monitoring' };
+    if (parts[3] === 'plan' && parts.length === 4)
+      return { kind: 'diaries', patientId, view: 'plan' };
+    if (parts[3] === 'plan-draft' && parts.length === 4)
+      return { kind: 'diaries', patientId, view: 'plan-draft' };
     if (parts[3] === 'screen' && parts.length === 4) {
       return { kind: 'diaries', patientId, view: 'screen' };
     }
@@ -383,6 +389,9 @@ const CHART_ID = /^[a-z0-9][a-z0-9-]{0,39}$/u;
 /** A page under one patient: its view to edit, one day, its charts (at one chart). */
 export type DiarySub =
   | 'screen'
+  | 'monitoring'
+  | 'plan'
+  | 'plan-draft'
   | `day/${string}`
   | 'charts'
   | `charts/${string}`

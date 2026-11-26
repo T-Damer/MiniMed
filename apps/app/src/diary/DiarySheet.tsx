@@ -2,9 +2,11 @@ import { createUniqueId, type JSX, onCleanup, onMount, Show, Suspense } from 'so
 import { Portal } from 'solid-js/web';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { ScrollIndicator } from '@/components/ScrollIndicator';
 import { SkeletonLines } from '@/components/SkeletonLines';
 
 const SHEET_KEY = 'diarySheet';
+let openDiarySheets = 0;
 
 /**
  * A sheet that rises from the bottom of the diary page. It is a step in the browser history, so
@@ -16,12 +18,17 @@ export function DiarySheet(props: {
   readonly subtitle?: string | undefined;
   /** Tall content (a questionnaire) takes the whole height. */
   readonly tall?: boolean;
+  readonly tracksHistory?: boolean;
+  readonly bodyClass?: string;
+  readonly headerStart?: JSX.Element;
+  readonly headerEnd?: JSX.Element;
   readonly footer?: JSX.Element;
   readonly children: JSX.Element;
   readonly onClose: () => void;
 }): JSX.Element {
   const id = createUniqueId();
   let title: HTMLHeadingElement | undefined;
+  let body: HTMLDivElement | undefined;
   let closed = false;
 
   const finish = (): void => {
@@ -32,19 +39,23 @@ export function DiarySheet(props: {
   /** Closes through the history so Back and the close button leave the same state. */
   const close = (): void => {
     const state = window.history.state as Record<string, unknown> | null;
-    if (state?.[SHEET_KEY] === id) window.history.back();
+    if (props.tracksHistory !== false && state?.[SHEET_KEY] === id) window.history.back();
     else finish();
   };
 
   onMount(() => {
     const state = (window.history.state as Record<string, unknown> | null) ?? {};
-    window.history.pushState({ ...state, [SHEET_KEY]: id }, '', window.location.href);
+    if (props.tracksHistory !== false) {
+      window.history.pushState({ ...state, [SHEET_KEY]: id }, '', window.location.href);
+    }
     const onPop = (): void => {
       const current = window.history.state as Record<string, unknown> | null;
-      if (current?.[SHEET_KEY] !== id) finish();
+      if (props.tracksHistory !== false && current?.[SHEET_KEY] !== id) finish();
     };
     const onKey = (event: KeyboardEvent): void => {
       if (event.key !== 'Escape') return;
+      const panels = document.querySelectorAll('.diary-sheet__panel');
+      if (panels[panels.length - 1] !== body?.parentElement) return;
       // A dialog or a «?» sheet open over this sheet takes its own Escape (one layer at a time).
       if (document.querySelector('.overlay-dialog:not(.overlay-dialog--closing)')) return;
       close();
@@ -52,14 +63,16 @@ export function DiarySheet(props: {
     window.addEventListener('popstate', onPop);
     window.addEventListener('keydown', onKey);
     title?.focus({ preventScroll: true });
+    openDiarySheets += 1;
     document.documentElement.classList.add('diary-sheet-open');
     onCleanup(() => {
       window.removeEventListener('popstate', onPop);
       window.removeEventListener('keydown', onKey);
-      document.documentElement.classList.remove('diary-sheet-open');
+      openDiarySheets -= 1;
+      if (!openDiarySheets) document.documentElement.classList.remove('diary-sheet-open');
       // Unmounted by the page (a save) while its history step is still on top: drop the step.
       const current = window.history.state as Record<string, unknown> | null;
-      if (!closed && current?.[SHEET_KEY] === id) {
+      if (props.tracksHistory !== false && !closed && current?.[SHEET_KEY] === id) {
         closed = true;
         window.history.back();
       }
@@ -84,6 +97,7 @@ export function DiarySheet(props: {
           aria-labelledby={`${id}-title`}
         >
           <header class="diary-sheet__header">
+            {props.headerStart}
             <div class="diary-sheet__heading">
               <h2 class="diary-sheet__title" id={`${id}-title`} tabindex="-1" ref={title}>
                 {props.title}
@@ -92,15 +106,20 @@ export function DiarySheet(props: {
                 <p class="diary-sheet__subtitle">{props.subtitle}</p>
               </Show>
             </div>
+            {props.headerEnd}
             <button type="button" class="diary-sheet__close" aria-label="Закрыть" onClick={close}>
               <AppGlyph name="close" class="diary-sheet__close-icon" />
             </button>
           </header>
-          <div class="diary-sheet__body">
+          <div
+            class={props.bodyClass ? `diary-sheet__body ${props.bodyClass}` : 'diary-sheet__body'}
+            ref={body}
+          >
             <Suspense fallback={<SkeletonLines label="Загружаем" lines={3} />}>
               {props.children}
             </Suspense>
           </div>
+          <ScrollIndicator target={() => body} />
           <Show when={props.footer}>
             <footer class="diary-sheet__footer">{props.footer}</footer>
           </Show>

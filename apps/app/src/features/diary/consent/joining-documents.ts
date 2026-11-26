@@ -42,7 +42,8 @@ export interface JoiningAcceptance {
 }
 
 /** The set as a whole, sent with the consent record. */
-export const JOINING_SET_VERSION = 'joining-template-2026-11-04';
+export const JOINING_SET_VERSION = 'joining-template-2026-11-25';
+const MONITORING_VERSION = 'template-2026-11-25';
 const TEMPLATE_VERSION = 'template-2026-11-04';
 
 const ORGANIZATION = { field: 'organization', blank: 'медицинская организация' } as const;
@@ -66,12 +67,13 @@ const OPERATOR_LINE: readonly JoiningSegment[] = [
 function monitoring(connected: boolean): JoiningDocument {
   return {
     id: 'monitoring',
-    version: TEMPLATE_VERSION,
+    version: MONITORING_VERSION,
     title: 'Информированное согласие на дистанционное наблюдение',
     summary: [
       'Вы отмечаете лекарства, самочувствие, показатели и опросники, которые назначил врач.',
       'Записи видят только ваш врач и врачи, которых он подключит; список виден вам.',
       'Врач читает записи в рабочее время; в опасной ситуации звоните 112.',
+      '«Сигнум» не является медицинским изделием и не заменяет врача.',
       'Отказаться можно в любой момент — на лечение это не влияет.',
     ],
     sections: [
@@ -103,6 +105,9 @@ function monitoring(connected: boolean): JoiningDocument {
         paragraphs: [
           [
             'По плану врача отмечаю приём лекарств и самочувствие после него, записываю назначенные показатели (пульс, давление, сатурацию и другие), заполняю назначенные опросники и по желанию описываю состояние своими словами. Врач опирается на мои записи, поэтому я вношу их достоверно.',
+          ],
+          [
+            'Разговор с помощником служит для сбора самоотчётов, заполнения дневника и представления динамики врачу. «Сигнум» не является медицинским изделием и не заменяет врача. Система не устанавливает диагноз, не назначает и не отменяет лекарства и не принимает решения о необходимости госпитализации; медицинские решения принимает врач.',
           ],
         ],
       },
@@ -372,6 +377,12 @@ export function acceptedAll(
         acceptance.document === document.id && acceptance.version === document.version,
     ),
   );
+}
+
+/** The recorded set version follows the monitoring wording that was actually accepted. */
+export function joiningSetVersion(acceptances: readonly JoiningAcceptance[]): string {
+  const monitoring = acceptances.find((item) => item.document === 'monitoring');
+  return monitoring ? `joining-${monitoring.version}` : JOINING_SET_VERSION;
 }
 
 const MAX_VERSION = 80;

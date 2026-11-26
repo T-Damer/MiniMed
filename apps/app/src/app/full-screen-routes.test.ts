@@ -7,12 +7,15 @@ describe('full-screen routes', () => {
     expect(isFullScreenRoute('#/notes/diaries/new')).toBe(true);
     expect(isFullScreenRoute('#/notes/diaries/new/k3v9q0a1b2c3d4e5f6g7')).toBe(true);
     expect(isFullScreenRoute('#/notes/diaries/service')).toBe(true);
+    expect(isFullScreenRoute('#/notes/diaries/e11at7ahxmirmi6ytp0d')).toBe(true);
+    expect(isFullScreenRoute('#/notes/diaries/e11at7ahxmirmi6ytp0d/plan')).toBe(true);
+    expect(isFullScreenRoute('#/notes/diaries/e11at7ahxmirmi6ytp0d/plan-draft')).toBe(true);
+    expect(isFullScreenRoute('#/notes/diaries/e11at7ahxmirmi6ytp0d/monitoring')).toBe(true);
     expect(isFullScreenRoute('#/notes/diaries/e11at7ahxmirmi6ytp0d/screen')).toBe(true);
     expect(isFullScreenRoute('#/notes/diaries/e11at7ahxmirmi6ytp0d/day/2026-10-27?x=1')).toBe(true);
   });
 
-  it('keeps the bar on lists and patient pages', () => {
+  it('keeps the bar on the patient list', () => {
     expect(isFullScreenRoute('#/notes/diaries')).toBe(false);
-    expect(isFullScreenRoute('#/notes/diaries/e11at7ahxmirmi6ytp0d')).toBe(false);
   });
 });

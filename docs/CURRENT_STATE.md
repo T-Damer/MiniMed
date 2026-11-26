@@ -1,7 +1,7 @@
 # Current state
 
-> Updated: 24 November 2026
-> Released version: `0.6.130` (public prerelease toward `1.0`)
+> Updated: 27 November 2026
+> Released version: `0.6.131` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -19,6 +19,79 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Signum patient chat and checklist — 2026-11-26
+
+Care diaries open in chat after any required consent. The header holds the mascot, «План»,
+«Настройки» and a menu for contact and urgent help. Plan and Settings are sheets over the same
+chat. Browser Back returns one layer at a time. The composer keeps its draft and shows dictation
+when empty, emoji, and a photo picker with a draft preview strip. Photos can also be pasted or dropped.
+The patient's input and its controls share one full-width surface.
+Quotes and time stay in the bubble, with reactions and the diary action directly below it. Touch
+screens use the long-press menu; a mouse also reveals the overflow button. Messages are append-only.
+Quick actions add new replies, and links in the plan
+explanation open the relevant check-in forms. The quiet, pinned date bubble opens the dates with
+activity. Confirmed diary notes can be reopened by date after reload.
+
+A received clinician plan revision adds a dated message with previous and current prescription
+details. The plan sheet starts on today's checklist, with a calendar and past-day checks one step
+away. Patient task cards put the status by the checkbox and the time in the upper-right corner.
+The medicine form icon sits next to the name and dose in the card body. Records and
+manual export are inside Settings. Regular chat attachments are session-local. In connected
+diaries the doctor can request photos and videos for five minutes. When the patient confirms,
+a WebRTC data channel delivers the original bytes. The patient sees previews before confirming,
+and the doctor views the received attachments in chat. The doctor's chat also shows diary marks,
+submitted reports and signed text exchanged directly with the patient. Both chats use the shared
+Signum header and give the composer its own opaque surface in both themes. The doctor's chat fills
+the available screen with the composer below the scrolling timeline. «Назначения» opens the
+current clinician-authored plan and «Мониторинг» holds the charts and calendar. Both return to
+the same chat and its current draft. The server sees only encrypted signaling for file transfer,
+and the companion has no access to it. The optional self-hosted TURN route, supported by both API
+modes, forwards encrypted packets without retaining files. See [DIARY_SERVICE.md](DIARY_SERVICE.md).
+Two Chromium sessions transferred a photo and video byte for byte through a
+loopback TURN/TCP fixture. This passed with SSE and change polling over SQLite. The device and
+production relay remain to be verified.
+
+Creating a new patient starts with identity fields and opens the clinician chat directly. The
+doctor can record or type a prescription there. On-device speech recognition fills the transcript,
+and local parsing proposes drug names, stated doses and exact times. A separate review page keeps
+the source wording alongside editable fields and leaves ambiguous schedules for the clinician to
+complete. The draft stays on the doctor's device and is sealed if the doctor remembers the device.
+Only «Подтвердить и отправить» appends the reviewed items to the signed patient plan. Optional
+sex, date of birth, height and weight are stored in the encrypted patient profile.
+
+The persistent Signum header uses original WebGL clouds shaded by device-local time, with dawn,
+daytime, dusk and night colors. The same WebGL frame extends into the rounded cutouts under the band. The animation settles into
+a still frame shortly after opening.
+Reduced-motion mode draws a still, and the shared dark band is visible if WebGL is unavailable.
+The warm low-angle light follows [NOAA's cloud color guide](https://www.noaa.gov/jetstream/clouds/color-of-clouds).
+
+## Signum offline companion — 2026-11-25
+
+Patient care diaries have an opt-in conversation screen on «Чат». It assigns a stable named mascot from twelve bundled
+LikeSpace plush presets by the random diary identifier, authored Russian replies selected from whole conversational
+acts without regex, and editable, dated excerpts of the patient's messages. The open diary owns
+the transient conversation; only confirmed entries use the existing validated save and exchange.
+The companion can open actual pending care checkpoints, medication marks, questionnaires and CBT
+worksheets through compact chips that open the shared modal forms. Completed chips open saved
+records and can show recorded results. The existing help contacts and safety sheet remain accessible. Reminders appear
+in the open diary, with a two-hour local deferral. No provider or language model is required.
+Voice input reuses the existing optional installed speech model and its provenance contract.
+Worksheet UI is now in the diary's precached shell so the first assigned worksheet opens offline.
+Built-in worksheet prompts are patient-facing questions and instructions, separate from the original
+clinical column names. QR/text export includes worksheet cells and spoken-text metadata, and sharing
+fingerprints account for them. Explicit direct help requests offer the safety sheet and connected
+diaries allow the patient to request contact from the doctor. The monitoring consent was revised
+to explicitly describe the self-report function, medical-device status and clinician responsibility;
+users with an earlier accepted monitoring version see the revised consent before using the companion.
+
+Chromium phone-sized flows verified a stable assigned avatar, offline text review, first-time worksheet
+completion, exclusion of unselected text from the diary, reopening entries after offline reload,
+and export to the doctor. A real local connected diary also queued an explicit help request offline
+and delivered the urgent mark to the doctor after reconnecting.
+Physical-phone testing, diary adherence, richer conversational inference, clinician mode selection
+and closed-PWA companion notifications remain follow-up work. See
+[companion design](architecture/SIGNUM_DIARY_COMPANION.md).
 
 ## Bottom bar states, reader scroll FPS, drug comparison & landscape cutout fixes — 2026-11-24
 

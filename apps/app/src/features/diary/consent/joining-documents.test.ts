@@ -32,6 +32,20 @@ function accepted(at = '2026-11-04T08:00:00.000Z') {
 }
 
 describe('the joining documents', () => {
+  it('states the companion’s scope in the revised monitoring consent', () => {
+    const documents = joiningDocuments(true);
+    const monitoring = documents.find((document) => document.id === 'monitoring');
+    expect(monitoring?.version).toBe('template-2026-11-25');
+    expect(JSON.stringify(monitoring?.sections)).toContain(
+      'не является медицинским изделием и не заменяет врача',
+    );
+    expect(
+      documents
+        .filter((document) => document.id !== 'monitoring')
+        .every((document) => document.version === 'template-2026-11-04'),
+    ).toBe(true);
+  });
+
   it('are the informed consent, the personal-data consent and the contract, each with a summary', () => {
     for (const connected of [true, false]) {
       const documents = joiningDocuments(connected);

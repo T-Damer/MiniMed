@@ -70,6 +70,14 @@ test('the doctor picks what the combined chart shows, per patient, and its perio
   const rows = page.locator('.diary-dash-row');
   await expect(rows).toHaveCount(4, { timeout: 120_000 });
   await rows.filter({ hasText: 'Лиса' }).locator('.diary-dash-row__open').click();
+  const monitoring = page.getByRole('button', { name: 'Мониторинг', exact: true });
+  const overflow = page.getByRole('button', { name: 'Ещё', exact: true });
+  await expect(monitoring.or(overflow).first()).toBeVisible();
+  if (await monitoring.isVisible()) await monitoring.click();
+  else {
+    await overflow.click();
+    await page.getByRole('menuitem', { name: 'Мониторинг', exact: true }).click();
+  }
   await page.getByRole('button', { name: 'Все графики на весь экран' }).click();
   await expect(page).toHaveURL(/\/charts$/u);
   const chart = page.locator('.diary-chart--combined');

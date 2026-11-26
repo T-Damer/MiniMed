@@ -155,7 +155,9 @@ for (const width of [390, 1024]) {
         note: 'Утром и вечером, сидя, после 5 минут отдыха',
       });
       await page.goto(await testInvitationLink(pressure));
-      await expect(page.locator('.diary-notice')).toBeVisible();
+      await expect(
+        page.getByRole('button', { name: 'Записать показания', exact: true }),
+      ).toBeVisible();
       await check(page, '1-home-new', tag);
 
       await page.getByRole('button', { name: 'Записать показания', exact: true }).click();
@@ -225,19 +227,28 @@ for (const width of [390, 1024]) {
         contacts: [{ kind: 'phone', value: '+7 900 000-00-00', label: 'Регистратура' }],
       });
       await page.goto(await testInvitationLink(care));
-      const tabs = page.getByRole('navigation', { name: 'Дневник' });
-      await expect(tabs).toBeVisible();
-      await check(page, 'h-care-today', tag, undefined, false);
-      await tabs.getByRole('button', { name: 'Записи', exact: true }).click();
-      await expect(
-        page.getByRole('heading', { level: 1, name: 'Записи', exact: true }),
-      ).toBeVisible();
+      const panel = (name: string) => page.getByRole('dialog', { name, exact: true });
+      await check(page, 'h-care-chat', tag, undefined, false);
+      await page.getByRole('button', { name: 'План', exact: true }).click();
+      await expect(panel('План')).toBeVisible();
+      await check(page, 'h-care-plan', tag, undefined, false);
+      await panel('План').getByRole('button', { name: 'Закрыть', exact: true }).click();
+      await page.getByRole('button', { name: 'Настройки', exact: true }).click();
+      await panel('Настройки')
+        .getByRole('button', { name: /^Записи/u })
+        .click();
+      await expect(panel('Записи')).toBeVisible();
       await check(page, 'i-care-records', tag, undefined, false);
-      await tabs.getByRole('button', { name: 'Врачу', exact: true }).click();
-      await expect(page.getByRole('heading', { level: 1, name: 'Отправить врачу' })).toBeVisible();
+      await panel('Записи').getByRole('button', { name: 'Настройки', exact: true }).click();
+      await panel('Настройки')
+        .getByRole('button', { name: /^Отправить врачу/u })
+        .click();
+      await expect(panel('Отправить врачу')).toBeVisible();
       await check(page, 'j-care-send', tag, undefined, false);
-      await tabs.getByRole('button', { name: 'Настройки', exact: true }).click();
-      await expect(page.getByRole('heading', { level: 1, name: 'Настройки' })).toBeVisible();
+      await panel('Отправить врачу')
+        .getByRole('button', { name: 'Настройки', exact: true })
+        .click();
+      await expect(panel('Настройки')).toBeVisible();
       await check(page, 'k-care-settings', tag, undefined, false);
     });
 

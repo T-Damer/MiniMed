@@ -192,7 +192,7 @@ body:has(.diary-care-scope) {
 
 /* «Приём не отмечен — что случилось?» (DIARY22): a warm notice, one row per missed intake. */
 .diary-today__missed {
-  background: color-mix(in srgb, var(--care-late) 13%, var(--theme-surface-raised));
+  min-width: 0;
 }
 
 .diary-today__missed-list {
@@ -205,7 +205,23 @@ body:has(.diary-care-scope) {
 
 .diary-today__missed-row {
   display: grid;
-  gap: 0.4rem;
+  gap: 0.55rem;
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--care-late) 45%, var(--theme-border));
+  border-radius: 1rem 1rem 1rem 0.35rem;
+  background: var(--theme-surface-raised);
+}
+
+.diary-today__missed-status {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.diary-today__missed-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--care-late);
 }
 
 .diary-today__missed-name {
@@ -227,12 +243,12 @@ body:has(.diary-care-scope) {
 }
 
 .diary-today__missed-answer {
-  min-height: 2.5rem;
-  padding: 0.4rem 0.95rem;
-  border: 1px solid var(--theme-border);
-  border-radius: 999px;
-  color: var(--theme-text);
-  background: var(--theme-surface-raised);
+  min-height: 2.75rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--theme-accent);
+  border-radius: 0.65rem;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
   font: inherit;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -247,7 +263,8 @@ body:has(.diary-care-scope) {
 }
 
 .diary-today__missed-answer--skip {
-  border-color: color-mix(in srgb, var(--care-late) 45%, var(--theme-border));
+  color: var(--theme-accent-text);
+  background: color-mix(in srgb, var(--theme-accent) 12%, var(--theme-surface-raised));
 }
 
 .diary-today__notice-close {
@@ -347,21 +364,58 @@ body:has(.diary-care-scope) {
   background: var(--theme-surface-muted);
 }
 
+.care-row.care-row--message {
+  display: grid;
+  gap: 0;
+  border-radius: 1rem 1rem 1rem 0.35rem;
+}
+
+.care-row__message-status {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.75rem;
+  padding-inline-end: 0.75rem;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+}
+
+.care-row__message-state {
+  color: var(--care-late);
+  font-weight: 650;
+}
+
 /*
  * The tick (owner 2026-11-04: the boxed column looked off): one rounded square on the row's own
  * surface, no divider; a tick fills only the square.
  */
+.diary-today__checklist-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.diary-today__checklist-title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
 .care-row__check {
   display: grid;
   flex: none;
   place-items: center;
   width: 3rem;
-  padding: 0 0 0 0.45rem;
+  padding: 0;
   border: 0;
   color: var(--theme-accent-text);
   background: transparent;
   cursor: pointer;
   transition: transform var(--care-fast) var(--care-ease);
+}
+
+.care-row__check--message {
+  min-height: 2.75rem;
 }
 
 .care-row__check-icon {
@@ -374,7 +428,7 @@ body:has(.diary-care-scope) {
   box-sizing: border-box;
   width: 1.625rem;
   height: 1.625rem;
-  padding: 0.22rem;
+  padding: 0.27rem;
   border-radius: 0.5rem;
 }
 
@@ -400,7 +454,7 @@ body:has(.diary-care-scope) {
   box-sizing: border-box;
   width: 1.625rem;
   height: 1.625rem;
-  border: 2px solid color-mix(in srgb, var(--theme-accent-text) 55%, var(--theme-border));
+  border: 2.5px solid color-mix(in srgb, var(--theme-accent-text) 68%, var(--theme-border));
   border-radius: 0.5rem;
   background: var(--theme-surface);
   transition:
@@ -493,6 +547,11 @@ body:has(.diary-care-scope) {
   cursor: pointer;
 }
 
+.care-row__main.care-row__main--message {
+  min-height: 2.75rem;
+  padding: 0 0.75rem 0.6rem;
+}
+
 .care-row__line {
   display: flex;
   /* Time, icon and title on one middle line (owner 2026-11-10: baseline left the icon lower). */
@@ -517,6 +576,12 @@ body:has(.diary-care-scope) {
   color: var(--theme-accent-text);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+.care-row__time--corner {
+  align-self: flex-start;
+  margin-block-start: 0.55rem;
+  margin-inline-start: auto;
 }
 
 .care-row__title {
@@ -1493,8 +1558,8 @@ body:has(.diary-care-scope) {
 }
 
 .diary-voice__button--small {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: var(--diary-voice-compact-size, 2.5rem);
+  height: var(--diary-voice-compact-size, 2.5rem);
 }
 
 .diary-voice--compact {
@@ -1561,7 +1626,6 @@ body:has(.diary-care-scope) {
     transform var(--care-fast) var(--care-ease);
 }
 
-.diary-today__day-pick:hover,
 .diary-today__day-pick[aria-expanded="true"] {
   background: var(--theme-accent-soft);
 }
@@ -1660,6 +1724,15 @@ body:has(.diary-care-scope) {
 
 /* Hover (owner 2026-11-08), only where a pointer can hover. */
 @media (hover: hover) and (pointer: fine) {
+  .diary-today__day-pick:hover {
+    background: var(--theme-accent-soft);
+  }
+
+  .diary-voice__button:hover:not(:disabled, .diary-voice__button--recording),
+  .diary-grow__input:hover {
+    border-color: var(--theme-accent);
+  }
+
   .diary-today__step:hover:not(:disabled) {
     background: color-mix(in srgb, var(--theme-accent) 14%, var(--theme-surface-muted));
   }
@@ -1674,4 +1747,37 @@ body:has(.diary-care-scope) {
     border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border));
     background: var(--theme-hover-surface);
   }
+}
+
+/* A field's dictation action sits above its input, with room for recording status and errors. */
+.diary-voice__row--wide {
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.diary-voice__button--wide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 3rem;
+  height: auto;
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--theme-radius-control, 0.6rem);
+  box-shadow: none;
+}
+
+.diary-voice__button-label {
+  font: inherit;
+  font-weight: 600;
+}
+
+.diary-voice__halo--wide {
+  border-radius: var(--theme-radius-control, 0.6rem);
+}
+
+.diary-crisis__request-status {
+  margin: 0;
+  color: var(--theme-text-muted);
 }

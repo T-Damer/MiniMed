@@ -56,6 +56,7 @@ describe('built-in CBT worksheets', () => {
     for (const worksheet of builtIns) {
       for (const field of worksheet.fields) {
         expect(field.patientHint, `${worksheet.id}/${field.id}`).not.toBe('');
+        expect(field.patientPrompt, `${worksheet.id}/${field.id}`).toBeTruthy();
       }
     }
   });

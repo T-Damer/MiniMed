@@ -16,7 +16,10 @@ import {
   newCareAssignment,
   starterCareDraft,
 } from '@/features/diary/diary-care-draft';
+import { decodeDiaryResultsText, encodeDiaryResultsText } from '@/features/diary/diary-codec';
+import { entryFingerprint } from '@/features/diary/diary-merge';
 import {
+  DIARY_FORMAT_VERSION,
   DiaryFormatError,
   type DiaryInvitation,
   parseDiaryEntry,
@@ -157,6 +160,35 @@ describe('CBT assignments in the diary plan', () => {
         sheet: { gone: 'старая колонка' },
       }).sheet,
     ).toEqual({ gone: 'старая колонка' });
+  });
+
+  it('carries worksheet and note text with dictated-text provenance in the file for the doctor', async () => {
+    const invitation = withAssignments(starterCareDraft(), [thoughts]);
+    const at = new Date().toISOString().slice(0, 16) + ':00.000Z';
+    const entries = [
+      parseDiaryEntry(invitation, {
+        id: 'entry000011',
+        at,
+        values: {},
+        assignment: 'w1',
+        sheet: { situation: 'Прогулка', intensity: 40 },
+        spoken: [{ target: 'situation', seconds: 12, engine: 'whisper-base', edited: true }],
+      }),
+      parseDiaryEntry(invitation, {
+        id: 'entry000012',
+        at,
+        values: { state: 'Сегодня гуляла' },
+        spoken: [{ target: '#state', seconds: 5, engine: 'whisper-base' }],
+      }),
+    ];
+    const encoded = await encodeDiaryResultsText({ v: DIARY_FORMAT_VERSION, invitation, entries });
+    const decoded = await decodeDiaryResultsText(encoded);
+    expect(decoded.entries).toEqual(entries);
+    const worksheet = entries[0];
+    if (!worksheet) throw new Error('Missing worksheet');
+    expect(entryFingerprint(worksheet)).not.toBe(
+      entryFingerprint({ ...worksheet, sheet: { situation: 'Другая прогулка', intensity: 40 } }),
+    );
   });
 
   it('carries which texts were spoken and reserves a place for a later voice insight', () => {

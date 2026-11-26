@@ -31,6 +31,7 @@ const app = createApp(store, {
   corsOrigins: settings.corsOrigins,
   ...(settings.tickToken ? { tickToken: settings.tickToken } : {}),
   adminEmails: settings.adminEmails,
+  mediaIce: settings.mediaIce,
 });
 
 const server = Bun.serve({

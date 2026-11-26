@@ -137,10 +137,14 @@ export function mergeResults(
 
 /** Cheap stable fingerprint of what the doctor would see for an entry. */
 export function entryFingerprint(entry: DiaryEntry): string {
-  const text = JSON.stringify(
+  const fields =
     entry.check || entry.answers
       ? [entry.at, entry.values, entry.note ?? '', entry.check ?? '', entry.answers ?? {}]
-      : [entry.at, entry.values, entry.note ?? ''],
+      : [entry.at, entry.values, entry.note ?? ''];
+  const text = JSON.stringify(
+    entry.assignment || entry.sheet || entry.spoken
+      ? [...fields, entry.assignment ?? '', entry.sheet ?? {}, entry.spoken ?? []]
+      : fields,
   );
   let hash = 5381;
   for (let index = 0; index < text.length; index += 1) {

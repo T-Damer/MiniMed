@@ -53,6 +53,26 @@ describe('patient birth date', () => {
 });
 
 describe('connected diary replica', () => {
+  it('keeps valid clinician-authored profile measurements', () => {
+    const revision = (payload: object) => ({
+      id: 'profile',
+      rev: 1,
+      author: 'd:doctor0000001',
+      at: 't',
+      payload: { kind: 'profile', label: 'Пациент', ...payload },
+    });
+    expect(
+      applyRevisions(EMPTY_REPLICA, [
+        revision({ biologicalSex: 'female', heightCm: 165, weightKg: 63.5 }),
+      ]).profile,
+    ).toEqual({ label: 'Пациент', biologicalSex: 'female', heightCm: 165, weightKg: 63.5 });
+    expect(
+      applyRevisions(EMPTY_REPLICA, [
+        revision({ biologicalSex: 'bad', heightCm: '165', weightKg: -2 }),
+      ]).profile,
+    ).toEqual({ label: 'Пациент' });
+  });
+
   it('builds the diary from the latest revision of each record', () => {
     const replica = applyRevisions(EMPTY_REPLICA, [
       {

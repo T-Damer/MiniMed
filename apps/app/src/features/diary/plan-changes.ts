@@ -18,6 +18,13 @@ export interface DiaryPlanChange {
   /** When the newest change arrived (ISO). */
   readonly at: string;
   readonly lines: readonly string[];
+  readonly prescriptions?: readonly PrescriptionChange[];
+}
+
+export interface PrescriptionChange {
+  readonly label: string;
+  readonly before?: string;
+  readonly after?: string;
 }
 
 function shortDay(day: string): string {
@@ -57,6 +64,46 @@ function courseText(item: DiaryPlanItem): string {
         : `${shortDay(range.from)}–${shortDay(range.to)}`,
     )
     .join(', ');
+}
+
+function prescriptionDetails(item: DiaryPlanItem): string {
+  return [
+    item.name,
+    item.dose,
+    item.form,
+    intakeText(item),
+    item.course?.length ? `Курс: ${courseText(item)}` : undefined,
+    item.signa,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+}
+
+/** Snapshots from the two clinician-authored revisions, grouped by stable item identity. */
+export function prescriptionChanges(
+  before: DiaryInvitation,
+  after: DiaryInvitation,
+): PrescriptionChange[] {
+  const old = new Map(
+    (before.plan ?? []).filter((item) => !item.ended).map((item) => [item.id, item]),
+  );
+  const next = new Map(
+    (after.plan ?? []).filter((item) => !item.ended).map((item) => [item.id, item]),
+  );
+  const changes: PrescriptionChange[] = [];
+  for (const id of new Set([...old.keys(), ...next.keys()])) {
+    const previous = old.get(id);
+    const current = next.get(id);
+    const was = previous && prescriptionDetails(previous);
+    const now = current && prescriptionDetails(current);
+    if (was === now) continue;
+    changes.push({
+      label: current ? current.name : (previous?.name ?? ''),
+      ...(was ? { before: was } : {}),
+      ...(now ? { after: now } : {}),
+    });
+  }
+  return changes;
 }
 
 function itemChanges(before: DiaryPlanItem, after: DiaryPlanItem): string[] {

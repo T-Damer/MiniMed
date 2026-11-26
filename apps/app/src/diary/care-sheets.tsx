@@ -371,7 +371,7 @@ export function ScoreSheet(props: {
   return (
     <DiarySheet
       title={props.checkpoint.label}
-      subtitle="0 — очень плохо, 10 — отлично"
+      subtitle="Выберите оценку: 0 — очень плохо, 10 — отлично"
       onClose={props.onClose}
       footer={
         <SheetFooter
@@ -392,9 +392,9 @@ export function ScoreSheet(props: {
       />
       <TimeField value={time()} onInput={setTime} />
       <GrowingText
-        label="Комментарий"
+        label="Что повлияло на ваше самочувствие?"
         value={note()}
-        placeholder="Опишите, что повлияло на самочувствие"
+        placeholder="Расскажите своими словами"
         onInput={setNote}
       />
     </DiarySheet>
@@ -644,18 +644,19 @@ export function NoteSheet(props: {
       }
     >
       <TimeField value={time()} onInput={setTime} />
-      <GrowingText
-        label="Что вы чувствуете"
-        value={text()}
-        placeholder="Настроение, сон, тревога, побочные эффекты — своими словами"
-        autofocus={!props.entry}
-        onInput={setText}
-      />
       <VoiceNote
+        wide
         onText={(said, origin) => {
           spoken.add('#state', said, origin);
           setText(text().trim() ? `${text().trim()}\n${said}` : said);
         }}
+      />
+      <GrowingText
+        label="Как вы себя чувствуете сейчас?"
+        value={text()}
+        placeholder="Настроение, сон, тревога, побочные эффекты — своими словами"
+        autofocus={!props.entry}
+        onInput={setText}
       />
       <LocalVoiceClips spoken={props.entry?.spoken} />
       <Show when={voice()}>

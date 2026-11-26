@@ -163,10 +163,13 @@ export async function readInvitationText(
 // --- Results as QR parts ---------------------------------------------------------------------
 
 type WireValue = number | string | null | readonly (number | string)[];
-/** Checkpoint and questionnaire answers of a care diary entry. */
+/** Care marks, worksheet cells and dictated-text provenance. Voice recordings stay local. */
 interface WireExtra {
   readonly c?: string;
-  readonly a?: Readonly<Record<string, number>>;
+  readonly a?: DiaryEntry['answers'];
+  readonly w?: DiaryEntry['assignment'];
+  readonly s?: DiaryEntry['sheet'];
+  readonly p?: DiaryEntry['spoken'];
 }
 type WireEntry = readonly [string, number, readonly WireValue[], string?, WireExtra?];
 
@@ -240,10 +243,13 @@ function entryToWire(invitation: DiaryInvitation, entry: DiaryEntry): WireEntry 
   const values = invitation.fields.map((field) =>
     valueToWire(invitation, field, entry.values[field.id]),
   );
-  if (entry.check || entry.answers) {
+  if (entry.check || entry.answers || entry.assignment || entry.sheet || entry.spoken) {
     const extra: WireExtra = {
       ...(entry.check ? { c: entry.check } : {}),
       ...(entry.answers ? { a: entry.answers } : {}),
+      ...(entry.assignment ? { w: entry.assignment } : {}),
+      ...(entry.sheet ? { s: entry.sheet } : {}),
+      ...(entry.spoken ? { p: entry.spoken } : {}),
     };
     return [entry.id, minutes(entry.at), values, entry.note ?? '', extra];
   }
@@ -258,8 +264,13 @@ function entryFromWire(invitation: DiaryInvitation, wire: unknown): unknown {
   }
   const [id, at, values, rawNote, extra] = wire as [unknown, unknown, unknown[], unknown, unknown];
   const note = rawNote === '' ? undefined : rawNote;
-  const { c: check, a: answers } =
-    typeof extra === 'object' && extra !== null ? (extra as Record<string, unknown>) : {};
+  const {
+    c: check,
+    a: answers,
+    w: assignment,
+    s: sheet,
+    p: spoken,
+  } = typeof extra === 'object' && extra !== null ? (extra as Record<string, unknown>) : {};
   if (values.length !== invitation.fields.length) {
     throw new DiaryFormatError('Повреждённая запись дневника.');
   }
@@ -275,6 +286,9 @@ function entryFromWire(invitation: DiaryInvitation, wire: unknown): unknown {
     ...(note === undefined ? {} : { note }),
     ...(check === undefined ? {} : { check }),
     ...(answers === undefined ? {} : { answers }),
+    ...(assignment === undefined ? {} : { assignment }),
+    ...(sheet === undefined ? {} : { sheet }),
+    ...(spoken === undefined ? {} : { spoken }),
   };
 }
 

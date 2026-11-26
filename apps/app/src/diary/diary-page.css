@@ -30,7 +30,7 @@
   display: flex;
   flex-direction: column;
   max-width: 40rem;
-  min-height: 100dvh;
+  min-height: var(--diary-route-min-height, 100dvh);
   margin: 0 auto;
   /* As the main app's page area: a hero title resting a size larger never scrolls the page
      sideways (clip, unlike hidden, keeps the sticky header working). */
@@ -156,9 +156,15 @@
   font-weight: 700;
 }
 
-.diary-screen {
-  display: grid;
+.page.diary-screen {
+  display: var(--diary-route-heading-display, grid);
   gap: 0.35rem;
+}
+
+.diary-sheet__body.signum-route-modal__body {
+  --diary-route-min-height: 0px;
+  --diary-route-heading-display: none;
+  padding-inline: 0;
 }
 
 .diary-screen__back {

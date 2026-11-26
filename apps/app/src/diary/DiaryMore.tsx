@@ -117,20 +117,22 @@ export function StateRow(props: {
 }
 
 /** How the diary works, behind the header «?»: connected diaries send by themselves. */
-function DiaryHelp(props: { readonly connected: boolean }): JSX.Element {
+export function DiaryHelp(props: { readonly connected: boolean }): JSX.Element {
   return (
     <Show
       when={props.connected}
       fallback={
         <ol class="diary-settings__help-steps">
           <li class="diary-settings__help-step">
-            «Сегодня»: отмечайте приём лекарств и самочувствие. Время записи ставится само.
+            «Назначения» → «Сегодня»: отмечайте приём лекарств и самочувствие. Время записи ставится
+            само.
           </li>
           <li class="diary-settings__help-step">
-            «Записи»: всё, что вы отметили. Ошибку можно исправить или удалить.
+            «Настройки» → «Записи»: всё, что вы отметили. Ошибку можно исправить или удалить.
           </li>
           <li class="diary-settings__help-step">
-            «Врачу»: перед визитом отправьте записи. Дневник запомнит, что уже у врача.
+            «Настройки» → «Отправить врачу»: перед визитом отправьте записи. Дневник запомнит, что
+            уже у врача.
           </li>
           <li class="diary-settings__help-step">
             Записи хранятся только в этом браузере: не очищайте данные сайта до визита.
@@ -140,14 +142,15 @@ function DiaryHelp(props: { readonly connected: boolean }): JSX.Element {
     >
       <ol class="diary-settings__help-steps">
         <li class="diary-settings__help-step">
-          «Сегодня»: отмечайте приём лекарств и самочувствие. Время записи ставится само.
+          «Назначения» → «Сегодня»: отмечайте приём лекарств и самочувствие. Время записи ставится
+          само.
         </li>
         <li class="diary-settings__help-step">
           Отметки уходят врачу сами, зашифрованными, когда есть интернет. Без сети дневник работает
           и отправит всё позже.
         </li>
         <li class="diary-settings__help-step">
-          «Записи»: всё, что вы отметили. Ошибку можно исправить или удалить.
+          «Настройки» → «Записи»: всё, что вы отметили. Ошибку можно исправить или удалить.
         </li>
       </ol>
     </Show>
@@ -162,6 +165,8 @@ function DiaryHelp(props: { readonly connected: boolean }): JSX.Element {
 export function DiaryMore(props: {
   readonly store: DiaryStore;
   readonly entries: number;
+  readonly onRecords?: (() => void) | undefined;
+  readonly onSend?: (() => void) | undefined;
   /** Opened from the tab bar: no back arrow. */
   readonly onBack?: (() => void) | undefined;
   readonly onPrint: () => void;
@@ -219,6 +224,33 @@ export function DiaryMore(props: {
       />
       <InstallWarning store={props.store} entries={props.entries} />
 
+      <Show when={props.onRecords || props.onSend}>
+        <section class="diary-settings__section" aria-label="Записи">
+          <ul class="settings-list__group">
+            <Show when={props.onRecords}>
+              {(open) => (
+                <ActionRow
+                  icon="list-checks"
+                  tone="green"
+                  title="Записи"
+                  onClick={() => open()()}
+                />
+              )}
+            </Show>
+            <Show when={props.onSend}>
+              {(open) => (
+                <ActionRow
+                  icon="share"
+                  tone="blue"
+                  title="Отправить врачу"
+                  divided={Boolean(props.onRecords)}
+                  onClick={() => open()()}
+                />
+              )}
+            </Show>
+          </ul>
+        </section>
+      </Show>
       <section class="diary-settings__section" aria-label="Лечение">
         <ul class="settings-list__group">
           <ActionRow

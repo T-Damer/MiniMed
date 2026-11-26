@@ -1,4 +1,4 @@
-import { type Accessor, For, type JSX, onCleanup } from 'solid-js';
+import { type Accessor, For, type JSX, onCleanup, Show } from 'solid-js';
 
 import { watchNavCrowding } from '@/app/nav-crowding';
 import type { NavItem } from '@/app/root-view';
@@ -13,6 +13,7 @@ export function BottomNav<V extends string>(props: {
   readonly view: Accessor<V>;
   readonly items: Accessor<readonly NavItem<V>[]>;
   readonly label: string;
+  readonly showLabels?: boolean;
   /** The tab's accessible name when it says more than the label (a count, an update). */
   readonly itemLabel?: (item: NavItem<V>) => string;
   /** Badges drawn on a tab. */
@@ -43,6 +44,7 @@ export function BottomNav<V extends string>(props: {
         'app-bottom-nav--dragging': props.dragging(),
         'app-bottom-nav--pressed': props.pressed(),
         'app-bottom-nav--toolbar': props.tour === 'nav',
+        'app-bottom-nav--labelled': props.showLabels,
       }}
       aria-label={props.label}
       onPointerDown={props.onPointerDown}
@@ -62,7 +64,10 @@ export function BottomNav<V extends string>(props: {
               <button
                 class="app-nav-button"
                 data-tour={props.tour ? `${props.tour}-${item.id}` : undefined}
-                classList={{ 'app-nav-button--active': selected() }}
+                classList={{
+                  'app-nav-button--active': selected(),
+                  'app-nav-button--labelled': props.showLabels,
+                }}
                 type="button"
                 aria-label={label()}
                 aria-current={props.view() === item.id ? 'page' : undefined}
@@ -76,6 +81,9 @@ export function BottomNav<V extends string>(props: {
                   name={item.icon}
                   class={`app-nav-button__icon${selected() ? ' app-nav-button__icon--active' : ''}`}
                 />
+                <Show when={props.showLabels}>
+                  <span class="app-nav-button__label">{item.label}</span>
+                </Show>
                 {props.badges?.(item)}
               </button>
             </div>

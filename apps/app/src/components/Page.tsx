@@ -87,7 +87,7 @@ export function Page(props: PageProps): JSX.Element {
   useHeroScroll(
     () => headerElement,
     () => rowElement,
-    () => props.hero !== undefined,
+    () => props.hero !== undefined && props.hero.ambient !== 'clouds',
   );
   useHeroBleed(
     () => headerElement,
@@ -173,6 +173,7 @@ export function Page(props: PageProps): JSX.Element {
         'page--inline': inline(),
         'page--hero': props.hero !== undefined,
         'page--hero-trace': props.hero?.ambient === 'ecg',
+        'page--hero-clouds': props.hero?.ambient === 'clouds',
       }}
     >
       <Show when={props.hero}>{(hero) => <PageHeroBand hero={hero()} />}</Show>
@@ -271,6 +272,7 @@ export function Page(props: PageProps): JSX.Element {
             class="page__hero-room"
             classList={{
               'page__hero-room--trace': hero().ambient === 'ecg',
+              'page__hero-room--clouds': hero().ambient === 'clouds',
               'page__hero-room--filled': slot.room() !== undefined,
             }}
             aria-hidden={slot.room() === undefined ? 'true' : undefined}

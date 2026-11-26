@@ -7,9 +7,8 @@ import { expect, type Page, test } from '@playwright/test';
 
 import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
-// «Новый пациент» built from scratch (owner 2026-11-10): numbered steps on the left, empty to begin
-// with, the patient's blue read-only screen on the right (a sheet on a phone), the past treatment
-// written right after the patient is created.
+// New patients start with a basic profile and go straight to chat. The separate editor still
+// shows the patient's live preview and supports past treatment.
 
 const ROOT = resolve(import.meta.dirname, '../../..');
 let server: ChildProcess | undefined;
@@ -81,12 +80,26 @@ async function openNewPatient(page: Page, email: string): Promise<void> {
   await expect(page.getByLabel('Имя или псевдоним')).toBeVisible();
 }
 
-test('wide: six steps, empty to begin with, a blue read-only patient screen beside them', async ({
+async function createProfile(page: Page, label: string): Promise<void> {
+  await page.getByLabel('Имя или псевдоним').fill(label);
+  await page.getByRole('button', { name: 'Добавить пациента' }).click();
+  await expect(page.getByRole('log', { name: 'Сообщения и отметки' })).toBeVisible();
+}
+
+async function openEditor(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Назначения', exact: true }).click();
+  await page.getByRole('button', { name: 'Редактировать', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Редактировать', exact: true })).toBeVisible();
+}
+
+test('wide: after creation the separate editor shows all steps and the patient preview', async ({
   page,
 }, testInfo) => {
   test.setTimeout(240_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   await openNewPatient(page, 'wide@example.test');
+  await createProfile(page, 'Ёжик Колючий');
+  await openEditor(page);
 
   // Each step is a card with its own h2 and one plain line.
   for (const [index, title] of STEPS.entries()) {
@@ -142,8 +155,7 @@ test('wide: six steps, empty to begin with, a blue read-only patient screen besi
   await expect(page.locator('.form-rows .form-row')).toHaveCount(1);
   await expect(page.getByRole('dialog')).toHaveCount(0);
 
-  // Past treatment typed before the patient exists stays in the draft…
-  await page.getByLabel('Имя или псевдоним').fill('Ёжик Колючий');
+  // The existing patient editor can still add past treatment and save the plan.
   await page.getByTestId('med-history-add').click();
   const past = page.getByRole('combobox', { name: 'Препарат' });
   await past.fill('Амитриптилин');
@@ -151,15 +163,10 @@ test('wide: six steps, empty to begin with, a blue read-only patient screen besi
   await page.getByTestId('med-history-save').click();
   await expect(page.getByTestId('med-history-list')).toContainText('Амитриптилин');
   await page.screenshot({ path: testInfo.outputPath('wide-filled.png') });
-
-  // …and is written right after the patient is created: the patient page counts it.
-  await page.getByRole('button', { name: 'Добавить пациента' }).click();
-  await expect(page.getByRole('button', { name: 'Копировать ссылку' })).toBeEnabled({
-    timeout: 60_000,
-  });
-  await page.getByRole('button', { name: 'Готово' }).first().click();
-  await page.getByRole('button', { name: 'К списку' }).click();
-  await page.locator('.diary-dash-row').filter({ hasText: 'Ёжик Колючий' }).click();
+  await page.getByRole('button', { name: 'Сохранить', exact: true }).last().click();
+  await expect(page.getByRole('heading', { name: 'Назначения', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'К чату', exact: true }).click();
+  await page.getByRole('button', { name: 'Мониторинг', exact: true }).click();
   await expect(page.getByTestId('med-history-card')).toContainText('1 препарат', {
     timeout: 60_000,
   });
@@ -169,11 +176,14 @@ test('wide: a diary with no medicine and no marks can be created', async ({ page
   test.setTimeout(240_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   await openNewPatient(page, 'bare@example.test');
-  await page.getByLabel('Имя или псевдоним').fill('Пустой');
-  await page.getByRole('button', { name: 'Добавить пациента' }).click();
-  await expect(page.getByRole('button', { name: 'Копировать ссылку' })).toBeEnabled({
-    timeout: 60_000,
-  });
+  await expect(page.getByRole('combobox', { name: 'Пол', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Дата рождения')).toBeVisible();
+  await page.getByLabel('Рост, см').fill('170');
+  await page.getByLabel('Вес, кг').fill('63,5');
+  await createProfile(page, 'Пустой');
+  await expect(page.getByRole('button', { name: 'Надиктовать назначения' })).toBeVisible();
+  await page.getByRole('button', { name: 'Назначения', exact: true }).click();
+  await expect(page.getByText('Назначений пока нет.')).toBeVisible();
 });
 
 test('phone: «Как увидит пациент» opens the patient screen in a sheet', async ({
@@ -182,6 +192,8 @@ test('phone: «Как увидит пациент» opens the patient screen in 
   test.setTimeout(240_000);
   await page.setViewportSize({ width: 390, height: 844 });
   await openNewPatient(page, 'phone@example.test');
+  await createProfile(page, 'Лиса');
+  await openEditor(page);
 
   // No second column on a phone, one button instead.
   await expect(page.getByTestId('patient-view')).toHaveCount(0);
@@ -216,13 +228,15 @@ test('wide: the patient screen keeps its title below the pinned header at the en
   test.setTimeout(240_000);
   await page.setViewportSize({ width: 1440, height: 900 });
   await openNewPatient(page, 'sticky@example.test');
+  await createProfile(page, 'Лиса');
+  await openEditor(page);
   for (const kind of ['Самочувствие', 'Настроение', 'Пульс и давление', 'Вес и рост', 'Глюкоза']) {
     await page.getByRole('button', { name: kind, exact: true }).click();
     const sheet = page.getByRole('dialog');
     if (await sheet.isVisible().catch(() => false)) await page.keyboard.press('Escape');
   }
   // To the very end of the form: the sticky column meets the end of its row there.
-  await page.getByRole('button', { name: 'Добавить пациента' }).scrollIntoViewIfNeeded();
+  await page.getByRole('button', { name: 'Сохранить', exact: true }).scrollIntoViewIfNeeded();
   await page.mouse.wheel(0, 4000);
   await page.waitForTimeout(400);
   const title = page.getByTestId('patient-view').locator('.patient-view__title');

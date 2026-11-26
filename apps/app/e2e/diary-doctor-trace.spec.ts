@@ -1,4 +1,4 @@
-import { expect, type Page, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 import { testInvitation, testInvitationLink } from './diary-fixtures';
 
@@ -9,7 +9,6 @@ import { testInvitation, testInvitationLink } from './diary-fixtures';
 
 test.use({ viewport: { width: 390, height: 844 } });
 
-const TABS = (page: Page) => page.getByRole('navigation', { name: 'Дневник' });
 const ID = 'doctortrace01';
 
 function careInvitation(dose: string, issuedAt: string) {
@@ -26,6 +25,7 @@ test('a mark keeps its dose, a deleted mark and a plan change stay visible', asy
 }, testInfo) => {
   const issued = new Date(Date.now() - 7_200_000).toISOString();
   await page.goto(await testInvitationLink(careInvitation('5 мг', issued)));
+  await page.getByRole('button', { name: 'План', exact: true }).click();
   const rows = page.locator('.care-row').filter({ hasText: 'Эналаприл' });
   await rows
     .first()
@@ -37,6 +37,7 @@ test('a mark keeps its dose, a deleted mark and a plan change stay visible', asy
   await page.goto(
     await testInvitationLink(careInvitation('10 мг', new Date(Date.now() - 60_000).toISOString())),
   );
+  await page.getByRole('button', { name: 'План', exact: true }).click();
   await expect(rows.first()).toContainText('Эналаприл 5 мг');
   await expect(rows.nth(1)).toContainText('Эналаприл 10 мг');
 
@@ -63,18 +64,22 @@ test('a mark keeps its dose, a deleted mark and a plan change stay visible', asy
     );
   }, ID);
   await page.reload();
-
-  const change = page.getByRole('region', { name: 'Врач изменил план' });
-  await expect(change).toContainText('Эналаприл: 5 мг → 10 мг');
+  const change = page.getByRole('region', { name: 'Врач изменил назначение' });
+  await expect(change.locator('.companion-chat__plan-before')).toContainText('Эналаприл');
+  await expect(change.locator('.companion-chat__plan-after')).toContainText('10 мг');
+  await page.getByRole('button', { name: 'План', exact: true }).click();
   await expect(rows.nth(1)).toContainText('Отметку удалил врач');
   await page.screenshot({ path: testInfo.outputPath('today-trace.png') });
-
-  await change.getByRole('button', { name: 'Понятно' }).click();
-  await expect(change).toHaveCount(0);
-  await page.reload();
-  await expect(page.getByRole('region', { name: 'Врач изменил план' })).toHaveCount(0);
-
-  await TABS(page).getByRole('button', { name: 'Записи', exact: true }).click();
+  await page
+    .getByRole('dialog', { name: 'План', exact: true })
+    .getByRole('button', { name: 'Закрыть', exact: true })
+    .click();
+  await expect(page.getByRole('dialog', { name: 'План', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Настройки', exact: true }).click();
+  await page
+    .locator('.diary-settings__section')
+    .getByRole('button', { name: /^Записи/u })
+    .click();
   const records = page.locator('.diary-record');
   await expect(records).toHaveCount(2);
   await expect(records.filter({ hasText: 'Удалено врачом' })).toContainText(

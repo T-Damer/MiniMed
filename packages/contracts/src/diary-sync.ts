@@ -119,6 +119,35 @@ export const DiaryEnvelopeSchema = z.object({
 });
 export type DiaryEnvelope = z.infer<typeof DiaryEnvelopeSchema>;
 
+export const DIARY_MEDIA_WINDOW_MS = 5 * 60_000;
+export const DIARY_CHAT_RECORD = /^chat-[a-z0-9]{20}$/u;
+export const DIARY_CHAT_TEXT_LIMIT = 4000;
+export const DiaryChatTextSchema = z
+  .object({
+    kind: z.literal('chat'),
+    text: z.string().trim().min(1).max(DIARY_CHAT_TEXT_LIMIT),
+  })
+  .strict();
+export const DIARY_MEDIA_RECORD = /^media-(offer|answer|cancel)-([a-z0-9]{20})$/u;
+export const DiaryMediaSignalSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('offer'), sdp: z.string().min(1).max(12_000) }).strict(),
+  z.object({ kind: z.literal('answer'), sdp: z.string().min(1).max(12_000) }).strict(),
+  z.object({ kind: z.literal('cancel') }).strict(),
+]);
+export type DiaryMediaSignal = z.infer<typeof DiaryMediaSignalSchema>;
+
+export const DiaryMediaIceSchema = z.object({
+  iceServers: z
+    .array(
+      z.object({
+        urls: z.string().regex(/^(?:stuns?|turns?):[^\s]+$/u),
+        username: z.string().optional(),
+        credential: z.string().optional(),
+      }),
+    )
+    .max(4),
+});
+
 export const DiaryStoredEnvelopeSchema = DiaryEnvelopeSchema.extend({
   seq: z.number().int().min(1),
   at: z.string(),
@@ -236,6 +265,7 @@ export type DiaryRecordsNotice = z.infer<typeof DiaryRecordsNoticeSchema>;
 export const DiaryRecordsPushSchema = z.object({
   records: z.array(DiaryEnvelopeSchema).min(1).max(200),
   notice: DiaryRecordsNoticeSchema.optional(),
+  mediaOfferSeq: z.number().int().positive().optional(),
 });
 export const DiaryRecordsPushResponseSchema = z.object({ seqs: z.array(z.number().int()) });
 export const DiaryRecordsPageSchema = z.object({

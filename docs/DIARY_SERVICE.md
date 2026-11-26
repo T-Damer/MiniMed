@@ -52,6 +52,47 @@ and `apps/app/src/features/diary`.
 
 The decoy-salt secret and the VAPID key pair are generated on first start and kept in the database.
 
+## Live photo and video transfer
+
+An owner or editor of an active diary opens the patient's «Ещё» → «Запросить файлы».
+The signed offer is valid for five minutes. Only the patient's paired device can answer, and
+only after the patient selects files, checks the on-device previews and presses «Отправить врачу».
+Both sides keep the conversation open during transfer. The received previews live in the doctor's
+chat in memory and are removed when the patient page closes or a new request replaces the last one.
+
+Connected patient pages start in a conversation with text, diary marks and submitted reports.
+The «Мониторинг» screen holds the calendar and charts. Doctor-to-patient text uses append-only signed
+encrypted records and the same live updates as the diary. The patient explicitly opens the separate
+«Написать врачу» composer, so assistant drafts are never included. The app keeps the latest 200
+text messages per diary locally, under the same local retention as the rest of the diary. Carer
+devices cannot read or write conversation records through the service.
+
+Files travel over a reliable [WebRTC data channel](https://www.rfc-editor.org/rfc/rfc8831.html).
+The API receives signed and encrypted signaling records through the ordinary diary sync. These
+limited-size ciphertexts can remain in the existing record log and its backups after expiry.
+The API carries neither media bytes nor filenames, thumbnails, or BlurHash. The peer can send up
+to eight files, 32 MiB per file and 48 MiB total. The companion does not read the files.
+
+The browsers try available direct routes and can use [TURN](https://www.rfc-editor.org/rfc/rfc8656.html)
+on the clinic's or project's infrastructure when a direct route fails. TURN forwards DTLS packets
+and has no access to file contents. The signaling API works in both service modes. The relay
+itself needs a reachable TURN listener, which can be on the same host as the Bun service or on a
+separate host when the API is serverless. With no ICE configuration, the browsers try local/direct
+routes only. No public STUN or TURN service is selected by default.
+
+- `DIARY_MEDIA_ICE_URLS` takes up to four STUN and TURN URLs. Separate them with semicolons for
+  the Yandex deployment script. Use the project's own TURN listener, with TLS over TCP available
+  for restricted networks. The browser's ICE protocol chooses the viable route.
+- `DIARY_MEDIA_TURN_SECRET` matches the relay's shared secret in
+  [coturn's time-limited credential mode](https://github.com/coturn/coturn/blob/master/README.turnserver#turn-rest-api).
+  Only an authenticated owner, editor, or paired patient of that diary gets a 15-minute credential.
+  Apply allocation and bandwidth limits at the relay, and block relay access to private and
+  special-use addresses outside the intended peer network.
+- The Yandex deploy script reads `DIARY_MEDIA_TURN_LOCKBOX_ID` and references the `turn-shared-key`
+  entry via [Lockbox](https://yandex.cloud/en/docs/lockbox/operations/serverless/containers). Grant
+  the runtime service account access to that entry. Keep the actual shared secret in the relay's
+  secret configuration and Lockbox, or in the service's local secret environment when self-hosted.
+
 ## Doctors' privacy consent (152-ФЗ ст. 9, 18.1)
 
 The service owner is the operator of doctors' own data (e-mail, name, password hash, sign-in times, push

@@ -116,7 +116,9 @@ test('a tab round trip shows the list at once: no skeleton, no new read of the p
 
   // A patient, back, another tab and back again: still the same list, still no skeleton.
   await page.locator('.diary-dash-row__open').first().click();
-  await expect(page.getByTestId('diary-overview')).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole('log', { name: 'Сообщения и отметки' })).toBeVisible({
+    timeout: 30_000,
+  });
   await page.goBack();
   await expect(page.locator('.diary-dash-row')).toHaveCount(4);
   expect(

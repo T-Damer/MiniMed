@@ -124,8 +124,7 @@ test('a new patient begun is a draft card: leave, reload, continue from the card
   await page.getByLabel('Имя или псевдоним').fill('Ёжик');
   await expect(page).toHaveURL(/#\/notes\/diaries\/new\/[a-z0-9]{8,32}$/u);
   const draftUrl = page.url();
-  // The instruction is a field of the last step; the patient's screen beside it shows it at once.
-  await page.getByLabel('Инструкция пациенту').fill('Давление утром и вечером');
+  await page.getByLabel('Вес, кг').fill('66,5');
   await page.getByRole('button', { name: 'К списку' }).click();
   await expect(cards).toHaveCount(1);
   await expect(cards.first()).toContainText('Ёжик');
@@ -133,7 +132,7 @@ test('a new patient begun is a draft card: leave, reload, continue from the card
   await page.screenshot({ path: testInfo.outputPath('draft-card.png') });
 
   // The draft is on the device, sealed, and a reload finds the card again.
-  await expect.poll(() => keptDrafts(page)).toContain('Давление утром и вечером');
+  await expect.poll(() => keptDrafts(page)).toContain('66,5');
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(cards).toHaveCount(1, { timeout: 60_000 });
   await expect(create).toBeVisible();
@@ -142,7 +141,7 @@ test('a new patient begun is a draft card: leave, reload, continue from the card
   await page.getByRole('button', { name: 'Продолжить: Ёжик' }).click();
   await expect(page).toHaveURL(draftUrl);
   await expect(page.getByLabel('Имя или псевдоним')).toHaveValue('Ёжик');
-  await expect(page.getByLabel('Инструкция пациенту')).toHaveValue('Давление утром и вечером');
+  await expect(page.getByLabel('Вес, кг')).toHaveValue('66,5');
 
   // A reload on the form itself keeps it too.
   await page.getByLabel('Имя или псевдоним').fill('Ёжик Колючий');
@@ -151,14 +150,11 @@ test('a new patient begun is a draft card: leave, reload, continue from the card
   await expect(page.getByLabel('Имя или псевдоним')).toHaveValue('Ёжик Колючий', {
     timeout: 60_000,
   });
-  await expect(page.getByLabel('Инструкция пациенту')).toHaveValue('Давление утром и вечером');
+  await expect(page.getByLabel('Вес, кг')).toHaveValue('66,5');
 
   // Created: the draft is gone, the patient is in the list, and the button stays above it.
   await page.getByRole('button', { name: 'Добавить пациента' }).click();
-  await expect(page.getByRole('button', { name: 'Копировать ссылку' })).toBeEnabled({
-    timeout: 60_000,
-  });
-  await page.getByRole('button', { name: 'Готово' }).first().click();
+  await expect(page.getByRole('log', { name: 'Сообщения и отметки' })).toBeVisible();
   await page.getByRole('button', { name: 'К списку' }).click();
   await expect(page.locator('.diary-dash-row')).toHaveCount(1);
   await expect(page.locator('.diary-dash-row').first()).toContainText('Ёжик Колючий');

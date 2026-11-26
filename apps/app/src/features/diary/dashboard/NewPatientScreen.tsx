@@ -21,6 +21,10 @@ import { isDiaryBirthDate, isDiaryPhone } from '@/features/diary/connected/diary
 import type { DoctorDiaries } from '@/features/diary/connected/doctor-workspace';
 import { operatorFromProfile } from '@/features/diary/consent/joining-documents';
 import {
+  diaryIdentityDetails,
+  diaryProfileDetails,
+} from '@/features/diary/dashboard/diary-profile-details';
+import {
   discardNewPatientDraft,
   loadNewPatientDrafts,
   type NewPatientFields,
@@ -29,7 +33,6 @@ import {
   saveNewPatientDraft,
 } from '@/features/diary/dashboard/new-patient-drafts';
 import { writePastMeds } from '@/features/diary/dashboard/new-patient-history';
-import { PairingView } from '@/features/diary/dashboard/PairingView';
 import { PatientFormColumns } from '@/features/diary/dashboard/PatientFormColumns';
 import { PatientIdentity } from '@/features/diary/dashboard/PatientIdentity';
 import { type CareDraft, careInvitation, emptyCareDraft } from '@/features/diary/diary-care-draft';
@@ -45,8 +48,8 @@ export const NEW_PATIENT_ROUTE = 'new';
 
 /**
  * «Новый пациент», a screen of its own: a pseudonym, an emoji and optionally the phone (no real
- * name is needed on the server), the patient's screen built in place, then the one-time code for
- * their phone. What is typed is a draft from the first change (`new-patient-drafts.ts`): the
+ * name is needed on the server), then the chat with that patient. What is typed is a draft from
+ * the first change (`new-patient-drafts.ts`): the
  * address takes the draft's id, so a reload or the draft card in the list opens it again.
  */
 export function NewPatientScreen(props: {
@@ -63,6 +66,8 @@ export function NewPatientScreen(props: {
   const [emoji, setEmoji] = createSignal('🦊');
   const [phone, setPhone] = createSignal('');
   const [birthDate, setBirthDate] = createSignal('');
+  const [details, setDetails] = createSignal(diaryIdentityDetails());
+  const [editingPreviousPlan, setEditingPreviousPlan] = createSignal(false);
   const [draft, setDraft] = createSignal<CareDraft>(emptyCareDraft());
   const [doctor, setDoctor] = createSignal(session.doctor.name);
   const [note, setNote] = createSignal('');
@@ -70,7 +75,6 @@ export function NewPatientScreen(props: {
   const [pastMeds, setPastMeds] = createSignal<readonly PastMedication[]>([]);
   const [busy, setBusy] = createSignal(false);
   const [error, setError] = createSignal('');
-  const [created, setCreated] = createSignal<string>();
   /** The patient exists but the past treatment is not all written: «Записать» retries only that. */
   const [made, setMade] = createSignal<string>();
   const written = new Set<string>();
@@ -85,6 +89,7 @@ export function NewPatientScreen(props: {
     emoji: emoji(),
     phone: phone(),
     birthDate: birthDate(),
+    details: details(),
     screen: draft(),
     doctor: doctor(),
     note: note(),
@@ -101,6 +106,7 @@ export function NewPatientScreen(props: {
       emoji: kept?.emoji ?? '🦊',
       phone: kept?.phone ?? '',
       birthDate: kept?.birthDate ?? '',
+      details: kept?.details ?? diaryIdentityDetails(),
       screen: kept?.screen ?? emptyCareDraft(),
       doctor: kept?.doctor ?? session.doctor.name,
       note: kept?.note ?? '',
@@ -113,6 +119,15 @@ export function NewPatientScreen(props: {
       setEmoji(next.emoji);
       setPhone(next.phone);
       setBirthDate(next.birthDate);
+      setDetails(next.details ?? diaryIdentityDetails());
+      setEditingPreviousPlan(
+        Boolean(
+          kept &&
+            (kept.note.trim() ||
+              kept.pastMeds?.length ||
+              JSON.stringify(kept.screen) !== JSON.stringify(emptyCareDraft())),
+        ),
+      );
       setDraft(next.screen);
       setDoctor(next.doctor);
       setNote(next.note);
@@ -141,7 +156,7 @@ export function NewPatientScreen(props: {
   // Every change is kept; the first one turns the empty form into a draft.
   createEffect(
     on(fields, (current) => {
-      if (!untrack(ready) || untrack(created) || JSON.stringify(current) === opened) return;
+      if (!untrack(ready) || untrack(made) || JSON.stringify(current) === opened) return;
       let id = untrack(draftId);
       if (!id) {
         id = newPatientDraftId();
@@ -153,7 +168,7 @@ export function NewPatientScreen(props: {
   );
 
   const headerActions = createMemo((): readonly HeaderAction[] | undefined =>
-    draftId() && !created()
+    draftId() && !made()
       ? [
           {
             id: 'discard',
@@ -193,6 +208,11 @@ export function NewPatientScreen(props: {
   const create = async (): Promise<void> => {
     setError('');
     const existing = made();
+    const measurements = diaryProfileDetails(details());
+    if (!measurements) {
+      setError('Введите рост и вес положительными числами или очистите поле.');
+      return;
+    }
     if (!existing) {
       if (!label().trim()) {
         setError('Как называть пациента в списке? Подойдёт псевдоним.');
@@ -217,6 +237,7 @@ export function NewPatientScreen(props: {
             emoji: emoji(),
             ...(phone().trim() ? { phone: phone().trim() } : {}),
             ...(birthDate() ? { birthDate: birthDate() } : {}),
+            ...measurements,
           },
           (patientId) =>
             careInvitation({
@@ -230,15 +251,52 @@ export function NewPatientScreen(props: {
       setMade(id);
       // The records of the past treatment need the patient's id: they follow the creation.
       if (!(await savePastMeds(id))) return;
-      setCreated(id);
       const kept = draftId();
       if (kept) discardNewPatientDraft(session, kept);
+      props.onCreated(id);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Не удалось создать пациента.');
     } finally {
       setBusy(false);
     }
   };
+
+  const identity = () => (
+    <PatientIdentity
+      label={label()}
+      emoji={emoji()}
+      phone={phone()}
+      birthDate={birthDate()}
+      details={details()}
+      onLabel={setLabel}
+      onEmoji={setEmoji}
+      onPhone={setPhone}
+      onBirthDate={setBirthDate}
+      onDetails={setDetails}
+    />
+  );
+  const footer = () => (
+    <>
+      <Show when={error()}>
+        <p class="diary-dash__error diary-new__error" role="alert">
+          {error()}
+        </p>
+      </Show>
+      <Button
+        class="diary-new__submit"
+        type="button"
+        variant="primary"
+        disabled={busy()}
+        onClick={() => void create()}
+      >
+        {busy()
+          ? 'Шифруем и сохраняем…'
+          : made()
+            ? 'Записать прошлое лечение'
+            : 'Добавить пациента'}
+      </Button>
+    </>
+  );
 
   return (
     <div class="diary-new">
@@ -247,7 +305,7 @@ export function NewPatientScreen(props: {
         navigation={
           <NavBack class="knowledge-back-button" aria-label="К списку" onClick={props.onBack} />
         }
-        title={<Heading depth={1}>{created() ? 'Подключите телефон' : 'Новый пациент'}</Heading>}
+        title={<Heading depth={1}>Новый пациент</Heading>}
         headerActions={headerActions()}
       />
       <ConfirmationDialog
@@ -259,98 +317,62 @@ export function NewPatientScreen(props: {
         onConfirm={discard}
         onOpenChange={setDiscarding}
       />
-      <Show
-        when={created()}
-        fallback={
-          <Show when={ready()}>
-            <MedHistoryContext.Provider value={pastMeds}>
-              <PatientFormColumns
-                steps={
-                  <>
-                    <FormStep
-                      step="profile"
-                      number={1}
-                      title="Профиль"
-                      hint="Как пациент называется в вашем списке. Настоящее имя не нужно."
-                    >
-                      <PatientIdentity
-                        label={label()}
-                        emoji={emoji()}
-                        phone={phone()}
-                        birthDate={birthDate()}
-                        onLabel={setLabel}
-                        onEmoji={setEmoji}
-                        onPhone={setPhone}
-                        onBirthDate={setBirthDate}
-                      />
-                    </FormStep>
-                    <PatientScreenEditor
-                      draft={draft()}
-                      onChange={setDraft}
-                      doctor={doctor()}
-                      onDoctor={setDoctor}
-                      note={note()}
-                      onNote={setNote}
-                      history={{
-                        items: pastMeds(),
-                        onSave: (item) => {
-                          setPastMeds((list) => [
-                            ...list.filter((one) => one.id !== item.id),
-                            item,
-                          ]);
-                        },
-                        onDelete: (id) => {
-                          setPastMeds((list) => list.filter((one) => one.id !== id));
-                        },
-                      }}
-                    />
-                  </>
-                }
-                view={(afterStep) => (
-                  <PatientView
+      <Show when={ready()}>
+        <Show
+          when={editingPreviousPlan()}
+          fallback={
+            <div class="diary-new__profile">
+              {identity()}
+              {footer()}
+            </div>
+          }
+        >
+          <MedHistoryContext.Provider value={pastMeds}>
+            <PatientFormColumns
+              steps={
+                <>
+                  <FormStep
+                    step="profile"
+                    number={1}
+                    title="Профиль"
+                    hint="Как пациент называется в вашем списке."
+                  >
+                    {identity()}
+                  </FormStep>
+                  <PatientScreenEditor
                     draft={draft()}
+                    onChange={setDraft}
                     doctor={doctor()}
+                    onDoctor={setDoctor}
                     note={note()}
-                    onStep={(step) => {
-                      afterStep?.();
-                      requestAnimationFrame(() => focusPatientStep(step));
+                    onNote={setNote}
+                    history={{
+                      items: pastMeds(),
+                      onSave: (item) => {
+                        setPastMeds((list) => [...list.filter((one) => one.id !== item.id), item]);
+                      },
+                      onDelete: (id) => {
+                        setPastMeds((list) => list.filter((one) => one.id !== id));
+                      },
                     }}
                   />
-                )}
-                footer={
-                  <>
-                    <Show when={error()}>
-                      <p class="diary-dash__error diary-new__error" role="alert">
-                        {error()}
-                      </p>
-                    </Show>
-                    <Button
-                      class="diary-new__submit"
-                      type="button"
-                      variant="primary"
-                      disabled={busy()}
-                      onClick={() => void create()}
-                    >
-                      {busy()
-                        ? 'Шифруем и сохраняем…'
-                        : made()
-                          ? 'Записать прошлое лечение'
-                          : 'Добавить пациента'}
-                    </Button>
-                  </>
-                }
-              />
-            </MedHistoryContext.Provider>
-          </Show>
-        }
-      >
-        {(id) => (
-          <PairingView
-            workspace={props.workspace}
-            patientId={id()}
-            onDone={() => props.onCreated(id())}
-          />
-        )}
+                </>
+              }
+              view={(afterStep) => (
+                <PatientView
+                  draft={draft()}
+                  doctor={doctor()}
+                  note={note()}
+                  onStep={(step) => {
+                    afterStep?.();
+                    requestAnimationFrame(() => focusPatientStep(step));
+                  }}
+                />
+              )}
+              footer={footer()}
+            />
+          </MedHistoryContext.Provider>
+        </Show>
       </Show>
     </div>
   );

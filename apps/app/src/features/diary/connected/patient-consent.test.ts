@@ -156,6 +156,36 @@ describe('once every document is accepted', () => {
     expect(pushed[1]).toEqual([]);
   });
 
+  it('sends a newly accepted monitoring revision without changing the older accepted wording', async () => {
+    const { store, connection } = await pairedPhone();
+    const consents = joiningDocuments(true).map((document) => ({
+      document: document.id,
+      version: document.id === 'monitoring' ? 'template-2026-11-04' : document.version,
+      at: AT,
+    }));
+    store.setMeta(ID, { consentAt: AT, consents });
+    await connection.sync();
+    expect(pushed[0]?.find((item) => item.id === 'consent')?.payload).toMatchObject({
+      version: 'joining-template-2026-11-04',
+      documents: consents,
+    });
+    const nextAt = '2026-11-25T08:00:00.000Z';
+    const updated = consents.map((item) =>
+      item.document === 'monitoring'
+        ? { ...item, version: 'template-2026-11-25', at: nextAt }
+        : item,
+    );
+    store.setMeta(ID, { consentAt: nextAt, consents: updated });
+    await connection.sync();
+    expect(pushed[1]?.find((item) => item.id === 'consent')?.payload).toMatchObject({
+      at: nextAt,
+      version: JOINING_SET_VERSION,
+      documents: updated,
+    });
+    await connection.sync();
+    expect(pushed[2]).toEqual([]);
+  });
+
   it('takes the documents accepted on another phone of the same patient', async () => {
     const { store, connection } = await pairedPhone();
     const consents = joiningDocuments(true).map((document) => ({

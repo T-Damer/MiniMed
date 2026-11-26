@@ -1,6 +1,7 @@
 import { createEffect, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import type { AppGlyphName } from '@/components/AppGlyph';
+import { PageHeroSky } from '@/components/PageHeroSky';
 import '@/components/PageHero.css';
 import { PULSE_RATE, useFrameHealth } from '@/state/frame-health';
 import { motionRate } from '@/state/motion';
@@ -15,8 +16,8 @@ import { holdLightStatusBar } from '@/state/system-bars';
 export interface PageHero {
   /** The route's icon, large and faint at the band's right edge (`Page` draws it in the row). */
   readonly emblem?: AppGlyphName;
-  /** A slow ECG trace across the band, like a monitor (still when animations are off). */
-  readonly ambient?: 'ecg';
+  /** Decorative motion that settles while the page is idle. */
+  readonly ambient?: 'ecg' | 'clouds';
 }
 
 /** One heartbeat on a 120-unit period; four across a strip twice the band's width, so sliding it
@@ -151,10 +152,21 @@ export function PageHeroBand(props: {
     });
   });
   return (
-    <div ref={band} class={`page-hero${props.class ? ` ${props.class}` : ''}`} aria-hidden="true">
-      <div class="page-hero__art">
+    <div
+      ref={band}
+      class={`page-hero${props.class ? ` ${props.class}` : ''}`}
+      classList={{ 'page-hero--clouds': props.hero.ambient === 'clouds' }}
+      aria-hidden="true"
+    >
+      <div
+        class="page-hero__art"
+        classList={{ 'page-hero__art--persistent': props.hero.ambient === 'clouds' }}
+      >
         <Show when={props.hero.ambient === 'ecg'}>
           <EcgTrace />
+        </Show>
+        <Show when={props.hero.ambient === 'clouds'}>
+          <PageHeroSky />
         </Show>
       </div>
     </div>

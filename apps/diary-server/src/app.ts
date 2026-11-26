@@ -5,7 +5,12 @@
  * validated with the shared contract; every patient route checks membership or device ownership;
  * logs carry the route template, status and time only.
  */
+
+import { createHmac } from 'node:crypto';
 import {
+  DIARY_CHAT_RECORD,
+  DIARY_MEDIA_RECORD,
+  DIARY_MEDIA_WINDOW_MS,
   DIARY_ONLINE_WINDOW_MS,
   DIARY_PRESENCE_EVENT_INTERVAL_MS,
   type DiaryAlert,
@@ -89,6 +94,10 @@ export interface AppConfig {
    * (aggregates only). Absent or empty: nobody can.
    */
   readonly adminEmails?: readonly string[];
+  readonly mediaIce?: {
+    readonly urls: readonly string[];
+    readonly turnSecret?: string | undefined;
+  };
 }
 
 const SESSION_DAYS = 30;
@@ -816,14 +825,43 @@ export function createApp(
 
   // --- records ---------------------------------------------------------------------------------
 
+  route('GET', '/api/patients/:id/media-ice', async (request, url, params) => {
+    const id = params['id'] as string;
+    const who = await caller(request, url);
+    if (who.kind === 'doctor') await requireRole(who, id, ['owner', 'editor']);
+    else {
+      await canRead(who, id);
+      if (who.device !== 'patient') throw new HttpError(403, 'Передача доступна пациенту.');
+    }
+    if ((await patientRow(id)).status !== 'active') throw new HttpError(410, 'Дневник не активен.');
+    const turnSecret = config.mediaIce?.turnSecret;
+    const username = `${Math.floor(Date.parse(now()) / 1000) + 900}:${who.id}`;
+    return json({
+      iceServers: (config.mediaIce?.urls ?? []).flatMap((entry) => {
+        if (!/^turns?:/u.test(entry)) return [{ urls: entry }];
+        if (!turnSecret) return [];
+        const credential = createHmac('sha1', turnSecret).update(username).digest('base64');
+        return [{ urls: entry, username, credential }];
+      }),
+    });
+  });
+
   route('GET', '/api/patients/:id/records', async (request, url, params) => {
     const id = params['id'] as string;
-    await canRead(await caller(request, url), id);
+    const who = await caller(request, url);
+    await canRead(who, id);
     const after = Math.max(0, Number(url.searchParams.get('after') ?? 0) || 0);
     const rows = await store.records(id, after, PAGE + 1);
     const more = rows.length > PAGE;
     const records = rows.slice(0, PAGE);
-    return json({ records, last: records.at(-1)?.seq ?? after, more });
+    return json({
+      records:
+        who.kind === 'device' && who.device === 'carer'
+          ? records.filter((record) => !DIARY_CHAT_RECORD.test(record.id))
+          : records,
+      last: records.at(-1)?.seq ?? after,
+      more,
+    });
   });
 
   route('POST', '/api/patients/:id/records', async (request, url, params) => {
@@ -850,6 +888,55 @@ export function createApp(
         throw new HttpError(403, 'Согласие даёт только телефон пациента.');
       if (record.id.startsWith('member-') && record.id !== `member-${who.id}`)
         throw new HttpError(403, 'Имя пишет только его телефон.');
+      if (record.id.startsWith('chat-')) {
+        if (
+          !DIARY_CHAT_RECORD.test(record.id) ||
+          record.rev !== 1 ||
+          record.body.length > 34_000 ||
+          patient.status !== 'active'
+        )
+          throw new HttpError(400, 'Недопустимое сообщение.');
+        if (who.kind === 'device' && who.device !== 'patient')
+          throw new HttpError(403, 'Переписка доступна пациенту.');
+      }
+      if (record.id.startsWith('media-')) {
+        const match = DIARY_MEDIA_RECORD.exec(record.id);
+        if (
+          !match ||
+          input.records.length !== 1 ||
+          input.notice ||
+          record.rev !== 1 ||
+          record.body.length > 24_000 ||
+          patient.status !== 'active'
+        )
+          throw new HttpError(400, 'Недопустимый сигнал передачи.');
+        const [, action, requestId] = match;
+        if (
+          action === 'answer'
+            ? who.kind !== 'device' || who.device !== 'patient'
+            : who.kind !== 'doctor'
+        )
+          throw new HttpError(403, 'Недостаточно прав для передачи.');
+        if (action !== 'offer') {
+          const seq = input.mediaOfferSeq;
+          if (!seq) throw new HttpError(400, 'Нужен запрос врача.');
+          const [offer] = await store.records(id, seq - 1, 1);
+          if (
+            offer?.seq !== seq ||
+            offer.id !== `media-offer-${requestId}` ||
+            offer.epoch !== record.epoch ||
+            Date.parse(now()) - Date.parse(offer.at) >= DIARY_MEDIA_WINDOW_MS
+          )
+            throw new HttpError(410, 'Запрос передачи истёк.');
+          if (action === 'cancel' && offer.author !== author)
+            throw new HttpError(403, 'Запрос может закрыть его автор.');
+          if (action === 'answer') {
+            const requester = await membership(id, offer.author.slice(2));
+            if (requester?.status !== 'active' || requester.role === 'reader')
+              throw new HttpError(403, 'У врача больше нет доступа.');
+          }
+        }
+      }
       if (record.epoch !== patient.epoch)
         throw new HttpError(409, 'Ключ устарел: обновите данные.');
     }
@@ -857,7 +944,11 @@ export function createApp(
     try {
       seqs = await store.insertRecords(id, input.records, now());
     } catch (cause) {
-      if (cause instanceof StoreConflict) throw new HttpError(409, 'Такая версия записи уже есть.');
+      if (cause instanceof StoreConflict) {
+        if (input.records.length === 1 && DIARY_CHAT_RECORD.test(input.records[0]?.id ?? ''))
+          return json({ error: 'Сообщение уже отправлено.', code: 'duplicate-chat' }, 409);
+        throw new HttpError(409, 'Такая версия записи уже есть.');
+      }
       throw cause;
     }
     await notify(await activeDoctors(id), 'records', { patientId: id, seq: seqs.at(-1) });

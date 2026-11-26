@@ -6,9 +6,15 @@ import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
+import { DiaryPlanDetails, planSections } from '@/diary/DiaryPlanOverview';
+import { ScreenHeader } from '@/diary/diary-ui';
 import { isDiaryBirthDate, isDiaryPhone } from '@/features/diary/connected/diary-replica';
 import type { DoctorDiaries, DoctorPatient } from '@/features/diary/connected/doctor-workspace';
 import { operatorFromProfile } from '@/features/diary/consent/joining-documents';
+import {
+  diaryIdentityDetails,
+  diaryProfileDetails,
+} from '@/features/diary/dashboard/diary-profile-details';
 import { TipsDialog } from '@/features/diary/dashboard/PatientDialogs';
 import { PatientFormColumns } from '@/features/diary/dashboard/PatientFormColumns';
 import { PatientIdentity } from '@/features/diary/dashboard/PatientIdentity';
@@ -23,6 +29,47 @@ import { getClinicianProfile } from '@/state/clinician-profile';
 
 function errorText(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
+}
+
+export function PatientPlanPage(props: {
+  readonly invitation: DiaryInvitation;
+  readonly onClose: () => void;
+  readonly onEdit?: (() => void) | undefined;
+}): JSX.Element {
+  return (
+    <main class="diary-patient diary-patient--plan">
+      <ScreenHeader
+        signum
+        title="Назначения"
+        backLabel="К чату"
+        onBack={props.onClose}
+        headerActions={
+          props.onEdit
+            ? [
+                {
+                  id: 'edit-plan',
+                  label: 'Редактировать',
+                  icon: 'edit',
+                  priority: 1,
+                  onSelect: props.onEdit,
+                },
+              ]
+            : []
+        }
+      />
+      <Show
+        when={
+          props.invitation.note ||
+          planSections(props.invitation).some((section) => section.rows.length)
+        }
+        fallback={<p class="diary-thread__empty diary-thread__empty--plan">Назначений пока нет.</p>}
+      >
+        <div class="diary-thread__plan">
+          <DiaryPlanDetails invitation={props.invitation} />
+        </div>
+      </Show>
+    </main>
+  );
 }
 
 /**
@@ -44,6 +91,7 @@ export function PatientScreenPage(props: {
   const [emoji, setEmoji] = createSignal(profile?.emoji ?? '🙂');
   const [phone, setPhone] = createSignal(profile?.phone ?? '');
   const [birthDate, setBirthDate] = createSignal(profile?.birthDate ?? '');
+  const [details, setDetails] = createSignal(diaryIdentityDetails(profile));
   const [busy, setBusy] = createSignal(false);
   const [error, setError] = createSignal('');
   const [tips, setTips] = createSignal(false);
@@ -60,6 +108,11 @@ export function PatientScreenPage(props: {
     }
     if (birthDate() && !isDiaryBirthDate(birthDate())) {
       setError('Проверьте дату рождения.');
+      return;
+    }
+    const measurements = diaryProfileDetails(details());
+    if (!measurements) {
+      setError('Введите рост и вес положительными числами или очистите поле.');
       return;
     }
     setBusy(true);
@@ -90,6 +143,7 @@ export function PatientScreenPage(props: {
         emoji: emoji(),
         ...(phone().trim() ? { phone: phone().trim() } : {}),
         ...(birthDate() ? { birthDate: birthDate() } : {}),
+        ...measurements,
         // Not edited here, kept as it was (an archived patient stays archived).
         ...(profile?.archived ? { archived: true } : {}),
       };
@@ -97,7 +151,10 @@ export function PatientScreenPage(props: {
         next.label !== profile?.label ||
         next.emoji !== profile?.emoji ||
         (next.phone ?? '') !== (profile?.phone ?? '') ||
-        (next.birthDate ?? '') !== (profile?.birthDate ?? '')
+        (next.birthDate ?? '') !== (profile?.birthDate ?? '') ||
+        next.biologicalSex !== profile?.biologicalSex ||
+        next.heightCm !== profile?.heightCm ||
+        next.weightKg !== profile?.weightKg
       ) {
         await props.workspace.writeProfile(props.patient.summary.id, next);
       }
@@ -143,10 +200,12 @@ export function PatientScreenPage(props: {
                   emoji={emoji()}
                   phone={phone()}
                   birthDate={birthDate()}
+                  details={details()}
                   onLabel={setLabel}
                   onEmoji={setEmoji}
                   onPhone={setPhone}
                   onBirthDate={setBirthDate}
+                  onDetails={setDetails}
                 />
               </FormStep>
               <PatientScreenEditor

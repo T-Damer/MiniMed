@@ -78,11 +78,19 @@ export function CareIntro(props: {
   readonly invitation: DiaryInvitation;
   /** The diary syncs through the service rather than being sent by hand. */
   readonly connected?: boolean;
+  readonly existingConsents?: readonly JoiningAcceptance[] | undefined;
+  readonly onBack?: (() => void) | undefined;
   readonly onDone: (consents: readonly JoiningAcceptance[]) => void;
 }): JSX.Element {
   const [step, setStep] = createSignal<Step>('documents');
-  const [accepted, setAccepted] = createSignal<readonly JoiningAcceptance[]>([]);
   const documents = createMemo(() => joiningDocuments(props.connected === true));
+  const [accepted, setAccepted] = createSignal<readonly JoiningAcceptance[]>(
+    (props.existingConsents ?? []).filter((accepted) =>
+      documents().some(
+        (document) => document.id === accepted.document && document.version === accepted.version,
+      ),
+    ),
+  );
   const operator = createMemo(() => diaryOperator(props.invitation));
   const ready = (): boolean => acceptedAll(documents(), accepted());
   const count = (): number => accepted().length;
@@ -110,6 +118,11 @@ export function CareIntro(props: {
 
   return (
     <main class="diary-page diary-page--care diary-intro">
+      <Show when={props.onBack}>
+        <Button variant="secondary" onClick={props.onBack}>
+          Вернуться к дневнику
+        </Button>
+      </Show>
       <p class="diary-intro__step">Шаг {step() === 'documents' ? 1 : 2} из 2</p>
       <Switch>
         <Match when={step() === 'documents'}>

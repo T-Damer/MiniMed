@@ -226,3 +226,24 @@ html:not(:has(.app-bottom-nav)) .bottom-left-controls {
     aspect-ratio: 1;
   }
 }
+
+/* Patient navigation is deliberately limited to three named destinations. */
+.app-bottom-nav--labelled .app-bottom-nav__bubble {
+  border-radius: 999px;
+}
+
+.app-bottom-nav .app-nav-button--labelled {
+  width: min(6rem, calc((100vw - 2rem) / 3));
+  height: 3.5rem;
+  aspect-ratio: auto;
+  grid-template: auto auto / 1fr;
+  gap: 0.25rem;
+  line-height: 1.2;
+  border-radius: 999px;
+}
+
+.app-nav-button__label {
+  grid-area: 2 / 1;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}

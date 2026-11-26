@@ -62,6 +62,12 @@ export function VoiceNote(props: {
   readonly onText: (text: string, origin: VoiceOrigin) => void;
   /** A small round button beside a field: its name goes into the button's label. */
   readonly compact?: string;
+  readonly idleIcon?: JSX.Element;
+  /** A full-width dictation button above a field. */
+  readonly wide?: boolean;
+  /** The clinician's draft uses the transcript and discards the temporary audio. */
+  readonly transcriptOnly?: boolean;
+  readonly onActivityChange?: (active: boolean) => void;
 }): JSX.Element {
   const [phase, setPhase] = createSignal<Phase>('idle');
   const [progress, setProgress] = createSignal<number | null>(null);
@@ -94,9 +100,8 @@ export function VoiceNote(props: {
   const transcribe = async (
     asr: AsrModule,
     recording: NonNullable<typeof pending>,
+    mine: number,
   ): Promise<void> => {
-    run += 1;
-    const mine = run;
     setPhase('working');
     setElapsed(0);
     stopTicker();
@@ -115,54 +120,69 @@ export function VoiceNote(props: {
       });
     } else {
       setKept(
-        'Слов не разобрать. Запись осталась на телефоне — скажите ещё раз, ближе к телефону.',
+        props.transcriptOnly
+          ? 'Слов не разобрать. Попробуйте ещё раз.'
+          : 'Слов не разобрать. Запись осталась на телефоне — скажите ещё раз, ближе к телефону.',
       );
     }
   };
 
   const handle = (file: File, seconds: number): void => {
+    const mine = ++run;
     setError('');
     setKept('');
     setPhase('working');
-    if (!noteSeen()) {
+    if (!props.transcriptOnly && !noteSeen()) {
       markNoteSeen();
       setNoteSeen(true);
     }
     void (async () => {
       // The recording is kept on this phone first, whatever happens to the text.
-      const clip = await saveVoiceClip(file, seconds).catch((cause: unknown) => {
-        console.warn('Запись не сохранена на телефоне:', cause);
-        return undefined;
-      });
+      const clip = props.transcriptOnly
+        ? undefined
+        : await saveVoiceClip(file, seconds).catch((cause: unknown) => {
+            console.warn('Запись не сохранена на телефоне:', cause);
+            return undefined;
+          });
       const recording = { file, seconds, clip };
       const asr = await import('@/features/asr/asr-models');
-      if (!asr.isAsrReady() && !(await asr.activateSelectedAsrModel())) {
+      if (mine !== run) return;
+      const ready = asr.isAsrReady() || (await asr.activateSelectedAsrModel());
+      if (mine !== run) return;
+      if (!ready) {
         // The model is not on this phone yet: ask before downloading it.
         pending = recording;
         setPhase('offer');
         return;
       }
-      await transcribe(asr, recording);
-    })().catch((cause: unknown) => fail(cause, 'Не удалось расшифровать запись.'));
+      await transcribe(asr, recording, mine);
+    })().catch((cause: unknown) => {
+      if (mine === run) fail(cause, 'Не удалось расшифровать запись.');
+    });
   };
 
   const download = (): void => {
     const recording = pending;
     if (!recording) return;
+    const mine = ++run;
     setError('');
     setPhase('downloading');
     setProgress(null);
     void import('@/features/asr/asr-models')
       .then(async (asr) => {
+        if (mine !== run) return;
         stopProgress?.();
         stopProgress = asr.onAsrProgress(MODEL_ID, setProgress);
         if (!asr.selectedAsrModelId()) asr.selectAsrModel(MODEL_ID);
         await asr.activateAsrModel(asr.selectedAsrModelId() ?? MODEL_ID);
-        stopProgress();
+        if (mine !== run) return;
+        stopProgress?.();
         stopProgress = undefined;
-        await transcribe(asr, recording);
+        await transcribe(asr, recording, mine);
       })
-      .catch((cause: unknown) => fail(cause, 'Не удалось скачать речевую модель.'));
+      .catch((cause: unknown) => {
+        if (mine === run) fail(cause, 'Не удалось скачать речевую модель.');
+      });
   };
 
   const cancel = (): void => {
@@ -170,7 +190,11 @@ export function VoiceNote(props: {
     stopTicker();
     pending = undefined;
     setPhase('idle');
-    setKept('Расшифровка отменена. Запись осталась на телефоне.');
+    setKept(
+      props.transcriptOnly
+        ? 'Расшифровка отменена.'
+        : 'Расшифровка отменена. Запись осталась на телефоне.',
+    );
   };
 
   const capture = createVoiceCapture({
@@ -190,6 +214,7 @@ export function VoiceNote(props: {
     const seconds = capture.seconds();
     if (seconds > 0) lastSeconds = seconds;
   });
+  createEffect(() => props.onActivityChange?.(capture.recording() || phase() !== 'idle'));
 
   const busy = (): boolean => phase() === 'working' || phase() === 'downloading';
   const label = (): string =>
@@ -200,15 +225,23 @@ export function VoiceNote(props: {
         : 'Сказать голосом';
 
   return (
-    <div class="diary-voice" classList={{ 'diary-voice--compact': Boolean(props.compact) }}>
-      <div class="diary-voice__row">
+    <div
+      class="diary-voice"
+      classList={{
+        'diary-voice--compact': Boolean(props.compact),
+        'diary-voice--expanded':
+          capture.recording() || phase() !== 'idle' || Boolean(error() || kept()),
+      }}
+    >
+      <div class="diary-voice__row" classList={{ 'diary-voice__row--wide': props.wide }}>
         <button
           type="button"
           class="diary-voice__button"
           classList={{
             'diary-voice__button--recording': capture.recording(),
             'diary-voice__button--busy': busy(),
-            'diary-voice__button--small': Boolean(props.compact),
+            'diary-voice__button--small': Boolean(props.compact) && !props.wide,
+            'diary-voice__button--wide': props.wide,
           }}
           aria-label={label()}
           disabled={busy() || phase() === 'offer'}
@@ -216,21 +249,27 @@ export function VoiceNote(props: {
         >
           <Show
             when={capture.recording()}
-            fallback={<AppGlyph name="microphone" class="diary-voice__icon" />}
+            fallback={props.idleIcon ?? <AppGlyph name="microphone" class="diary-voice__icon" />}
           >
             <span
               class="diary-voice__halo"
+              classList={{ 'diary-voice__halo--wide': props.wide }}
               style={{ '--voice-level': `${Math.round(capture.level() * 100)}%` }}
               aria-hidden="true"
             />
             <AppGlyph name="stop-circle" class="diary-voice__icon" />
+          </Show>
+          <Show when={props.wide}>
+            <span class="diary-voice__button-label">
+              {capture.recording() ? 'Остановить запись' : 'Сказать голосом'}
+            </span>
           </Show>
         </button>
         <span class="diary-voice__status" role="status">
           <Show when={capture.recording()}>
             Говорите… {clock(capture.seconds())} из {clock(MAX_VOICE_SECONDS)}
           </Show>
-          <Show when={!capture.recording() && phase() === 'idle' && !props.compact}>
+          <Show when={!capture.recording() && phase() === 'idle' && !props.compact && !props.wide}>
             Сказать голосом
           </Show>
           <Show when={phase() === 'working'}>Превращаем голос в текст… {clock(elapsed())}</Show>
@@ -245,7 +284,7 @@ export function VoiceNote(props: {
           </button>
         </Show>
       </div>
-      <Show when={!noteSeen() && !props.compact && phase() === 'idle'}>
+      <Show when={!props.transcriptOnly && !noteSeen() && !props.compact && phase() === 'idle'}>
         <p class="diary-voice__privacy">Запись остаётся на телефоне, врачу уйдёт только текст.</p>
       </Show>
       <Show when={phase() === 'offer'}>
@@ -265,7 +304,9 @@ export function VoiceNote(props: {
                 pending = undefined;
                 setPhase('idle');
                 setKept(
-                  'Запись осталась на телефоне. Врачу уйдёт только текст — напишите его сами.',
+                  props.transcriptOnly
+                    ? 'Можно ввести текст вручную.'
+                    : 'Запись осталась на телефоне. Врачу уйдёт только текст — напишите его сами.',
                 );
               }}
             >

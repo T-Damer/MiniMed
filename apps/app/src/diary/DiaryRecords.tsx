@@ -142,6 +142,7 @@ export function DiaryRecords(props: {
         title="Записи"
         subtitle={`${invitation().title}: ${entriesLabel(props.results.entries.length)}`}
         onBack={props.onBack}
+        backLabel={props.tabbed ? 'Настройки' : 'На главную'}
         hero={PAGE_HEROES.diaryRecords}
       />
       <Show when={props.error}>

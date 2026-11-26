@@ -5,7 +5,9 @@
  * revision wins. Payloads are validated here because they come from another device.
  */
 
+import { DIARY_CHAT_RECORD, DIARY_MEDIA_RECORD } from '@localmed/contracts';
 import { memberName } from '@/features/diary/connected/carer';
+import { type DiaryChatMessage, mergeDiaryChat } from '@/features/diary/connected/diary-chat';
 import {
   type JoiningAcceptance,
   parseJoiningAcceptances,
@@ -30,6 +32,7 @@ import {
   parseDiaryInvitation,
 } from '@/features/diary/diary-model';
 import { isVisitRecord, parseVisitScaleEntry } from '@/features/diary/diary-visit-scales';
+import type { BiologicalSex } from '@/state/patient-domain';
 
 export const PLAN_RECORD = 'plan';
 export const PROFILE_RECORD = 'profile';
@@ -53,11 +56,22 @@ export interface DiaryProfile {
   readonly phone?: string;
   /** `YYYY-MM-DD`, when the doctor wrote it down (owner 2026-10-28: optional). */
   readonly birthDate?: string;
+  readonly biologicalSex?: BiologicalSex;
+  readonly heightCm?: number;
+  readonly weightKg?: number;
   /** Moved out of the doctor's working list; nothing else changes. */
   readonly archived?: boolean;
 }
 
 const PHONE_PATTERN = /^\+?[\d\s()-]{5,24}$/u;
+
+export function isDiarySex(value: unknown): value is BiologicalSex {
+  return value === 'female' || value === 'male' || value === 'intersex' || value === 'unknown';
+}
+
+export function isDiaryMeasurement(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
 
 /** A phone number as the doctor may type it: digits, spaces, brackets, dashes, a leading +. */
 export function isDiaryPhone(value: string): boolean {
@@ -98,6 +112,7 @@ export type DiaryPayload =
 export interface DiaryRecordRevision {
   readonly id: string;
   readonly rev: number;
+  readonly seq?: number;
   readonly author: string;
   /** Server time the revision arrived. */
   readonly at: string;
@@ -118,6 +133,7 @@ export interface DiaryPlanRevision {
 export const MAX_PLAN_HISTORY = 200;
 
 export interface DiaryReplica {
+  readonly chat?: readonly DiaryChatMessage[];
   readonly invitation: DiaryInvitation | undefined;
   /** Every plan version read, oldest first (the last one is `invitation`). */
   readonly planHistory: readonly DiaryPlanRevision[];
@@ -187,6 +203,8 @@ export function applyRevisions(
     ...revisions.filter((revision) => revision.id !== PLAN_RECORD),
   ];
   for (const revision of ordered) {
+    // The live controller consumes signaling separately from the diary timeline and offline copies.
+    if (DIARY_MEDIA_RECORD.test(revision.id) || DIARY_CHAT_RECORD.test(revision.id)) continue;
     if ((revs.get(revision.id) ?? 0) >= revision.rev) continue;
     const payload = revision.payload;
     try {
@@ -207,12 +225,18 @@ export function applyRevisions(
         const emoji = payload['emoji'];
         const phone = payload['phone'];
         const birthDate = payload['birthDate'];
+        const biologicalSex = payload['biologicalSex'];
+        const heightCm = payload['heightCm'];
+        const weightKg = payload['weightKg'];
         if (typeof label !== 'string' || label.length > 120) throw new DiaryFormatError('Профиль.');
         profile = {
           label,
           ...(typeof emoji === 'string' && emoji.length <= 16 ? { emoji } : {}),
           ...(typeof phone === 'string' && isDiaryPhone(phone) ? { phone: phone.trim() } : {}),
           ...(typeof birthDate === 'string' && isDiaryBirthDate(birthDate) ? { birthDate } : {}),
+          ...(isDiarySex(biologicalSex) ? { biologicalSex } : {}),
+          ...(isDiaryMeasurement(heightCm) ? { heightCm } : {}),
+          ...(isDiaryMeasurement(weightKg) ? { weightKg } : {}),
           ...(payload['archived'] === true ? { archived: true } : {}),
         };
       } else if (revision.id === CONSENT_RECORD && payload['kind'] === 'consent') {
@@ -298,6 +322,7 @@ export function applyRevisions(
   }
   return {
     invitation,
+    chat: mergeDiaryChat(replica.chat ?? [], revisions),
     planHistory: planHistory.slice(-MAX_PLAN_HISTORY),
     profile,
     entries,

@@ -46,3 +46,22 @@
 .scroll-indicator-host::-webkit-scrollbar {
   display: none;
 }
+
+.scroll-indicator__thumb--native {
+  visibility: hidden;
+}
+.scroll-indicator__cue {
+  position: absolute;
+  bottom: 0.6rem;
+  right: 0.65rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 2px solid var(--theme-text-muted);
+  border-bottom: 2px solid var(--theme-text-muted);
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity var(--motion-fast, 120ms) var(--motion-ease, ease);
+}
+.scroll-indicator__cue--shown {
+  opacity: 0.8;
+}

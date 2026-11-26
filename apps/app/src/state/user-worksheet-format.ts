@@ -131,6 +131,8 @@ export interface WorksheetField {
   readonly id: string;
   readonly type: WorksheetFieldType;
   readonly label: string;
+  /** Optional question or instruction shown to the patient in interactive forms. */
+  readonly patientPrompt?: string;
   /** What the field means and how to fill it, in plain words; printed under the blank. */
   readonly patientHint: string;
   /** What the answer tells the doctor and how to read it. */
@@ -340,6 +342,12 @@ function parseField(value: unknown, index: number): WorksheetField {
       empty: true,
     }),
   };
+  const patientPrompt = optionalText(
+    source['patientPrompt'],
+    `${label}: вопрос пациенту`,
+    MAX_LABEL,
+  );
+  if (patientPrompt) field.patientPrompt = patientPrompt;
   if (type === 'number') {
     const unit = text(source['unit'], `${label}: единица`, 24, { empty: true });
     if (unit) field.unit = unit;

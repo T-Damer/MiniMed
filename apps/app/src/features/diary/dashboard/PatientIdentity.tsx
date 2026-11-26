@@ -4,10 +4,24 @@ import { Button } from '@/components/Button';
 import { DateField } from '@/components/DateField';
 import { todayValue } from '@/components/date-value';
 import { PatientEmojiPicker } from '@/components/PatientEmojiPicker';
+import { SelectField } from '@/components/SelectField';
 import { SheetPopover } from '@/components/SheetPopover';
 import { TextField } from '@/components/TextField';
-import { isDiaryBirthDate, isDiaryPhone } from '@/features/diary/connected/diary-replica';
+import {
+  isDiaryBirthDate,
+  isDiaryPhone,
+  isDiarySex,
+} from '@/features/diary/connected/diary-replica';
+import type { DiaryIdentityDetails } from '@/features/diary/dashboard/diary-profile-details';
 import { savePatientContact, telHref } from '@/features/diary/dashboard/patient-contact';
+
+const SEX_CHOICES = [
+  { value: '', label: 'Выберите' },
+  { value: 'female', label: 'Женский' },
+  { value: 'male', label: 'Мужской' },
+  { value: 'intersex', label: 'Интерсекс' },
+  { value: 'unknown', label: 'Не указан' },
+];
 
 /**
  * Who the patient is for the doctor: an emoji from the full picker, a pseudonym and, when the
@@ -19,10 +33,12 @@ export function PatientIdentity(props: {
   readonly phone: string;
   /** `YYYY-MM-DD` or empty. */
   readonly birthDate: string;
+  readonly details: DiaryIdentityDetails;
   readonly onLabel: (value: string) => void;
   readonly onEmoji: (value: string) => void;
   readonly onPhone: (value: string) => void;
   readonly onBirthDate: (value: string) => void;
+  readonly onDetails: (value: DiaryIdentityDetails) => void;
 }): JSX.Element {
   const [picking, setPicking] = createSignal(false);
   const [error, setError] = createSignal('');
@@ -53,21 +69,54 @@ export function PatientIdentity(props: {
           class="diary-identity__name"
           inputClass="screen-editor__input"
           placeholder="Например: Лиса, А. К."
+          maxLength={120}
           value={props.label}
           onInput={(event) => props.onLabel(event.currentTarget.value)}
         />
       </div>
       <div class="diary-identity__row">
+        <SelectField
+          label="Пол"
+          class="diary-identity__measure"
+          options={SEX_CHOICES}
+          value={props.details.biologicalSex}
+          onChange={(event) => {
+            const sex = event.currentTarget.value;
+            props.onDetails({ ...props.details, biologicalSex: isDiarySex(sex) ? sex : '' });
+          }}
+        />
         <DateField
           label="Дата рождения"
           class="diary-identity__birth"
-          controlClass="screen-editor__date-control"
+          controlClass="diary-identity__date-control"
           value={props.birthDate}
           max={todayValue()}
           error={
             props.birthDate && !isDiaryBirthDate(props.birthDate) ? 'Проверьте дату' : undefined
           }
           onChange={props.onBirthDate}
+        />
+      </div>
+      <div class="diary-identity__row">
+        <TextField
+          label="Рост, см"
+          class="diary-identity__measure"
+          inputClass="screen-editor__input"
+          inputmode="decimal"
+          value={props.details.height}
+          onInput={(event) =>
+            props.onDetails({ ...props.details, height: event.currentTarget.value })
+          }
+        />
+        <TextField
+          label="Вес, кг"
+          class="diary-identity__measure"
+          inputClass="screen-editor__input"
+          inputmode="decimal"
+          value={props.details.weight}
+          onInput={(event) =>
+            props.onDetails({ ...props.details, weight: event.currentTarget.value })
+          }
         />
       </div>
       <div class="diary-identity__row">

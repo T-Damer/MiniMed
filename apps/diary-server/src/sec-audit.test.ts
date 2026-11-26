@@ -3,6 +3,7 @@
  * neither an access code nor a pairing secret reaches it.
  */
 import { describe, expect, it } from 'bun:test';
+import { DIARY_MEDIA_WINDOW_MS, type DiaryMediaSignal } from '@localmed/contracts';
 import {
   accessCodeEmail,
   DEMO_ACCESS_CODE,
@@ -368,6 +369,147 @@ describe('security audit fixes (SEC-AUDIT1)', () => {
     expect(await write(carer, `member-${carerId}`, { kind: 'member', name: 'Мама' })).toBe(201);
     expect(await write(phone, 'consent', { kind: 'consent', at: now() })).toBe(201);
     expect(await write(phone, 'plan', { kind: 'plan' })).toBe(403);
+  });
+
+  it('enforces patient-only replies to media requests and excludes carers from text conversations', async () => {
+    const { call, store } = await setup();
+    const owner = await doctor(call, 'owner@clinic.ru');
+    const editor = await doctor(call, 'editor@clinic.ru');
+    const patient = await patientWith(call, owner);
+    await addEditor(call, owner, patient, editor);
+    const phone = await pairPhone(
+      call,
+      patient.id,
+      (await pairing(call, owner.token, patient)).secret,
+    );
+    const carer = await pairPhone(
+      call,
+      patient.id,
+      (await pairing(call, owner.token, patient, 'carer')).secret,
+    );
+    const root = `/api/patients/${patient.id}`;
+    const requestId = randomId();
+    const fromOwner = {
+      token: owner.token,
+      author: `d:${owner.id}`,
+      key: owner.identity.sign.privateKey,
+    };
+    const fromEditor = {
+      token: editor.token,
+      author: `d:${editor.id}`,
+      key: editor.identity.sign.privateKey,
+    };
+    const fromPhone = {
+      token: phone.paired.body['token'] as string,
+      author: `p:${phone.paired.body['deviceId']}`,
+      key: phone.device.sign.privateKey,
+    };
+    const fromCarer = {
+      token: carer.paired.body['token'] as string,
+      author: `p:${carer.paired.body['deviceId']}`,
+      key: carer.device.sign.privateKey,
+    };
+    const envelope = (who: typeof fromOwner, payload: DiaryMediaSignal, id = requestId) =>
+      sealRecord(
+        {
+          patientId: patient.id,
+          id: `media-${payload.kind}-${id}`,
+          rev: 1,
+          epoch: 1,
+          author: who.author,
+        },
+        payload,
+        patient.key,
+        who.key,
+      );
+    const push = async (
+      who: typeof fromOwner,
+      payload: DiaryMediaSignal,
+      mediaOfferSeq?: number,
+      id = requestId,
+    ) =>
+      call(
+        'POST',
+        `${root}/records`,
+        { records: [await envelope(who, payload, id)], mediaOfferSeq },
+        who.token,
+      );
+    const offer = { kind: 'offer', sdp: 'v=0\r\n' } as const;
+    const answer = { kind: 'answer', sdp: 'v=0\r\n' } as const;
+    expect((await call('GET', `${root}/media-ice`)).status).toBe(401);
+    expect((await call('GET', `${root}/media-ice`, undefined, fromCarer.token)).status).toBe(403);
+    expect((await call('GET', `${root}/media-ice`, undefined, fromPhone.token)).body).toEqual({
+      iceServers: [],
+    });
+    expect((await push(fromPhone, offer)).status).toBe(403);
+    expect((await push(fromPhone, answer)).status).toBe(400);
+    const request = await push(fromOwner, offer);
+    expect(request.status).toBe(201);
+    const [seq] = request.body['seqs'] as number[];
+    expect((await push(fromCarer, answer, seq)).status).toBe(403);
+    expect((await push(fromEditor, { kind: 'cancel' }, seq)).status).toBe(403);
+    expect((await push(fromPhone, answer, seq, randomId())).status).toBe(410);
+    expect((await push(fromPhone, answer, seq)).status).toBe(201);
+    expect((await push(fromPhone, answer, seq)).status).toBe(409);
+    const expiredId = randomId();
+    const [expired] = await store.insertRecords(
+      patient.id,
+      [await envelope(fromOwner, offer, expiredId)],
+      new Date(Date.now() - DIARY_MEDIA_WINDOW_MS - 1000).toISOString(),
+    );
+    expect((await push(fromPhone, answer, expired, expiredId)).status).toBe(410);
+
+    const text = 'Проверка переписки';
+    const chat = (who: typeof fromOwner, revision: number) =>
+      sealRecord(
+        {
+          patientId: patient.id,
+          id: `chat-${requestId}`,
+          rev: revision,
+          epoch: 1,
+          author: who.author,
+        },
+        { kind: 'chat', text },
+        patient.key,
+        who.key,
+      );
+    expect(
+      (
+        await call(
+          'POST',
+          `${root}/records`,
+          { records: [await chat(fromCarer, 1)] },
+          fromCarer.token,
+        )
+      ).status,
+    ).toBe(403);
+    const record = await chat(fromOwner, 1);
+    const posted = await call('POST', `${root}/records`, { records: [record] }, fromOwner.token);
+    expect(posted.status).toBe(201);
+    expect(
+      (await call('POST', `${root}/records`, { records: [record] }, fromOwner.token)).body['code'],
+    ).toBe('duplicate-chat');
+    expect(
+      (
+        await call(
+          'POST',
+          `${root}/records`,
+          { records: [await chat(fromOwner, 2)] },
+          fromOwner.token,
+        )
+      ).status,
+    ).toBe(400);
+    const [chatSeq] = posted.body['seqs'] as number[];
+    expect(chatSeq).toBeGreaterThan(0);
+    const page = `${root}/records?after=${(chatSeq ?? 1) - 1}`;
+    expect((await call('GET', page, undefined, fromCarer.token)).body).toEqual({
+      records: [],
+      last: chatSeq,
+      more: false,
+    });
+    const phonePage = (await call('GET', page, undefined, fromPhone.token)).body;
+    expect(phonePage['records']).toHaveLength(1);
+    expect(JSON.stringify(phonePage)).not.toContain(text);
   });
 
   it('accepts push endpoints of push services only, a few per person', async () => {

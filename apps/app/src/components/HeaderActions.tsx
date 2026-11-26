@@ -103,7 +103,7 @@ function cachedNaturalWidth(element: HTMLElement): number {
   const key = [element, ...Array.from(element.querySelectorAll<HTMLElement>('*'))]
     .map((node) => {
       const style = getComputedStyle(node);
-      return `${style.font}/${style.letterSpacing}/${style.paddingInline}/${style.display}`;
+      return `${style.font}/${style.letterSpacing}/${style.paddingInline}/${style.display}/${style.maxInlineSize}`;
     })
     .concat(element.textContent ?? '')
     .join('|');
@@ -116,7 +116,7 @@ function cachedNaturalWidth(element: HTMLElement): number {
 
 function naturalWidth(element: HTMLElement): number {
   const parent = element.parentElement;
-  if (!parent) return element.getBoundingClientRect().width;
+  if (!parent) return element.offsetWidth;
   const probe = element.cloneNode(true) as HTMLElement;
   probe.removeAttribute('id');
   for (const node of Array.from(probe.querySelectorAll('[id]'))) node.removeAttribute('id');
@@ -125,7 +125,7 @@ function naturalWidth(element: HTMLElement): number {
   probe.style.cssText =
     'position:fixed;left:-99999px;top:0;visibility:hidden;pointer-events:none;width:max-content;max-width:none;flex:none;white-space:nowrap;contain:layout style;';
   parent.append(probe);
-  const width = probe.getBoundingClientRect().width;
+  const width = probe.offsetWidth;
   probe.remove();
   return width;
 }
@@ -181,7 +181,7 @@ export function HeaderActions(props: HeaderActionsProps): JSX.Element {
     while (slot.parentElement && slot.parentElement !== row) slot = slot.parentElement;
 
     const sample = host.querySelector<HTMLElement>('.header-actions__button');
-    if (sample && isRendered(sample)) buttonWidth = sample.getBoundingClientRect().width;
+    if (sample && isRendered(sample)) buttonWidth = sample.offsetWidth;
     const hostGap = pixels(getComputedStyle(host).columnGap);
 
     let used = 0;
@@ -198,11 +198,10 @@ export function HeaderActions(props: HeaderActionsProps): JSX.Element {
       }
       neighbours += 1;
       if (child.hasAttribute(HEADER_TITLE_ATTRIBUTE)) titles.push(child);
-      else used += child.getBoundingClientRect().width;
+      else used += child.offsetWidth;
     }
     // What shares the slot with the buttons (other tools of the same header group).
-    const slotExtras =
-      slot === host ? 0 : slot.getBoundingClientRect().width - host.getBoundingClientRect().width;
+    const slotExtras = slot === host ? 0 : slot.offsetWidth - host.offsetWidth;
     for (const title of titles) used += Math.ceil(cachedNaturalWidth(title)) + 1;
 
     const available = Math.floor(inner - used - rowGap * neighbours - slotExtras);

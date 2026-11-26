@@ -39,6 +39,7 @@ interface AppContextMenuProps {
    * discoverable. Pair it with `hideButton`; the inline `buttonLabel` button is a different design.
    */
   readonly discoverLabel?: string;
+  readonly discoverClass?: string;
   readonly class?: string;
 }
 
@@ -230,7 +231,7 @@ export function AppContextMenu(props: AppContextMenuProps): JSX.Element {
         <Show when={props.discoverLabel && hasActions()}>
           <button
             type="button"
-            class="app-context-menu__discover"
+            class={`app-context-menu__discover${props.discoverClass ? ` ${props.discoverClass}` : ''}`}
             classList={{ 'menu-owner--open': open() }}
             aria-label={props.discoverLabel}
             title={props.discoverLabel}

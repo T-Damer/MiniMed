@@ -12,6 +12,8 @@ import {
   keepNewPatientDrafts,
   readNewPatientDrafts,
 } from '@/features/diary/connected/doctor-account';
+import type { DiaryIdentityDetails } from '@/features/diary/dashboard/diary-profile-details';
+import type { DictatedPlan } from '@/features/diary/dashboard/dictated-plan';
 import type { CareDraft } from '@/features/diary/diary-care-draft';
 import type { PastMedication } from '@/features/diary/diary-med-history';
 
@@ -22,6 +24,7 @@ export interface NewPatientDraft {
   readonly emoji: string;
   readonly phone: string;
   readonly birthDate: string;
+  readonly details?: DiaryIdentityDetails;
   readonly screen: CareDraft;
   readonly doctor: string;
   readonly note: string;
@@ -38,9 +41,11 @@ export type NewPatientFields = Omit<NewPatientDraft, 'id' | 'savedAt'>;
 interface Stored {
   readonly v: 1;
   readonly drafts: readonly NewPatientDraft[];
+  readonly plans?: readonly (readonly [string, DictatedPlan])[];
 }
 
 const [drafts, setDrafts] = createSignal<readonly NewPatientDraft[]>([]);
+const [plans, setPlans] = createSignal<ReadonlyMap<string, DictatedPlan>>(new Map());
 /** Whose drafts are in memory: another doctor signing in on this page starts empty. */
 let owner: string | undefined;
 let loading: Promise<void> | undefined;
@@ -57,6 +62,7 @@ function ownedBy(session: DoctorSession): void {
   owner = session.doctor.id;
   loading = undefined;
   setDrafts([]);
+  setPlans(new Map());
 }
 
 function sorted(list: readonly NewPatientDraft[]): readonly NewPatientDraft[] {
@@ -85,6 +91,14 @@ export function loadNewPatientDrafts(session: DoctorSession): Promise<void> {
       const current = drafts();
       const known = new Set(current.map((draft) => draft.id));
       setDrafts(sorted([...current, ...kept.filter((draft) => !known.has(draft.id))]));
+      const stored = JSON.parse(text) as Partial<Stored>;
+      if (stored.v === 1 && Array.isArray(stored.plans)) {
+        const keptPlans = stored.plans.filter(
+          (item): item is readonly [string, DictatedPlan] =>
+            Array.isArray(item) && typeof item[0] === 'string' && Array.isArray(item[1]?.rows),
+        );
+        setPlans((currentPlans) => new Map([...keptPlans, ...currentPlans]));
+      }
     })
     .catch((cause: unknown) => {
       console.warn('Дневники: черновики пациентов не открылись', cause);
@@ -103,7 +117,7 @@ function write(session: DoctorSession): void {
     writeAgain = true;
     return;
   }
-  const text = JSON.stringify({ v: 1, drafts: drafts() } satisfies Stored);
+  const text = JSON.stringify({ v: 1, drafts: drafts(), plans: [...plans()] } satisfies Stored);
   writing = keepNewPatientDrafts(session, text)
     .catch((cause: unknown) => {
       console.warn('Дневники: черновик пациента не сохранён', cause);
@@ -143,6 +157,26 @@ function persist(session: DoctorSession): void {
 
 export function newPatientDraft(id: string | undefined): NewPatientDraft | undefined {
   return id ? drafts().find((draft) => draft.id === id) : undefined;
+}
+
+export function patientPlanDraft(
+  session: DoctorSession,
+  patientId: string,
+): DictatedPlan | undefined {
+  return owner === session.doctor.id ? plans().get(patientId) : undefined;
+}
+
+export function keepPatientPlanDraft(
+  session: DoctorSession,
+  patientId: string,
+  draft?: DictatedPlan,
+): void {
+  ownedBy(session);
+  const next = new Map(plans());
+  if (draft) next.set(patientId, draft);
+  else next.delete(patientId);
+  setPlans(next);
+  persist(session);
 }
 
 export function newPatientDraftId(): string {

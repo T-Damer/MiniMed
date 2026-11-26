@@ -43,6 +43,7 @@ test('the next visit is above the day with a call, and a lab result is typed in'
   page,
 }) => {
   await page.goto(await testInvitationLink(visitInvitation()));
+  await page.getByRole('button', { name: 'План', exact: true }).click();
   const visit = page.getByRole('region', { name: 'Приём у врача' });
   await expect(visit).toContainText('Завтра у вас приём в 14:30');
   await expect(visit).toContainText('Кабинет 214');

@@ -37,7 +37,7 @@ export function SheetPopover(props: {
   readonly contentClass: string;
   readonly contentRef?: (element: HTMLElement) => void;
   readonly onOpenAutoFocus?: (event: Event) => void;
-  readonly placement?: 'bottom-start' | 'bottom-end';
+  readonly placement?: 'bottom-start' | 'bottom-end' | 'top-start';
   readonly children: JSX.Element;
 }): JSX.Element {
   const narrow = useNarrowViewport();

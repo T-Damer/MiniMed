@@ -101,7 +101,11 @@ test.describe('joining documents on a diary link', () => {
     await expect(first).toHaveAttribute('aria-pressed', 'false');
 
     await acceptDocuments(page);
-    await expect(page.locator('.care-row').filter({ hasText: 'Сертралин' })).toBeVisible();
+    await page.getByRole('button', { name: 'План', exact: true }).click();
+    const plan = page.getByRole('dialog', { name: 'План' });
+    await expect(plan).toContainText('Сертралин');
+    await page.keyboard.press('Escape');
+    await expect(plan).toHaveCount(0);
 
     // Each document is kept with its wording and time; the diary starts at the last one.
     const meta = await page.evaluate(() =>
@@ -120,14 +124,11 @@ test.describe('joining documents on a diary link', () => {
         .at(-1),
     );
 
-    // Accepted once: the diary opens straight away next time, and the texts stay in «Ещё».
+    // Accepted once: the diary opens straight away next time, with the texts in Settings.
     await page.reload();
-    await expect(page.locator('.care-row').filter({ hasText: 'Сертралин' })).toBeVisible();
+    await expect(page.getByRole('log', { name: 'Сообщения', exact: true })).toBeVisible();
     await expect(page.locator('.consent-doc')).toHaveCount(0);
-    await page
-      .getByRole('navigation', { name: 'Дневник' })
-      .getByRole('button', { name: 'Настройки', exact: true })
-      .click();
+    await page.getByRole('button', { name: 'Настройки', exact: true }).click();
     await page.getByRole('button', { name: 'Принятые документы' }).click();
     const record = page.getByTestId('consent-record');
     await expect(record.locator('.consent-record__item')).toHaveCount(3);
@@ -225,6 +226,8 @@ test.describe('joining documents on a connected diary', () => {
     await doctor.getByRole('button', { name: 'Новый пациент' }).first().click();
     await doctor.getByLabel('Имя или псевдоним').fill('Лиса');
     await doctor.getByRole('button', { name: 'Добавить пациента' }).click();
+    await doctor.getByRole('button', { name: 'Ещё', exact: true }).click();
+    await doctor.getByRole('menuitem', { name: 'QR-код и ссылка для пациента' }).click();
     const copy = doctor.getByRole('button', { name: 'Копировать ссылку' });
     await expect(copy).toBeEnabled({ timeout: 60_000 });
     await copy.click();
@@ -256,7 +259,6 @@ test.describe('joining documents on a connected diary', () => {
 
     // Paired, not yet accepted: the doctor waits, and nothing was sent from the phone.
     await doctor.getByRole('button', { name: 'Готово' }).click();
-    await doctor.getByText('Лиса').first().click();
     await expect(doctor.getByTestId('patient-consent')).toHaveText('Документы ещё не приняты', {
       timeout: 60_000,
     });

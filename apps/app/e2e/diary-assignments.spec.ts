@@ -75,6 +75,7 @@ test('the patient fills an assigned worksheet; a recording stays on the phone', 
     }
   });
   await page.goto(await testInvitationLink(thoughtRecordDiary()));
+  await page.getByRole('button', { name: 'План', exact: true }).click();
 
   await expect(page.getByRole('heading', { name: 'Задания' })).toBeVisible();
   const row = page.locator('.care-row').filter({ hasText: 'Запись мыслей' });
@@ -87,15 +88,17 @@ test('the patient fills an assigned worksheet; a recording stays on the phone', 
   await expect(sheet.getByText(/запись остаётся на телефоне/u)).toBeVisible();
   // The basic version: three columns and the strength, no «Доводы против».
   const labels = sheet.locator('.worksheet-fill__label');
-  await expect(labels.filter({ hasText: /^Автоматическая мысль$/u })).toBeVisible();
-  await expect(labels.filter({ hasText: /^Доводы против$/u })).toHaveCount(0);
+  await expect(labels.filter({ hasText: /^Какая мысль пришла вам в голову\?$/u })).toBeVisible();
+  await expect(labels.filter({ hasText: /^Что говорит против этой мысли\?$/u })).toHaveCount(0);
   // A field's «?» opens its plain explanation.
   await sheet.getByRole('button', { name: 'Что значит «Ситуация»' }).click();
   await expect(sheet.locator('.worksheet-fill__hint').first()).toBeVisible();
   await shot(page, 'patient-sheet');
 
   // Dictating: the recording is kept on this phone; without the model nothing is sent anywhere.
-  await sheet.getByRole('button', { name: 'Сказать голосом: Ситуация' }).click();
+  await sheet
+    .getByRole('button', { name: 'Сказать голосом: Что произошло? Опишите ситуацию' })
+    .click();
   await expect(sheet.getByRole('status').filter({ hasText: 'Говорите' })).toBeVisible();
   await page.waitForTimeout(1200);
   await sheet.getByRole('button', { name: 'Остановить запись' }).click();
@@ -115,10 +118,12 @@ test('the patient fills an assigned worksheet; a recording stays on the phone', 
   );
   expect(clips).toBe(1);
 
-  await sheet.getByLabel('Ситуация', { exact: true }).fill('Начальник попросил зайти');
-  await sheet.getByLabel('Эмоция', { exact: true }).fill('тревога');
-  await sheet.getByLabel('Сила эмоции, от 0 до 100').fill('70');
-  await sheet.getByLabel('Автоматическая мысль', { exact: true }).fill('Меня уволят');
+  await sheet
+    .getByLabel('Что произошло? Опишите ситуацию', { exact: true })
+    .fill('Начальник попросил зайти');
+  await sheet.getByLabel('Что вы почувствовали?', { exact: true }).fill('тревога');
+  await sheet.getByLabel('Насколько сильным было это чувство?, от 0 до 100').fill('70');
+  await sheet.getByLabel('Какая мысль пришла вам в голову?', { exact: true }).fill('Меня уволят');
   await sheet.getByRole('button', { name: 'Сохранить' }).click();
   await expect(sheet).toHaveCount(0);
   await expect(row).toContainText('1 запись');
@@ -127,7 +132,7 @@ test('the patient fills an assigned worksheet; a recording stays on the phone', 
 
   // The entry opens again with what was written.
   await page.locator('.care-note').filter({ hasText: 'Начальник попросил зайти' }).click();
-  await expect(sheet.getByLabel('Автоматическая мысль', { exact: true })).toHaveValue(
+  await expect(sheet.getByLabel('Какая мысль пришла вам в голову?', { exact: true })).toHaveValue(
     'Меня уволят',
   );
   expect(outgoing).toEqual([]);
@@ -186,6 +191,10 @@ test.describe('the doctor', () => {
     await page.getByRole('button', { name: 'Демо — без регистрации' }).click();
     await expect(page.locator('.diary-dash-row')).toHaveCount(4, { timeout: 120_000 });
     await page.locator('.diary-dash-row').filter({ hasText: 'Лиса' }).click();
+    const chat = page.getByRole('log', { name: 'Сообщения и отметки' });
+    await expect(chat).toContainText('Отчёт');
+    await expect(chat).toContainText('Запись мыслей');
+    await page.getByRole('button', { name: 'Мониторинг', exact: true }).click();
 
     const tasks = page.getByRole('region', { name: 'Задания' });
     await expect(tasks).toContainText('Запись мыслей');

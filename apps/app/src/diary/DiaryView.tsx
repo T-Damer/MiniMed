@@ -1,4 +1,5 @@
 import {
+  createEffect,
   createMemo,
   createSignal,
   type JSX,
@@ -8,18 +9,17 @@ import {
   Show,
   Switch,
 } from 'solid-js';
-import { Portal } from 'solid-js/web';
 import { PAGE_HEROES } from '@/app/page-heroes';
-import type { NavItem } from '@/app/root-view';
-import { useBottomNav } from '@/app/use-bottom-nav';
-import { BottomNav } from '@/components/BottomNav';
+import { AppGlyph } from '@/components/AppGlyph';
 import type { HeaderAction } from '@/components/HeaderActions';
+import { CompanionIdentity, createCompanionSession } from '@/diary/CompanionChat';
 import { CarerNameSheet, DiaryAccess } from '@/diary/DiaryAccess';
 import { DiaryEntryForm } from '@/diary/DiaryEntryForm';
 import { DiaryHome, type SavedEntry } from '@/diary/DiaryHome';
-import { DiaryMore } from '@/diary/DiaryMore';
+import { DiaryHelp, DiaryMore } from '@/diary/DiaryMore';
 import { DiaryRecords } from '@/diary/DiaryRecords';
 import { DiarySend } from '@/diary/DiarySend';
+import { DiarySheet } from '@/diary/DiarySheet';
 import { DiaryToday } from '@/diary/DiaryToday';
 import { whenLabel } from '@/diary/diary-home';
 import { ScreenHeader } from '@/diary/diary-ui';
@@ -29,14 +29,22 @@ import { syncNeedsAction, syncWords } from '@/diary/sync-words';
 import { withMedHistory } from '@/features/diary/diary-med-history';
 import '@/diary/carer.css';
 import { markAuthor, markLine } from '@/features/diary/connected/carer';
+import type { DiaryChatMessage } from '@/features/diary/connected/diary-chat';
+import type { MediaOffer } from '@/features/diary/connected/media-signaling';
 import {
   isConnectedDiary,
   PatientConnection,
   type ReminderSettings,
   type SyncStatus,
 } from '@/features/diary/connected/patient-connection';
-import { acceptedAt, diaryOperator } from '@/features/diary/consent/joining-documents';
+import {
+  acceptedAll,
+  acceptedAt,
+  diaryOperator,
+  joiningDocuments,
+} from '@/features/diary/consent/joining-documents';
 import { studyAnswer, studyConsentStatus } from '@/features/diary/consent/study-consent';
+import { dayKey } from '@/features/diary/diary-care';
 import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
 import { markAllSent, shareStatus } from '@/features/diary/diary-merge';
 import {
@@ -58,10 +66,28 @@ const SYNC_DELAY_MS = 800;
 const SYNC_INTERVAL_MS = 60_000;
 
 /** The steps of one diary. «home» is the page the patient lands on; the others are one tap away. */
-export type DiaryScreen = 'home' | 'entry' | 'records' | 'send' | 'more';
+export type DiaryScreen =
+  | 'home'
+  | 'plan'
+  | 'calendar'
+  | 'entry'
+  | 'records'
+  | 'send'
+  | 'more'
+  | 'companion';
 
-const SCREENS: readonly DiaryScreen[] = ['home', 'entry', 'records', 'send', 'more'];
+const SCREENS: readonly DiaryScreen[] = [
+  'home',
+  'plan',
+  'calendar',
+  'entry',
+  'records',
+  'send',
+  'more',
+  'companion',
+];
 const HISTORY_KEY = 'diaryScreen';
+const NESTED_PARENT_KEY = 'diaryNestedParent';
 
 function errorMessage(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
@@ -86,10 +112,10 @@ function requestPersistentStorage(): void {
   void navigator.storage?.persist?.().catch(() => false);
 }
 
-function screenFromHistory(): DiaryScreen {
+function screenFromHistory(fallback: DiaryScreen = 'home'): DiaryScreen {
   const state = window.history.state as Record<string, unknown> | null;
   const value = state?.[HISTORY_KEY];
-  return SCREENS.find((screen) => screen === value) ?? 'home';
+  return SCREENS.find((screen) => screen === value) ?? fallback;
 }
 
 function EntryPage(props: {
@@ -138,19 +164,31 @@ export function DiaryView(props: {
   readonly onBack: () => void;
   readonly onOpened: (opened: DiaryOpenResult) => void;
 }): JSX.Element {
+  const companionSession = createCompanionSession(props.initial.invitation.id);
+  const [mediaOffer, setMediaOffer] = createSignal<MediaOffer>();
+  const [doctorMessages, setDoctorMessages] = createSignal<readonly DiaryChatMessage[]>([]);
   const [results, setResults] = createSignal<DiaryResults>(props.initial);
   const [sent, setSent] = createSignal(props.store.meta(props.initial.invitation.id).sent);
   const [meta, setMeta] = createSignal(props.store.meta(props.initial.invitation.id));
+  const chatPlanChanges = createMemo(() => {
+    const { chatPlanChanges, planChange } = meta();
+    return chatPlanChanges ?? (planChange ? [planChange] : undefined);
+  });
   const [error, setError] = createSignal('');
   const [notice, setNotice] = createSignal(props.notice);
   const [saved, setSaved] = createSignal<SavedEntry | undefined>(undefined);
-  const [screen, setScreen] = createSignal<DiaryScreen>(props.initialScreen ?? 'home');
+  let baseScreen: DiaryScreen = isCareDiary(props.initial.invitation) ? 'plan' : 'home';
+  const [screen, setScreen] = createSignal<DiaryScreen>(props.initialScreen ?? baseScreen);
+  const [chatPrimary, setChatPrimary] = createSignal(false);
+  const [settingsHelp, setSettingsHelp] = createSignal(false);
   const [editing, setEditing] = createSignal<DiaryEntry | undefined>(undefined);
   // Where «Сохранить» and «Отмена» of the entry form return to.
   const [returnTo, setReturnTo] = createSignal<'home' | 'records'>('home');
   const invitation = () => results().invitation;
   // A step was added to the browser's history by this page: going home pops it again.
   let pushed = false;
+  let nestedParent: 'plan' | 'more' | undefined;
+  let afterNestedBack: DiaryScreen | undefined;
 
   // Connected diary (ADR-0026): marks go to the doctor by themselves whenever there is a network.
   const [connection, setConnection] = createSignal<PatientConnection | undefined>(undefined);
@@ -209,6 +247,8 @@ export function DiaryView(props: {
       props.onBack();
       return;
     }
+    setMediaOffer(connection()?.mediaOffer());
+    setDoctorMessages(connection()?.chatMessages() ?? []);
     setSync(status);
     reload();
   };
@@ -262,7 +302,32 @@ export function DiaryView(props: {
   const navigate = (next: DiaryScreen): void => {
     setError('');
     if (next !== 'home') setEditTarget(undefined);
-    if (next === 'home') {
+    if (nestedParent && next !== screen()) {
+      if (next === baseScreen) window.history.go(-2);
+      else {
+        afterNestedBack = next === nestedParent ? undefined : next;
+        window.history.back();
+      }
+      return;
+    }
+    const parent =
+      screen() === 'plan' && next === 'calendar'
+        ? 'plan'
+        : screen() === 'more' && (next === 'records' || next === 'send')
+          ? 'more'
+          : undefined;
+    if (pushed && parent) {
+      window.history.pushState(
+        { [HISTORY_KEY]: next, [NESTED_PARENT_KEY]: parent },
+        '',
+        window.location.href,
+      );
+      nestedParent = parent;
+      setScreen(next);
+      window.scrollTo(0, 0);
+      return;
+    }
+    if (next === baseScreen) {
       if (pushed) {
         // Back first; the popstate brings the home in. Rendering it now would let a sheet it opens
         // on mount push its history layer before this back, which would then pop that layer.
@@ -270,9 +335,9 @@ export function DiaryView(props: {
         window.history.back();
         return;
       }
-      setScreen('home');
+      setScreen(baseScreen);
     } else {
-      if (!pushed && screen() === 'home') {
+      if (!pushed) {
         window.history.pushState({ [HISTORY_KEY]: next }, '', window.location.href);
         pushed = true;
       } else if (pushed) {
@@ -286,17 +351,24 @@ export function DiaryView(props: {
   onMount(() => {
     // A reload leaves the step of the last visit in the history entry; this page starts at the
     // home (or at the step it was asked for), so that stale mark must not survive.
-    if (screenFromHistory() !== 'home') {
+    if (window.history.state?.[HISTORY_KEY] !== undefined || window.history.state?.diarySheet) {
       window.history.replaceState(null, '', window.location.href);
     }
     props.store.setMeta(invitation().id, { lastOpenedAt: new Date().toISOString() });
     props.store.setUi({ lastOpenedId: invitation().id });
     const onPop = (): void => {
-      const next = screenFromHistory();
-      pushed = next !== 'home';
+      const next = screenFromHistory(baseScreen);
+      pushed = next !== baseScreen;
+      const parent: unknown = window.history.state?.[NESTED_PARENT_KEY];
+      nestedParent = parent === 'plan' || parent === 'more' ? parent : undefined;
       setError('');
       setScreen(next);
       window.scrollTo(0, 0);
+      if (afterNestedBack) {
+        const target = afterNestedBack;
+        afterNestedBack = undefined;
+        navigate(target);
+      }
     };
     window.addEventListener('popstate', onPop);
     onCleanup(() => window.removeEventListener('popstate', onPop));
@@ -309,6 +381,25 @@ export function DiaryView(props: {
     scheduleSync();
   };
 
+  let openedChat = false;
+  createEffect(() => {
+    if (
+      openedChat ||
+      !isCareDiary(invitation()) ||
+      carer() ||
+      (sync() && !connection()) ||
+      (invitation().consent && !consentAt())
+    )
+      return;
+    openedChat = true;
+    if (pushed) return;
+    baseScreen = 'companion';
+    setChatPrimary(true);
+    const initial = props.initialScreen;
+    if (initial && initial !== 'companion') navigate(initial);
+    else setScreen('companion');
+  });
+
   const status = () => shareStatus(results().entries, sent());
 
   const startEntry = (entry: DiaryEntry | undefined, from: 'home' | 'records'): void => {
@@ -317,6 +408,7 @@ export function DiaryView(props: {
       // Marks of a care diary are made on its day page, one sheet per intake or checkpoint:
       // «Изменить» in «Записи» opens that entry's sheet there.
       setEditTarget(entry);
+      setSelectedDay(undefined);
       navigate('home');
       return;
     }
@@ -325,38 +417,57 @@ export function DiaryView(props: {
     navigate('entry');
   };
 
-  // The patient's tab bar (owner 2026-10-28: the main app's bar): a care diary's own pages.
-  type Tab = Exclude<DiaryScreen, 'entry'>;
   const tabbed = (): boolean => isCareDiary(invitation());
-  const tabs = createMemo((): readonly NavItem<Tab>[] => [
-    { id: 'home', label: 'Сегодня', icon: 'calendar' },
-    { id: 'records', label: 'Записи', icon: 'check' },
-    // A connected diary sends by itself; a QR diary is handed over before the visit.
-    ...(sync() ? [] : [{ id: 'send' as const, label: 'Врачу', icon: 'share' as const }]),
-    { id: 'more', label: 'Настройки', icon: 'system' },
-  ]);
-  const tabNav = useBottomNav<Tab>({
-    view: () => (screen() === 'entry' ? 'home' : screen()) as Tab,
-    items: tabs,
-    navigate: (next) => {
-      setSaved(undefined);
-      navigate(next);
-    },
-    enabled: () => tabbed() && screen() !== 'entry',
-  });
+  const [selectedDay, setSelectedDay] = createSignal<string>();
 
   // The day page's sheets, opened from the header and from «Записи».
-  let openers:
-    | {
-        readonly openContacts: () => void;
-        readonly openCrisis: () => void;
-        readonly openEntry: (entry: DiaryEntry) => void;
-      }
-    | undefined;
+  type DayControls = {
+    readonly openContacts: () => void;
+    readonly openCrisis: () => void;
+    readonly openEntry: (entry: DiaryEntry) => void;
+  };
+  let chatOpeners: DayControls | undefined;
+  let dayOpeners: DayControls | undefined;
   const [editTarget, setEditTarget] = createSignal<DiaryEntry | undefined>(undefined);
-  const homeActions = createMemo((): readonly HeaderAction[] => {
+  const homeActions = (view: DiaryScreen): readonly HeaderAction[] => {
     const current = sync();
     return [
+      ...(view === 'companion' || (!chatPrimary() && view === 'plan')
+        ? [
+            ...(view === 'companion'
+              ? [
+                  {
+                    id: 'plan',
+                    label: 'План',
+                    icon: 'list-checks' as const,
+                    priority: 1 as const,
+                    onSelect: () => navigate('plan'),
+                  },
+                ]
+              : []),
+            {
+              id: 'settings',
+              label: 'Настройки',
+              icon: 'system' as const,
+              priority: 1 as const,
+              onSelect: () => navigate('more'),
+            },
+          ]
+        : []),
+      ...(view === 'plan'
+        ? [
+            {
+              id: 'calendar',
+              label: 'Календарь',
+              icon: 'calendar' as const,
+              priority: 1 as const,
+              onSelect: () => {
+                setSelectedDay(undefined);
+                navigate('calendar');
+              },
+            },
+          ]
+        : []),
       ...(current && syncNeedsAction(current)
         ? [
             {
@@ -364,6 +475,7 @@ export function DiaryView(props: {
               label: 'Отправить врачу сейчас',
               icon: 'refresh' as const,
               priority: 2 as const,
+              menuOnly: view === 'companion',
               disabled: current.phase === 'syncing',
               onSelect: () => void runSync(),
             },
@@ -376,7 +488,8 @@ export function DiaryView(props: {
               label: 'Связаться с врачом',
               icon: 'phone' as const,
               priority: 2 as const,
-              onSelect: () => openers?.openContacts(),
+              menuOnly: view === 'companion',
+              onSelect: () => (view === 'companion' ? chatOpeners : dayOpeners)?.openContacts(),
             },
           ]
         : []),
@@ -386,10 +499,11 @@ export function DiaryView(props: {
         icon: 'lifebuoy' as const,
         priority: 1 as const,
         danger: true,
-        onSelect: () => openers?.openCrisis(),
+        menuOnly: view === 'companion',
+        onSelect: () => (view === 'companion' ? chatOpeners : dayOpeners)?.openCrisis(),
       },
     ];
-  });
+  };
   const homeLine = (): string | undefined => {
     const current = sync();
     const parts = [
@@ -455,208 +569,369 @@ export function DiaryView(props: {
     setSent(next);
   };
 
-  return (
-    <>
-      <Switch>
-        <Match when={screen() === 'entry'}>
-          <EntryPage
-            invitation={invitation()}
-            entry={editing()}
-            backLabel={returnTo() === 'records' ? 'Мои записи' : 'На главную'}
-            onSave={save}
-            onLeave={() => navigate(returnTo())}
-          />
-        </Match>
-        <Match when={screen() === 'records'}>
-          <DiaryRecords
-            results={results()}
-            sent={sent()}
-            saved={saved()}
-            error={error()}
-            onBack={
-              tabbed()
-                ? undefined
-                : () => {
-                    setSaved(undefined);
-                    navigate('home');
-                  }
-            }
-            tabbed={tabbed()}
-            connected={sync() !== undefined}
-            removed={meta().removedByDoctor}
-            markedBy={markedBy}
-            onWrite={() => startEntry(undefined, 'records')}
-            onSend={() => navigate('send')}
-            onEdit={(entry) => startEntry(entry, 'records')}
-            onDelete={remove}
-          />
-        </Match>
-        <Match when={screen() === 'send'}>
-          <DiarySend
-            results={results()}
-            status={status()}
-            onSent={confirmSent}
-            tabbed={tabbed()}
-            onBack={() => navigate('home')}
-            onWrite={() => startEntry(undefined, 'home')}
-          />
-        </Match>
-        <Match when={screen() === 'more'}>
-          <DiaryMore
-            store={props.store}
-            entries={results().entries.length}
-            onBack={tabbed() ? undefined : () => navigate('home')}
-            hasOtherDiaries={props.hasOtherDiaries}
-            onPrint={() =>
-              printHtmlInFrame(
-                diaryPrintHtml(invitation(), results().entries, 10, {
-                  medHistory: results().medHistory ?? [],
-                }),
-              )
-            }
-            onFhir={() => downloadFhir(results())}
-            medHistory={{
-              items: results().medHistory ?? [],
-              author: carer() ? 'carer' : 'patient',
-              onSave: (item) =>
-                commit(
-                  withMedHistory(results(), [
-                    ...(results().medHistory ?? []).filter((known) => known.id !== item.id),
-                    item,
-                  ]),
+  const renderScreen = (shown: () => DiaryScreen): JSX.Element => (
+    <Switch>
+      <Match when={shown() === 'entry'}>
+        <EntryPage
+          invitation={invitation()}
+          entry={editing()}
+          backLabel={returnTo() === 'records' ? 'Мои записи' : 'На главную'}
+          onSave={save}
+          onLeave={() => navigate(returnTo())}
+        />
+      </Match>
+      <Match when={shown() === 'records'}>
+        <DiaryRecords
+          results={results()}
+          sent={sent()}
+          saved={saved()}
+          error={error()}
+          onBack={() => {
+            setSaved(undefined);
+            navigate(tabbed() ? 'more' : 'home');
+          }}
+          tabbed={tabbed()}
+          connected={sync() !== undefined}
+          removed={meta().removedByDoctor}
+          markedBy={markedBy}
+          onWrite={() => startEntry(undefined, 'records')}
+          onSend={() => navigate('send')}
+          onEdit={(entry) => startEntry(entry, 'records')}
+          onDelete={remove}
+        />
+      </Match>
+      <Match when={shown() === 'send'}>
+        <DiarySend
+          results={results()}
+          status={status()}
+          onSent={confirmSent}
+          tabbed={tabbed()}
+          onBack={() => navigate(tabbed() ? 'more' : 'home')}
+          onWrite={() => startEntry(undefined, 'home')}
+        />
+      </Match>
+      <Match when={shown() === 'more'}>
+        <DiaryMore
+          store={props.store}
+          entries={results().entries.length}
+          onRecords={tabbed() ? () => navigate('records') : undefined}
+          onSend={tabbed() && !sync() ? () => navigate('send') : undefined}
+          onBack={
+            tabbed() ? (chatPrimary() ? undefined : () => navigate('plan')) : () => navigate('home')
+          }
+          hasOtherDiaries={props.hasOtherDiaries}
+          onPrint={() =>
+            printHtmlInFrame(
+              diaryPrintHtml(invitation(), results().entries, 10, {
+                medHistory: results().medHistory ?? [],
+              }),
+            )
+          }
+          onFhir={() => downloadFhir(results())}
+          medHistory={{
+            items: results().medHistory ?? [],
+            author: carer() ? 'carer' : 'patient',
+            onSave: (item) =>
+              commit(
+                withMedHistory(results(), [
+                  ...(results().medHistory ?? []).filter((known) => known.id !== item.id),
+                  item,
+                ]),
+              ),
+            onDelete: (id) =>
+              commit(
+                withMedHistory(
+                  results(),
+                  (results().medHistory ?? []).filter((known) => known.id !== id),
                 ),
-              onDelete: (id) =>
-                commit(
-                  withMedHistory(
-                    results(),
-                    (results().medHistory ?? []).filter((known) => known.id !== id),
-                  ),
-                ),
-            }}
-            consents={
-              meta().consents?.length
-                ? { accepted: meta().consents ?? [], operator: diaryOperator(invitation()) }
-                : undefined
-            }
-            study={
-              study() && consentAt()
-                ? { status: studyStatus(), onOpen: () => setStudyOpen(true) }
-                : undefined
-            }
-            onRestored={(id) => {
-              if (id === invitation().id) setResults(props.store.read(id) ?? results());
-            }}
-            onOpened={props.onOpened}
-            onList={props.onBack}
-            onEnablePush={
-              connection()
-                ? async () => {
-                    const state = await (connection() as PatientConnection).enablePush();
-                    setReminders(connection()?.reminderSettings());
-                    return state;
-                  }
-                : undefined
-            }
-            pushOn={typeof Notification !== 'undefined' && Notification.permission === 'granted'}
-            reminders={reminders()}
-            onReminders={(patch) => {
-              const current = connection();
-              if (!current) return;
-              void current.setReminders(patch).then(setSync);
-              setReminders(current.reminderSettings());
-            }}
-            onWithdraw={
-              connection() && !carer()
-                ? async () => {
-                    await connection()?.withdraw();
-                    props.onBack();
-                  }
-                : undefined
-            }
-            access={
-              connection() ? (
-                <DiaryAccess
-                  connection={connection() as PatientConnection}
-                  revision={people()}
-                  onChanged={() => void runSync()}
-                  onLeft={props.onBack}
-                />
-              ) : undefined
-            }
-          />
-        </Match>
-        <Match when={screen() === 'home' && isCareDiary(invitation())}>
-          <DiaryToday
-            header={
-              <>
-                <ScreenHeader
-                  title={invitation().title}
-                  subtitle={homeLine()}
-                  backLabel="Мои дневники"
-                  onBack={props.hasOtherDiaries ? props.onBack : undefined}
-                  headerActions={homeActions()}
-                  hero={PAGE_HEROES.diaryToday}
-                />
+              ),
+          }}
+          consents={
+            meta().consents?.length
+              ? { accepted: meta().consents ?? [], operator: diaryOperator(invitation()) }
+              : undefined
+          }
+          study={
+            study() && consentAt()
+              ? { status: studyStatus(), onOpen: () => setStudyOpen(true) }
+              : undefined
+          }
+          onRestored={(id) => {
+            if (id === invitation().id) setResults(props.store.read(id) ?? results());
+          }}
+          onOpened={props.onOpened}
+          onList={props.onBack}
+          onEnablePush={
+            connection()
+              ? async () => {
+                  const state = await (connection() as PatientConnection).enablePush();
+                  setReminders(connection()?.reminderSettings());
+                  return state;
+                }
+              : undefined
+          }
+          pushOn={typeof Notification !== 'undefined' && Notification.permission === 'granted'}
+          reminders={reminders()}
+          onReminders={(patch) => {
+            const current = connection();
+            if (!current) return;
+            void current.setReminders(patch).then(setSync);
+            setReminders(current.reminderSettings());
+          }}
+          onWithdraw={
+            connection() && !carer()
+              ? async () => {
+                  await connection()?.withdraw();
+                  props.onBack();
+                }
+              : undefined
+          }
+          access={
+            connection() ? (
+              <DiaryAccess
+                connection={connection() as PatientConnection}
+                revision={people()}
+                onChanged={() => void runSync()}
+                onLeft={props.onBack}
+              />
+            ) : undefined
+          }
+        />
+      </Match>
+      <Match
+        when={
+          (shown() === 'home' ||
+            shown() === 'plan' ||
+            shown() === 'calendar' ||
+            shown() === 'companion') &&
+          isCareDiary(invitation())
+            ? shown()
+            : undefined
+        }
+        keyed
+      >
+        <DiaryToday
+          header={
+            <>
+              <ScreenHeader
+                title={
+                  shown() === 'companion'
+                    ? 'Чат'
+                    : shown() === 'calendar'
+                      ? 'Календарь'
+                      : shown() === 'plan'
+                        ? 'Назначения'
+                        : selectedDay() && selectedDay() !== dayKey(new Date())
+                          ? 'День'
+                          : 'Сегодня'
+                }
+                titleContent={
+                  shown() === 'companion' ? (
+                    <CompanionIdentity diaryId={invitation().id} />
+                  ) : undefined
+                }
+                subtitle={shown() === 'plan' || shown() === 'home' ? homeLine() : undefined}
+                backLabel={
+                  shown() === 'home' || shown() === 'calendar' ? 'Назначения' : 'Мои дневники'
+                }
+                onBack={
+                  shown() === 'home' || shown() === 'calendar'
+                    ? () => navigate('plan')
+                    : shown() === 'plan' && props.hasOtherDiaries
+                      ? props.onBack
+                      : undefined
+                }
+                headerActions={homeActions(shown())}
+                signum={shown() === 'companion' || !chatPrimary()}
+                hero={shown() === 'home' ? PAGE_HEROES.diaryToday : undefined}
+              />
+              <Show when={shown() === 'home'}>
                 <InstallWarning
                   store={props.store}
                   entries={results().entries.length}
                   connected={sync() !== undefined}
                 />
+              </Show>
+            </>
+          }
+          afterChecklist={
+            <Show when={shown() === 'plan'}>
+              <InstallWarning
+                store={props.store}
+                entries={results().entries.length}
+                connected={sync() !== undefined}
+              />
+            </Show>
+          }
+          studyCard={(() => {
+            const offered = study();
+            return offered && studyStatus().kind === 'unanswered' ? (
+              <StudyConsentCard study={offered} onOpen={() => setStudyOpen(true)} />
+            ) : undefined;
+          })()}
+          planMode={shown() === 'plan' ? 'today' : shown() === 'calendar' ? 'calendar' : undefined}
+          initialDay={shown() === 'home' || shown() === 'calendar' ? selectedDay() : undefined}
+          onDay={shown() === 'home' || shown() === 'calendar' ? setSelectedDay : undefined}
+          companion={shown() === 'companion'}
+          companionSession={companionSession}
+          mediaOffer={mediaOffer()}
+          mediaConnection={carer() ? undefined : connection()}
+          doctorMessages={doctorMessages()}
+          onDoctorMessage={
+            connection() && !carer()
+              ? async (id, text) => {
+                  const recipient = connection();
+                  if (!recipient) throw new Error('Дневник не подключён.');
+                  await recipient.sendChat(id, text);
+                  void runSync();
+                }
+              : undefined
+          }
+          onCloseCompanion={() => navigate('plan')}
+          results={results()}
+          status={status()}
+          consentAt={
+            shown() === 'companion' &&
+            invitation().consent &&
+            !acceptedAll(joiningDocuments(sync() !== undefined), meta().consents ?? [])
+              ? undefined
+              : consentAt()
+          }
+          existingConsents={meta().consents}
+          tipsRead={meta().tipsRead ?? []}
+          controls={(api) => {
+            if (shown() === 'companion') chatOpeners = api;
+            else dayOpeners = api;
+          }}
+          openOnMount={editTarget()}
+          onSave={saveCare}
+          onRemove={remove}
+          onConsent={(consents) =>
+            updateMeta({ consentAt: acceptedAt(consents) ?? new Date().toISOString(), consents })
+          }
+          onTipRead={(id) => updateMeta({ tipsRead: [...(meta().tipsRead ?? []), id] })}
+          sync={sync()}
+          notice={notice()}
+          onDismissNotice={() => setNotice(undefined)}
+          removed={meta().removedByDoctor}
+          planChange={chatPrimary() ? undefined : meta().planChange}
+          chatPlanChanges={chatPlanChanges()}
+          onDismissPlanChange={() => updateMeta({ planChange: undefined })}
+          onRequestHelp={
+            connection() && !carer()
+              ? async () => {
+                  const current = connection();
+                  if (!current) throw new Error('Дневник не подключён.');
+                  const next = await current.raiseAlert();
+                  setSync(next);
+                  return next;
+                }
+              : undefined
+          }
+          onUrgent={() => {
+            const current = connection();
+            if (current) void current.raiseAlert().then(setSync);
+          }}
+        />
+      </Match>
+      <Match when={shown() === 'home'}>
+        <DiaryHome
+          store={props.store}
+          results={results()}
+          status={status()}
+          notice={notice()}
+          saved={saved()}
+          error={error()}
+          hasOtherDiaries={props.hasOtherDiaries}
+          onWrite={() => startEntry(undefined, 'home')}
+          onRecords={() => {
+            setSaved(undefined);
+            navigate('records');
+          }}
+          onSend={() => navigate('send')}
+          onMore={() => navigate('more')}
+          onDismissNotice={() => setNotice(undefined)}
+          onList={props.onBack}
+        />
+      </Match>
+    </Switch>
+  );
+
+  const modalTitle = () => {
+    switch (screen()) {
+      case 'more':
+        return 'Настройки';
+      case 'records':
+        return 'Записи';
+      case 'send':
+        return 'Отправить врачу';
+      case 'calendar':
+        return 'Календарь';
+      default:
+        return 'План';
+    }
+  };
+
+  return (
+    <>
+      <Show when={chatPrimary()} fallback={renderScreen(screen)}>
+        <div inert={screen() !== 'companion'}>{renderScreen(() => 'companion')}</div>
+        <Show when={screen() !== 'companion'}>
+          <DiarySheet
+            tall
+            tracksHistory={false}
+            title={modalTitle()}
+            bodyClass="signum-route-modal__body"
+            headerStart={
+              <Show when={screen() === 'calendar' || screen() === 'records' || screen() === 'send'}>
+                <button
+                  type="button"
+                  class="diary-sheet__close"
+                  aria-label={screen() === 'calendar' ? 'План' : 'Настройки'}
+                  onClick={() => navigate(screen() === 'calendar' ? 'plan' : 'more')}
+                >
+                  <AppGlyph name="caret-left" class="diary-sheet__close-icon" />
+                </button>
+              </Show>
+            }
+            headerEnd={
+              <>
+                <Show when={screen() === 'plan'}>
+                  <button
+                    type="button"
+                    class="diary-sheet__close"
+                    aria-label="Календарь"
+                    onClick={() => {
+                      setSelectedDay(undefined);
+                      navigate('calendar');
+                    }}
+                  >
+                    <AppGlyph name="calendar" class="diary-sheet__close-icon" />
+                  </button>
+                </Show>
+                <Show when={screen() === 'more'}>
+                  <button
+                    type="button"
+                    class="diary-sheet__close"
+                    aria-label="Как пользоваться дневником"
+                    onClick={() => setSettingsHelp(true)}
+                  >
+                    <AppGlyph name="question" class="diary-sheet__close-icon" />
+                  </button>
+                </Show>
               </>
             }
-            studyCard={(() => {
-              const offered = study();
-              return offered && studyStatus().kind === 'unanswered' ? (
-                <StudyConsentCard study={offered} onOpen={() => setStudyOpen(true)} />
-              ) : undefined;
-            })()}
-            results={results()}
-            status={status()}
-            consentAt={consentAt()}
-            tipsRead={meta().tipsRead ?? []}
-            controls={(api) => {
-              openers = api;
-            }}
-            openOnMount={editTarget()}
-            onSave={saveCare}
-            onRemove={remove}
-            onConsent={(consents) =>
-              updateMeta({ consentAt: acceptedAt(consents) ?? new Date().toISOString(), consents })
-            }
-            onTipRead={(id) => updateMeta({ tipsRead: [...(meta().tipsRead ?? []), id] })}
-            sync={sync()}
-            notice={notice()}
-            onDismissNotice={() => setNotice(undefined)}
-            removed={meta().removedByDoctor}
-            planChange={meta().planChange}
-            onDismissPlanChange={() => updateMeta({ planChange: undefined })}
-            onUrgent={() => {
-              const current = connection();
-              if (current) void current.raiseAlert().then(setSync);
-            }}
-          />
-        </Match>
-        <Match when={screen() === 'home'}>
-          <DiaryHome
-            store={props.store}
-            results={results()}
-            status={status()}
-            notice={notice()}
-            saved={saved()}
-            error={error()}
-            hasOtherDiaries={props.hasOtherDiaries}
-            onWrite={() => startEntry(undefined, 'home')}
-            onRecords={() => {
-              setSaved(undefined);
-              navigate('records');
-            }}
-            onSend={() => navigate('send')}
-            onMore={() => navigate('more')}
-            onDismissNotice={() => setNotice(undefined)}
-            onList={props.onBack}
-          />
-        </Match>
-      </Switch>
+            onClose={() => navigate('companion')}
+          >
+            {renderScreen(screen)}
+          </DiarySheet>
+        </Show>
+      </Show>
+      <Show when={settingsHelp()}>
+        <DiarySheet title="Как пользоваться дневником" onClose={() => setSettingsHelp(false)}>
+          <DiaryHelp connected={sync() !== undefined} />
+        </DiarySheet>
+      </Show>
       <Show when={connection()?.kind === 'carer' && !connection()?.name && !namePutOff()}>
         <CarerNameSheet
           name=""
@@ -677,25 +952,6 @@ export function DiaryView(props: {
             onClose={() => setStudyOpen(false)}
           />
         )}
-      </Show>
-      <Show when={tabbed() && screen() !== 'entry' && (!invitation().consent || consentAt())}>
-        <Portal>
-          <BottomNav
-            view={() => (screen() === 'entry' ? 'home' : screen()) as Tab}
-            items={tabs}
-            label="Дневник"
-            dragIndex={tabNav.dragIndex}
-            dragging={tabNav.dragging}
-            pressed={tabNav.pressed}
-            bubbleStyle={tabNav.bubbleStyle}
-            bindNav={tabNav.bindNav}
-            onPointerDown={tabNav.handlePointerDown}
-            onPointerMove={tabNav.handlePointerMove}
-            onPointerUp={tabNav.handlePointerUp}
-            onPointerCancel={tabNav.handlePointerCancel}
-            onItemClick={tabNav.handleClick}
-          />
-        </Portal>
       </Show>
     </>
   );

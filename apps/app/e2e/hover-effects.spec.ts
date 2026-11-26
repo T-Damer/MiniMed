@@ -374,12 +374,15 @@ test.describe('patient diary', () => {
       contacts: [{ kind: 'phone', value: '+7 900 000-00-00', label: 'Регистратура' }],
     });
     await page.goto(await testInvitationLink(care));
-    const tabs = page.getByRole('navigation', { name: 'Дневник' });
-    await expect(tabs).toBeVisible();
-    await audit(page, 'care-today');
-    for (const tab of ['Записи', 'Врачу', 'Настройки']) {
-      await tabs.getByRole('button', { name: tab, exact: true }).click();
-      await audit(page, `care-${tab}`);
+    await expect(page.getByRole('log', { name: 'Сообщения' })).toBeVisible();
+    await audit(page, 'care-chat');
+    for (const name of ['План', 'Настройки']) {
+      await page.getByRole('button', { name, exact: true }).click();
+      const sheet = page.getByRole('dialog', { name, exact: true });
+      await expect(sheet).toBeVisible();
+      await audit(page, `care-${name}`);
+      await page.keyboard.press('Escape');
+      await expect(sheet).toHaveCount(0);
     }
   });
 });
@@ -444,6 +447,7 @@ test.describe('doctor diary demo', () => {
     await audit(page, 'doctor-list');
 
     await rows.first().locator('.diary-dash-row__open').click();
+    await page.getByRole('button', { name: 'Мониторинг', exact: true }).click();
     const overview = page.getByTestId('diary-overview');
     await expect(overview).toBeVisible({ timeout: 60_000 });
     await overview.getByRole('button', { name: /Статистика/u }).click();

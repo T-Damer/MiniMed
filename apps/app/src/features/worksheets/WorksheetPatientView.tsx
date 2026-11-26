@@ -163,7 +163,7 @@ export function WorksheetPatientView(props: {
                   id={`${idOf(field)}-label`}
                   for={idOf(field)}
                 >
-                  {field.label}
+                  {field.patientPrompt ?? field.label}
                 </label>
                 <Show when={field.patientHint}>
                   <span class="worksheet-patient__hint">{field.patientHint}</span>

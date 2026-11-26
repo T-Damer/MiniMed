@@ -1,6 +1,6 @@
 /**
  * Server settings from the environment. The decoy-salt secret and the VAPID keys are generated on
- * first start and kept in the database; the only secret read here is the optional tick token.
+ * first start and kept in the database. The scheduler token and TURN shared secret are optional.
  */
 import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -23,6 +23,7 @@ export interface ServerSettings {
   readonly tickToken: string | undefined;
   /** E-mails (lower case) of the service owner(s) who may open `GET /api/admin/stats`; none: nobody. */
   readonly adminEmails: readonly string[];
+  readonly mediaIce: { readonly urls: readonly string[]; readonly turnSecret: string | undefined };
 }
 
 export function readSettings(
@@ -47,6 +48,14 @@ export function readSettings(
       .filter(Boolean),
     ydb: env['DIARY_YDB'],
     tickToken: env['DIARY_TICK_TOKEN'] || undefined,
+    mediaIce: {
+      urls: (env['DIARY_MEDIA_ICE_URLS'] ?? '')
+        .split(/[,;]/u)
+        .map((url) => url.trim())
+        .filter((url) => /^(?:stuns?|turns?):[^\s]+$/u.test(url))
+        .slice(0, 4),
+      turnSecret: env['DIARY_MEDIA_TURN_SECRET'] || undefined,
+    },
     adminEmails: (env['DIARY_ADMIN_EMAILS'] ?? '')
       .split(/[,;]/u)
       .map((email) => email.trim().toLowerCase())

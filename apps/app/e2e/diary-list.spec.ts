@@ -124,6 +124,7 @@ test('a sheet that closes plays its exit instead of vanishing', async ({ page })
   await demo.click();
   await expect(page.locator('.diary-dash-row')).toHaveCount(4, { timeout: 120_000 });
   await page.locator('.diary-dash-row__open').first().click();
+  await page.getByRole('button', { name: 'Мониторинг', exact: true }).click();
   await expect(page.getByTestId('diary-overview')).toBeVisible({ timeout: 30_000 });
 
   await page.locator('.diary-heat__day--today').click();

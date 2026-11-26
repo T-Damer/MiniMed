@@ -86,9 +86,15 @@ test('«Демо» opens a seeded demo account whose demo patients stay, with in
   await expect(menu.getByRole('menuitem', { name: 'В архив' })).toHaveCount(0);
   await page.keyboard.press('Escape');
 
-  // The patient page leads with the week: rows that open their chart (owner 2026-11-03), no
-  // bare counters; the charts live on a page of their own.
+  // Marks and reports appear in chat. Weekly summaries and charts live in Monitoring.
   await first.click();
+  await expect(page.getByRole('log', { name: 'Сообщения и отметки' })).toBeVisible();
+  await page.getByRole('button', { name: 'Назначения', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Назначения', exact: true })).toBeVisible();
+  await expect(page.locator('.diary-thread__plan')).toContainText('Эсциталопрам');
+  await page.screenshot({ path: testInfo.outputPath('demo-plan.png') });
+  await page.getByRole('button', { name: 'К чату', exact: true }).click();
+  await page.getByRole('button', { name: 'Мониторинг', exact: true }).click();
   const overview = page.getByTestId('diary-overview');
   // Folded at first (DIARY21: the page fits one screen): its verdict in a line, rows one tap away.
   const fold = overview.getByRole('button', { name: /Статистика/u });
@@ -165,10 +171,12 @@ test('«Демо» opens a seeded demo account whose demo patients stay, with in
   await page.keyboard.press('Escape');
   await page.goBack();
   await page.goBack();
+  await page.goBack();
   await expect(rows).toHaveCount(4);
 
   // The fox marks substance use: its craving and amounts are signals and charts too.
   await rows.filter({ hasText: 'Лиса' }).locator('.diary-dash-row__open').click();
+  await page.getByRole('button', { name: 'Мониторинг', exact: true }).click();
   await expect(overview.locator('[data-signal="craving"]')).toBeVisible({ timeout: 30_000 });
   await overview.locator('[data-signal="craving"]').click();
   await expect(page.locator('#diary-chart-craving .diary-chart')).toBeVisible();
@@ -229,7 +237,7 @@ test('the demo links: the doctor’s opens registration with the demo button in 
 
   // The patient's QR code: a demo diary with history on this device, connected to the demo doctor.
   await page.goto(`${E2E_ASSET_ORIGIN}/diary/#demo`, { waitUntil: 'domcontentloaded' });
-  await expect(page.getByText(/Демо-дневник: две недели записей/u)).toBeVisible({
+  await expect(page.getByRole('log', { name: 'Сообщения', exact: true })).toBeVisible({
     timeout: 120_000,
   });
   await page.screenshot({ path: testInfo.outputPath('demo-link-patient.png') });

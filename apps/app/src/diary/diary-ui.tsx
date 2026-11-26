@@ -3,7 +3,7 @@ import { PAGE_HEROES } from '@/app/page-heroes';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
-import type { HeaderAction } from '@/components/HeaderActions';
+import type { HeaderAction, HeaderActionPriority } from '@/components/HeaderActions';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import type { PageHero } from '@/components/PageHero';
@@ -17,20 +17,24 @@ import type { SendTone } from '@/diary/diary-home';
  */
 export function ScreenHeader(props: {
   readonly title: string;
-  readonly subtitle?: string | undefined;
+  readonly titleContent?: JSX.Element;
+  readonly signum?: boolean;
+  readonly subtitle?: JSX.Element;
   readonly backLabel?: string;
   /** Absent on the screens the tab bar opens: they are not a step back from anything. */
   readonly onBack?: (() => void) | undefined;
   readonly headerActions?: readonly HeaderAction[] | undefined;
   readonly help?: JSX.Element;
+  readonly helpPriority?: HeaderActionPriority | undefined;
   readonly helpTitle?: string;
   /** The screen's band (`PAGE_HEROES`); inner screens get the plain band. */
   readonly hero?: PageHero | undefined;
 }): JSX.Element {
+  const hero = () => props.hero ?? PAGE_HEROES.diaryInner;
   return (
     <Page
       class="diary-screen"
-      hero={props.hero ?? PAGE_HEROES.diaryInner}
+      hero={props.signum ? { ...hero(), ambient: 'clouds' } : hero()}
       navigation={
         <Show when={props.onBack}>
           {(back) => (
@@ -42,10 +46,11 @@ export function ScreenHeader(props: {
           )}
         </Show>
       }
-      title={<Heading depth={1}>{props.title}</Heading>}
+      title={<Heading depth={1}>{props.titleContent ?? props.title}</Heading>}
       description={props.subtitle}
       headerActions={props.headerActions}
       help={props.help}
+      {...(props.helpPriority === undefined ? {} : { helpPriority: props.helpPriority })}
       {...(props.helpTitle ? { helpTitle: props.helpTitle } : {})}
     />
   );

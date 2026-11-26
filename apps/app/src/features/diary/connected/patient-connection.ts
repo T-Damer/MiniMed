@@ -36,7 +36,13 @@ import {
   isOffline,
 } from '@/features/diary/connected/diary-api';
 import {
+  type DiaryChatMessage,
+  mergeDiaryChat,
+  writeDiaryChat,
+} from '@/features/diary/connected/diary-chat';
+import {
   CONSENT_RECORD,
+  type DiaryRecordRevision,
   entryRecordId,
   PLAN_RECORD,
   tipReadRecordId,
@@ -47,16 +53,24 @@ import {
   type SessionState,
 } from '@/features/diary/connected/diary-session';
 import {
+  diaryMediaIce,
+  type MediaOffer,
+  pushMediaSignal,
+  readMediaSignal,
+} from '@/features/diary/connected/media-signaling';
+import {
   pendingReminderActions,
   writeReminderNotices,
 } from '@/features/diary/connected/reminder-cache';
 import {
-  JOINING_SET_VERSION,
+  type JoiningAcceptance,
+  joiningSetVersion,
   parseJoiningAcceptances,
 } from '@/features/diary/consent/joining-documents';
 import {
   laterStudyAnswer,
   parseStudyAnswer,
+  type StudyAnswer,
   studyAnswerFingerprint,
 } from '@/features/diary/consent/study-consent';
 import { CARE_DOSE_FIELD } from '@/features/diary/diary-care';
@@ -96,6 +110,14 @@ import {
 } from '@/features/diary/diary-storage';
 import { mergePlanChange, planChanges } from '@/features/diary/plan-changes';
 
+function consentFingerprint(
+  at: string | undefined,
+  documents: readonly JoiningAcceptance[] | undefined,
+  study: StudyAnswer | undefined,
+): string {
+  return JSON.stringify([at ?? '', documents ?? [], studyAnswerFingerprint(study)]);
+}
+
 const CONNECTION_PREFIX = 'minimed.diary.connection.v1.';
 /** `poll` mode (ADR-0027): how often an open diary reads its change counter. */
 const POLL_MS = 20_000;
@@ -121,6 +143,7 @@ interface StoredIdentity {
 }
 
 interface StoredConnection {
+  readonly chat?: readonly DiaryChatMessage[];
   readonly v: 1;
   readonly patientId: string;
   readonly deviceId: string;
@@ -239,7 +262,7 @@ function outbox(store: DiaryStore, connection: StoredConnection) {
   }
   // Consent is the patient's own: a carer's phone only reads it. The same record carries the
   // answer about the plan's study, so it is sent again when that answer changes.
-  const consentSent = studyAnswerFingerprint(meta.study);
+  const consentSent = consentFingerprint(meta.consentAt, meta.consents, meta.study);
   if (
     (meta.consentAt || meta.study) &&
     connection.synced[CONSENT_RECORD] !== consentSent &&
@@ -250,7 +273,7 @@ function outbox(store: DiaryStore, connection: StoredConnection) {
       payload: {
         kind: 'consent',
         at: meta.consentAt ?? meta.study?.at,
-        version: JOINING_SET_VERSION,
+        version: joiningSetVersion(meta.consents ?? []),
         documents: meta.consents ?? [],
         ...(meta.study ? { study: meta.study } : {}),
       },
@@ -282,6 +305,7 @@ function outbox(store: DiaryStore, connection: StoredConnection) {
 
 export class PatientConnection {
   private readonly api: DiaryApi;
+  private offeredMedia: MediaOffer | undefined;
   private running: Promise<SyncStatus> | undefined;
   /** Who has the diary may have changed (opened, or the service said so): read it with the next sync. */
   private peopleStale = true;
@@ -376,6 +400,59 @@ export class PatientConnection {
 
   get deviceId(): string {
     return this.connection.deviceId;
+  }
+
+  chatMessages(): readonly DiaryChatMessage[] {
+    return this.kind === 'patient' ? (this.connection.chat ?? []) : [];
+  }
+
+  async sendChat(recordId: string, text: string): Promise<void> {
+    if (this.kind !== 'patient' || this.connection.ended)
+      throw new DiaryApiError(403, 'Переписка недоступна.');
+    await writeDiaryChat(
+      this.api,
+      {
+        patientId: this.patientId,
+        author: `p:${this.deviceId}`,
+        signKey: this.signKey,
+        keyring: keyring(this.connection),
+      },
+      recordId,
+      text,
+    );
+  }
+
+  mediaOffer(): MediaOffer | undefined {
+    const offer = this.offeredMedia;
+    return this.kind === 'patient' &&
+      !this.connection.ended &&
+      offer &&
+      offer.expiresAt > Date.now()
+      ? offer
+      : undefined;
+  }
+
+  mediaIce(): Promise<RTCConfiguration> {
+    return diaryMediaIce(this.api, this.patientId);
+  }
+
+  async answerMedia(offer: MediaOffer, sdp: string): Promise<void> {
+    if (this.mediaOffer()?.requestId !== offer.requestId)
+      throw new DiaryApiError(410, 'Запрос передачи больше не действует.');
+    this.refresh();
+    await pushMediaSignal(
+      this.api,
+      {
+        patientId: this.patientId,
+        author: `p:${this.deviceId}`,
+        signKey: this.signKey,
+        keyring: keyring(this.connection),
+      },
+      offer.requestId,
+      { kind: 'answer', sdp },
+      offer.seq,
+    );
+    if (this.offeredMedia?.requestId === offer.requestId) this.offeredMedia = undefined;
   }
 
   /** The name this carer's phone shows; empty until the carer gives one. */
@@ -521,7 +598,7 @@ export class PatientConnection {
   }
 
   /** Applies what the server sent to the local store; local edits not yet sent are kept. */
-  private apply(revisions: readonly { id: string; author: string; payload: unknown }[]): void {
+  private apply(revisions: readonly DiaryRecordRevision[]): void {
     const synced = { ...this.connection.synced };
     const names = { ...this.connection.names };
     const authors = { ...this.connection.authors };
@@ -536,6 +613,16 @@ export class PatientConnection {
       ...revisions.filter((revision) => revision.id !== PLAN_RECORD),
     ];
     for (const revision of ordered) {
+      const signal = this.kind === 'patient' ? readMediaSignal(revision) : undefined;
+      if (signal) {
+        if (signal.kind === 'offer') this.offeredMedia = signal;
+        else if (
+          this.offeredMedia?.requestId === signal.requestId &&
+          (signal.kind === 'answer' || this.offeredMedia.author === signal.author)
+        )
+          this.offeredMedia = undefined;
+        continue;
+      }
       const payload = revision.payload as Record<string, unknown> | null;
       if (!payload || typeof payload !== 'object') continue;
       try {
@@ -604,20 +691,22 @@ export class PatientConnection {
           // Accepted on another phone of this patient: the documents count here too.
           const known = this.store.meta(this.patientId);
           const consents = parseJoiningAcceptances(payload['documents']);
-          if (typeof payload['at'] === 'string' && !known.consentAt && consents.length > 0) {
-            this.store.setMeta(this.patientId, {
-              consentAt: payload['at'],
-              consents,
-            });
-          } else if (typeof payload['at'] === 'string' && !known.consentAt && !payload['study']) {
+          const at = typeof payload['at'] === 'string' ? payload['at'] : undefined;
+          const newer = at && (!known.consentAt || Date.parse(at) > Date.parse(known.consentAt));
+          if (newer && consents.length > 0) {
+            this.store.setMeta(this.patientId, { consentAt: at, consents });
+          } else if (at && !known.consentAt && !payload['study']) {
             // Accepted before the documents were listed one by one: only the time is known.
-            this.store.setMeta(this.patientId, { consentAt: payload['at'] });
+            this.store.setMeta(this.patientId, { consentAt: at });
           }
-          // The patient's answer about the study: the later of this phone's and the server's.
           const remote = parseStudyAnswer(payload['study']);
           const later = laterStudyAnswer(known.study, remote);
           if (later && later !== known.study) this.store.setMeta(this.patientId, { study: later });
-          synced[revision.id] = studyAnswerFingerprint(remote);
+          synced[revision.id] = consentFingerprint(
+            consents.length ? at : (known.consentAt ?? (remote ? undefined : at)),
+            consents.length ? consents : known.consents,
+            remote,
+          );
         } else if (revision.id.startsWith('member-')) {
           const name = memberName(revision.id, revision.author, payload);
           if (name) {
@@ -639,7 +728,14 @@ export class PatientConnection {
         console.warn('Запись дневника с сервера пропущена:', cause.message);
       }
     }
-    this.save({ synced, names, authors });
+    this.save({
+      synced,
+      names,
+      authors,
+      ...(this.kind === 'patient'
+        ? { chat: mergeDiaryChat(this.connection.chat ?? [], revisions) }
+        : {}),
+    });
     this.remember(planBefore, removals, restored);
   }
 

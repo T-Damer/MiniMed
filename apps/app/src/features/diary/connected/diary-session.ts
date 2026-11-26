@@ -3,7 +3,11 @@
  * signature, decrypts with the epoch key, and seals and pushes local changes as the next revision.
  * Used by the patient's phone and by the doctor's dashboard alike.
  */
-import type { DiaryRecordsNotice } from '@localmed/contracts';
+import {
+  DIARY_MEDIA_RECORD,
+  DIARY_MEDIA_WINDOW_MS,
+  type DiaryRecordsNotice,
+} from '@localmed/contracts';
 import { openRecord, sealRecord, verifyRecord } from '@localmed/diary-sync';
 
 import {
@@ -87,6 +91,11 @@ export class DiarySession {
     while (more) {
       const page = await diaryRecords.page(this.api, this.patientId, this.state.cursor);
       for (const record of page.records) {
+        if (
+          DIARY_MEDIA_RECORD.test(record.id) &&
+          Date.parse(record.at) + DIARY_MEDIA_WINDOW_MS <= Date.now()
+        )
+          continue;
         const key = this.keyring.keys.get(record.epoch);
         const sign = await this.authorKey(record.author);
         if (!key || !sign || !(await verifyRecord(this.patientId, record, sign))) {
@@ -100,6 +109,7 @@ export class DiarySession {
             rev: record.rev,
             author: record.author,
             at: record.at,
+            seq: record.seq,
             payload,
           });
         } catch {
@@ -107,8 +117,10 @@ export class DiarySession {
         }
       }
       const revs = { ...this.state.revs };
-      for (const record of page.records)
-        revs[record.id] = Math.max(revs[record.id] ?? 0, record.rev);
+      for (const record of page.records) {
+        if (!DIARY_MEDIA_RECORD.test(record.id))
+          revs[record.id] = Math.max(revs[record.id] ?? 0, record.rev);
+      }
       this.state = { cursor: page.last, revs };
       more = page.more;
     }

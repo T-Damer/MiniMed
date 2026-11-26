@@ -113,6 +113,6 @@ describe('charts route', () => {
       chart: 'q-phq-9',
     });
     expect(isFullScreenRoute(`#/notes/diaries/${id}/charts/use-alcohol`)).toBe(true);
-    expect(isFullScreenRoute(`#/notes/diaries/${id}`)).toBe(false);
+    expect(isFullScreenRoute(`#/notes/diaries/${id}`)).toBe(true);
   });
 });

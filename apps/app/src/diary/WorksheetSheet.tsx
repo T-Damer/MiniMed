@@ -78,6 +78,7 @@ function FieldInput(props: {
     origin: Parameters<Parameters<typeof VoiceNote>[0]['onText']>[1],
   ) => void;
 }): JSX.Element {
+  const prompt = () => props.field.patientPrompt ?? props.field.label;
   const text = (): string => (typeof props.value === 'string' ? props.value : '');
   const number = (): number | undefined =>
     typeof props.value === 'number' ? props.value : undefined;
@@ -90,38 +91,38 @@ function FieldInput(props: {
   return (
     <div class="worksheet-fill__field">
       <div class="worksheet-fill__label-row">
-        <span class="worksheet-fill__label">{props.field.label}</span>
+        <span class="worksheet-fill__label">{prompt()}</span>
         <FieldHint field={props.field} />
       </div>
       <Switch>
         <Match when={props.field.type === 'long-text'}>
           <div class="worksheet-fill__with-voice">
+            <VoiceNote compact={prompt()} wide onText={dictate} />
             <GrowingText
-              label={props.field.label}
+              label={prompt()}
               hideLabel
               maxLength={MAX_DIARY_SHEET_TEXT}
               value={text()}
               placeholder="Своими словами"
               onInput={props.onChange}
             />
-            <VoiceNote compact={props.field.label} onText={dictate} />
           </div>
         </Match>
         <Match when={props.field.type === 'text'}>
           <div class="worksheet-fill__with-voice">
+            <VoiceNote compact={prompt()} wide onText={dictate} />
             <input
               class="worksheet-fill__input"
-              aria-label={props.field.label}
+              aria-label={prompt()}
               maxLength={MAX_SHEET_LINE}
               value={text()}
               onInput={(event) => props.onChange(event.currentTarget.value)}
             />
-            <VoiceNote compact={props.field.label} onText={dictate} />
           </div>
         </Match>
         <Match when={props.field.type === 'scale'}>
           <ScorePicker
-            label={props.field.label}
+            label={prompt()}
             min={0}
             max={10}
             value={number()}
@@ -136,7 +137,7 @@ function FieldInput(props: {
               min={0}
               max={100}
               step={5}
-              aria-label={`${props.field.label}, от 0 до 100`}
+              aria-label={`${prompt()}, от 0 до 100`}
               value={number() ?? 0}
               classList={{ 'worksheet-fill__range--empty': number() === undefined }}
               onInput={(event) => props.onChange(Number(event.currentTarget.value))}
@@ -150,7 +151,7 @@ function FieldInput(props: {
           <div class="worksheet-fill__number">
             <input
               class="worksheet-fill__input worksheet-fill__input--number"
-              aria-label={props.field.label}
+              aria-label={prompt()}
               inputMode={props.field.type === 'duration' ? 'numeric' : 'decimal'}
               value={number()?.toString().replace('.', ',') ?? ''}
               onInput={(event) => props.onChange(numberFrom(event.currentTarget.value))}
@@ -162,7 +163,7 @@ function FieldInput(props: {
         </Match>
         <Match when={props.field.type === 'choice' || props.field.type === 'multi'}>
           <fieldset class="diary-answer">
-            <legend class="diary-hidden-label">{props.field.label}</legend>
+            <legend class="diary-hidden-label">{prompt()}</legend>
             <For each={props.field.options ?? []}>
               {(option) => {
                 const on = (): boolean =>
@@ -192,7 +193,7 @@ function FieldInput(props: {
         </Match>
         <Match when={props.field.type === 'time'}>
           <UiTimeField
-            label={props.field.label}
+            label={prompt()}
             hideLabel
             class="diary-care-time"
             value={text()}
@@ -200,7 +201,7 @@ function FieldInput(props: {
           />
         </Match>
         <Match when={props.field.type === 'date'}>
-          <DateField label={props.field.label} hideLabel value={text()} onChange={props.onChange} />
+          <DateField label={prompt()} hideLabel value={text()} onChange={props.onChange} />
         </Match>
       </Switch>
     </div>
@@ -365,20 +366,25 @@ export function WorksheetSheet(props: {
           />
         )}
       </For>
-      <div class="worksheet-fill__with-voice">
-        <GrowingText
-          label="Что ещё важно"
-          value={note()}
-          placeholder="Что ещё хотите сказать врачу"
-          onInput={setNote}
-        />
-        <VoiceNote
-          compact="что ещё важно"
-          onText={(said, origin) => {
-            spoken.add('#note', said, origin);
-            setNote(note().trim() ? `${note().trim()}\n${said}` : said);
-          }}
-        />
+      <div class="worksheet-fill__field">
+        <span class="worksheet-fill__label">Что ещё хотите сказать врачу?</span>
+        <div class="worksheet-fill__with-voice">
+          <VoiceNote
+            compact="что ещё важно"
+            wide
+            onText={(said, origin) => {
+              spoken.add('#note', said, origin);
+              setNote(note().trim() ? `${note().trim()}\n${said}` : said);
+            }}
+          />
+          <GrowingText
+            label="Что ещё хотите сказать врачу?"
+            hideLabel
+            value={note()}
+            placeholder="Своими словами"
+            onInput={setNote}
+          />
+        </div>
       </div>
     </DiarySheet>
   );

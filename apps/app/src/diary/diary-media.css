@@ -1,0 +1,134 @@
+.diary-media {
+  display: grid;
+  justify-items: start;
+  gap: 0.65rem;
+  min-width: 0;
+  width: fit-content;
+  max-width: min(100%, 34rem);
+  padding: 0.85rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 1rem 1rem 1rem 0.35rem;
+  background: var(--theme-surface-raised);
+}
+
+.diary-media--doctor {
+  justify-self: end;
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 0.35rem;
+  background: color-mix(in srgb, var(--theme-accent) 12%, var(--theme-surface-raised));
+}
+
+.diary-media-stream {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.diary-media--incoming {
+  width: min(100%, 28rem);
+}
+
+.diary-media__glyph {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--theme-accent-text);
+}
+
+.diary-media__heading {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.diary-media__title {
+  flex: 1;
+}
+
+.diary-media__copy {
+  margin: 0;
+  color: var(--theme-text-muted);
+}
+
+.diary-media__files {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.diary-media__files--received {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 0.8rem;
+}
+
+.diary-media__files--draft {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.38rem;
+}
+
+.diary-media__filename {
+  min-width: 0;
+  width: 5rem;
+  max-width: 100%;
+}
+
+.diary-media__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.diary-media__progress,
+.diary-media__received {
+  display: grid;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.diary-media__meter {
+  width: 100%;
+  accent-color: var(--theme-accent);
+}
+
+.diary-media__preview {
+  display: block;
+  width: min(100%, 18rem);
+  max-height: 36dvh;
+  border-radius: 0.6rem;
+  object-fit: contain;
+  background: var(--theme-surface-muted);
+}
+
+.diary-media__preview--draft,
+.diary-media__preview-fallback {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.diary-media__preview-fallback {
+  display: grid;
+  place-items: center;
+  border-radius: 0.6rem;
+  background: var(--theme-surface-muted);
+}
+
+.diary-media__video {
+  position: relative;
+  width: fit-content;
+}
+
+.diary-media__play {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0.3rem;
+  translate: -50% -50%;
+  border-radius: 50%;
+  color: white;
+  background: rgb(0 0 0 / 60%);
+  pointer-events: none;
+}

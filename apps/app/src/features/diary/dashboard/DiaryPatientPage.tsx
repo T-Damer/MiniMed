@@ -13,12 +13,11 @@ import { PAGE_HEROES } from '@/app/page-heroes';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import type { HeaderAction } from '@/components/HeaderActions';
-import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
-import { Page } from '@/components/Page';
-import { Heading } from '@/components/Text';
 import { DiaryHeatmap, heatmapRange } from '@/diary/DiaryHeatmap';
 import { pluralize } from '@/diary/diary-format';
+import { ScreenHeader } from '@/diary/diary-ui';
+import { DoctorPatientChat } from '@/features/diary/dashboard/DoctorPatientChat';
 import '@/features/worksheets/worksheets.css';
 import {
   createHeatFilter,
@@ -124,12 +123,14 @@ export function DiaryPatientPage(props: {
   readonly onOpen: (sub: DiarySub) => void;
   /** The day to show first (an alert opened from the list). */
   readonly initialDay?: string | undefined;
+  readonly monitoring?: boolean;
 }): JSX.Element {
   // An alert opened from the list starts on its day.
   const [dialog, setDialog] = createSignal<Dialog | undefined>(
     props.initialDay ? 'day' : undefined,
   );
   const [day, setDay] = createSignal(props.initialDay ?? dayKey(new Date()));
+  const [mediaRequest, setMediaRequest] = createSignal<number>();
   /** An alert's «open the day»: the day's sheet in place of the alert's. */
   const openDay = (next: string): void => {
     setDay(next);
@@ -149,6 +150,7 @@ export function DiaryPatientPage(props: {
     return current ? effectiveHeatParts(heatParts(current.invitation), savedParts()) : savedParts();
   });
   const heat = createMemo(() => {
+    if (!props.monitoring) return [];
     const current = results();
     if (!current) return [];
     const range = heatmapRange(
@@ -166,6 +168,7 @@ export function DiaryPatientPage(props: {
   });
   const [quizzes] = createResource(
     () => {
+      if (!props.monitoring) return undefined;
       const current = results();
       return current ? { current, version: props.version } : undefined;
     },
@@ -177,6 +180,7 @@ export function DiaryPatientPage(props: {
    */
   const symptomDays = createMemo(() => {
     const days = new Map<string, 0 | 1 | 2 | 3 | 4>();
+    if (!props.monitoring) return days;
     const counts = (part: HeatPart): boolean => !include().size || include().has(part);
     const raise = (at: string, level: 0 | 1 | 2 | 3 | 4): void => {
       const day = dayKey(at);
@@ -272,7 +276,19 @@ export function DiaryPatientPage(props: {
   const actions = createMemo((): readonly HeaderAction[] => {
     const edit = canEdit();
     const ready = Boolean(results());
-    return [
+    const common: HeaderAction[] = [
+      ...(!props.monitoring && edit && ready && props.patient.summary.status === 'active'
+        ? [
+            {
+              id: 'media',
+              label: 'Запросить файлы',
+              icon: 'image' as const,
+              priority: 2 as const,
+              menuOnly: true,
+              onSelect: () => setMediaRequest(Date.now()),
+            },
+          ]
+        : []),
       // The one way to change the patient's screen, plan and tips (DIARY20): a pencil on top.
       ...(edit
         ? [
@@ -345,6 +361,26 @@ export function DiaryPatientPage(props: {
         onSelect: () => setDialog('curators'),
       },
     ];
+    return props.monitoring
+      ? common
+      : [
+          {
+            id: 'plan',
+            label: 'Назначения',
+            icon: 'list-checks',
+            priority: 1,
+            disabled: !ready,
+            onSelect: () => props.onOpen('plan'),
+          },
+          {
+            id: 'monitoring',
+            label: 'Мониторинг',
+            icon: 'chart-line',
+            priority: 1,
+            onSelect: () => props.onOpen('monitoring'),
+          },
+          ...common.map((action) => ({ ...action, menuOnly: true })),
+        ];
   });
 
   const exportAs = async (kind: 'csv' | 'xlsx' | 'fhir'): Promise<void> => {
@@ -365,14 +401,26 @@ export function DiaryPatientPage(props: {
   };
 
   return (
-    <div class="diary-patient">
-      <Page
-        hero={PAGE_HEROES.patients}
-        navigation={
-          <NavBack class="knowledge-back-button" aria-label="К списку" onClick={props.onBack} />
+    <div class="diary-patient" classList={{ 'diary-patient--chat': !props.monitoring }}>
+      <ScreenHeader
+        hero={props.monitoring ? PAGE_HEROES.patients : undefined}
+        signum={!props.monitoring}
+        backLabel={props.monitoring ? 'К чату' : 'К списку'}
+        onBack={props.onBack}
+        title={title()}
+        titleContent={
+          props.monitoring ? undefined : (
+            <span class="companion-chat__identity diary-thread__identity">
+              <span class="companion-chat__avatar diary-thread__avatar" aria-hidden="true">
+                {props.patient.replica.profile?.emoji ?? '🙂'}
+              </span>
+              <span class="companion-chat__name">
+                {props.patient.replica.profile?.label ?? 'Пациент'}
+              </span>
+            </span>
+          )
         }
-        title={<Heading depth={1}>{title()}</Heading>}
-        description={(() => {
+        subtitle={(() => {
           void props.version;
           const label = presenceLabel(props.patient.summary);
           const birth = props.patient.replica.profile?.birthDate;
@@ -438,18 +486,20 @@ export function DiaryPatientPage(props: {
         headerActions={actions()}
         helpPriority={2}
         help={
-          <>
-            <p>
-              Записи пациента приходят сюда вживую. «Статистика» открывает все графики, под ней —
-              кратко за неделю. Календарь показывает выполнение плана по дням; день открывается
-              нажатием: что сделано, что пропущено, записи. Жёлтая точка — в этот день меняли план.
-            </p>
-            <p>
-              Карандаш сверху — «Редактировать»: экран пациента, назначения и подсказки. Изменения
-              придут на его телефон сами. Если коллега правил план в это же время, правки
-              объединятся. Ошибочную запись можно исправить, пациент увидит отметку.
-            </p>
-          </>
+          props.monitoring ? (
+            <>
+              <p>
+                В чате появляются сообщения, отметки и отчёты пациента. «Мониторинг» открывает
+                графики и календарь. Нажмите на день, чтобы посмотреть записи и выполнение плана.
+                Жёлтая точка обозначает изменение плана.
+              </p>
+              <p>
+                Карандаш сверху — «Редактировать»: экран пациента, назначения и подсказки. Изменения
+                придут на его телефон сами. Если коллега правил план в это же время, правки
+                объединятся. Ошибочную запись можно исправить, пациент увидит отметку.
+              </p>
+            </>
+          ) : undefined
         }
       />
 
@@ -495,6 +545,23 @@ export function DiaryPatientPage(props: {
       </Show>
 
       <Show when={results()}>
+        {(current) => (
+          <div class="diary-patient__chat" hidden={props.monitoring}>
+            <DoctorPatientChat
+              patient={props.patient}
+              results={current()}
+              workspace={props.workspace}
+              editable={canEdit()}
+              mediaRequest={mediaRequest()}
+              stopMedia={() => setMediaRequest(undefined)}
+              openDay={openDay}
+              openPlanDraft={() => props.onOpen('plan-draft')}
+            />
+          </div>
+        )}
+      </Show>
+
+      <Show when={props.monitoring ? results() : undefined}>
         {(current) => (
           <>
             <MedHistoryCard

@@ -8,6 +8,7 @@
 import type {
   DiaryAlert,
   DiaryDeviceKind,
+  DiaryMediaSignal,
   DiaryPatientDetail,
   DiaryPatientSummary,
   DiaryPresenceEvent,
@@ -35,9 +36,11 @@ import {
   diaryPatients,
   isOffline,
 } from '@/features/diary/connected/diary-api';
+import { writeDiaryChat } from '@/features/diary/connected/diary-chat';
 import {
   applyRevisions,
   type DiaryProfile,
+  type DiaryRecordRevision,
   type DiaryReplica,
   EMPTY_REPLICA,
   entryRecordId,
@@ -51,6 +54,12 @@ import {
   keepOfflineCopy,
   readOfflineCopy,
 } from '@/features/diary/connected/doctor-account';
+import {
+  diaryMediaIce,
+  type LiveMediaSignal,
+  pushMediaSignal,
+  readMediaSignal,
+} from '@/features/diary/connected/media-signaling';
 import { pairingLink } from '@/features/diary/connected/patient-connection';
 import { connectedDiaryPageUrl, diaryServiceBase } from '@/features/diary/diary-links';
 import { type PastMedication, pastMedRecordId } from '@/features/diary/diary-med-history';
@@ -153,6 +162,68 @@ const QUIET_REFRESH_MS = 15_000;
 const RETURN_REFRESH_MS = 60_000;
 
 export class DoctorDiaries {
+  async sendChat(patientId: string, recordId: string, text: string): Promise<void> {
+    const entry = this.entries.get(patientId);
+    if (!entry) throw new DiaryApiError(404, 'Пациент не найден.');
+    await writeDiaryChat(
+      this.api,
+      {
+        patientId,
+        author: `d:${this.doctorId}`,
+        signKey: this.session.identity.sign.privateKey,
+        keyring: await this.keyring(entry.summary),
+      },
+      recordId,
+      text,
+    );
+  }
+  private readonly mediaListeners = new Map<string, (signal: LiveMediaSignal) => void>();
+
+  listenMedia(
+    patientId: string,
+    requestId: string,
+    listener: (signal: LiveMediaSignal) => void,
+  ): () => void {
+    const key = `${patientId}:${requestId}`;
+    this.mediaListeners.set(key, listener);
+    return () => {
+      this.mediaListeners.delete(key);
+    };
+  }
+
+  private applyMedia(patientId: string, revisions: readonly DiaryRecordRevision[]): void {
+    if (!this.mediaListeners.size) return;
+    for (const revision of revisions) {
+      const signal = readMediaSignal(revision);
+      if (signal) this.mediaListeners.get(`${patientId}:${signal.requestId}`)?.(signal);
+    }
+  }
+
+  mediaIce(patientId: string): Promise<RTCConfiguration> {
+    return diaryMediaIce(this.api, patientId);
+  }
+
+  async signalMedia(
+    patientId: string,
+    requestId: string,
+    signal: DiaryMediaSignal,
+    offerSeq?: number,
+  ): Promise<number> {
+    const entry = this.entries.get(patientId);
+    if (!entry) throw new DiaryApiError(404, 'Пациент не найден.');
+    return pushMediaSignal(
+      this.api,
+      {
+        patientId,
+        author: `d:${this.doctorId}`,
+        signKey: this.session.identity.sign.privateKey,
+        keyring: await this.keyring(entry.summary),
+      },
+      requestId,
+      signal,
+      offerSeq,
+    );
+  }
   private readonly api;
   private readonly entries = new Map<string, DoctorPatient>();
   private readonly sessions = new Map<string, DiarySession>();
@@ -267,6 +338,7 @@ export class DoctorDiaries {
     }
     const session = await this.sessionFor(summary);
     const pulled = await session.pull();
+    this.applyMedia(summary.id, pulled.revisions);
     this.pulled.add(summary.id);
     this.entries.set(summary.id, {
       summary,
@@ -524,6 +596,7 @@ export class DoctorDiaries {
       rebase && ((revisions) => rebase(applyRevisions(entry.replica, revisions))),
     );
     const after = await session.pull();
+    this.applyMedia(patientId, [...pulled, ...after.revisions]);
     this.pulled.add(patientId);
     this.entries.set(patientId, {
       ...entry,

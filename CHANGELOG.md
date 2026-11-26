@@ -4,6 +4,13 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.131] - 2026-11-27
+
+- **Signum:** Start with the patient's basic profile, then open the clinician chat. Dictate or type prescriptions, review the local draft on its own page, and send the plan after confirmation.
+- **Patient diary:** Open in chat with today's checklist, calendar, recorded marks, and settings one tap away. Show clinician plan changes as chat messages.
+- **Connected diaries:** Add encrypted clinician–patient text messages and clinician-requested photo and video transfers over a temporary WebRTC channel.
+- **Clinician workspace:** Keep the chat in view by default, with separate routes for prescriptions and monitoring.
+
 ## [0.6.130] - 2026-11-24
 
 - **Bottom bar & satellite controls:** Dock Clinical Tabs and the active conversation recording indicator into a shared `#app-bottom-left-controls` flex stack so they never overlap each other, lift together above crowded 5–6 tab bars (accounting for left/right camera cutouts), and drop to the screen edge when the bottom bar is hidden.

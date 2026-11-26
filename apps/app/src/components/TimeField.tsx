@@ -7,8 +7,9 @@ import { formatTimeValue, parseTimeValue, type TimeParts } from '@/components/ti
 export interface TimeFieldProps {
   /** «HH:MM» (24 h) or '' when empty. Changing it from outside updates the segments in place. */
   readonly value: string;
-  /** Called only with a complete, valid «HH:MM». */
+  /** A complete, valid «HH:MM», or '' when reportIncomplete is enabled. */
   readonly onChange: (next: string) => void;
+  readonly reportIncomplete?: boolean | undefined;
   readonly label: string;
   readonly hideLabel?: boolean;
   readonly class?: string;
@@ -59,7 +60,12 @@ export function TimeField(props: TimeFieldProps): JSX.Element {
       () => props.value,
       (value) => {
         // Echo of our own emit: keep the draft as is.
-        if (value === formatTimeValue(draft())) return;
+        const formatted = formatTimeValue(draft());
+        if (
+          value === formatted ||
+          (props.reportIncomplete && value === '' && formatted === undefined)
+        )
+          return;
         setDraft(draftFromValue(value));
       },
       { defer: true },
@@ -68,7 +74,7 @@ export function TimeField(props: TimeFieldProps): JSX.Element {
 
   const handleChange = (next: TimeParts): void => {
     setDraft(toDraft(next));
-    const formatted = formatTimeValue(next);
+    const formatted = formatTimeValue(next) ?? (props.reportIncomplete ? '' : undefined);
     if (formatted !== undefined && formatted !== props.value) props.onChange(formatted);
   };
 

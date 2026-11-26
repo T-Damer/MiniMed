@@ -41,6 +41,7 @@ export class DiaryApiError extends Error {
   constructor(
     readonly status: number,
     message: string,
+    readonly code?: string,
   ) {
     super(message);
     this.name = 'DiaryApiError';
@@ -52,7 +53,7 @@ export function isOffline(cause: unknown): boolean {
   return cause instanceof DiaryApiError && cause.status === 0;
 }
 
-const ErrorBody = z.object({ error: z.string() });
+const ErrorBody = z.object({ error: z.string(), code: z.string().optional() });
 
 export interface DiaryApi {
   readonly base: string;
@@ -94,6 +95,7 @@ export function createDiaryApi(token: () => string | undefined, base = ''): Diar
         throw new DiaryApiError(
           response.status,
           parsed.success ? parsed.data.error : `Сервер ответил ${response.status}.`,
+          parsed.success ? parsed.data.code : undefined,
         );
       }
       const parsed = schema.safeParse(value);

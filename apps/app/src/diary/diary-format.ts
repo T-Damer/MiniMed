@@ -17,6 +17,10 @@ export function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 }
 
+export function keepUnits(text: string): string {
+  return text.replace(/(\d)[ \u00a0]+(мкг|мг|мл|г|МЕ|ЕД)(?!\p{L})/giu, '$1\u00a0$2');
+}
+
 export function isSameLocalDay(left: Date, right: Date): boolean {
   return (
     left.getFullYear() === right.getFullYear() &&

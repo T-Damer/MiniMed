@@ -191,7 +191,8 @@ export function DiarySend(props: {
       <ScreenHeader
         title="Отправить врачу"
         subtitle={invitation().title}
-        onBack={props.tabbed ? undefined : props.onBack}
+        onBack={props.onBack}
+        backLabel={props.tabbed ? 'Настройки' : 'На главную'}
         hero={PAGE_HEROES.diarySend}
       />
       <Show

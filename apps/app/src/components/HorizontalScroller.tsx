@@ -157,11 +157,11 @@ export function HorizontalScroller(props: HorizontalScrollerProps): JSX.Element 
     <div
       class={`horizontal-scroll-frame ${props.class}`}
       classList={{
-        'has-controls': props.controls === true,
-        'hide-scrollbar': props.hideScrollbar === true,
+        'has-controls': props.controls !== false,
+        'hide-scrollbar': props.hideScrollbar !== false,
       }}
     >
-      <Show when={props.controls && canScrollPrevious()}>
+      <Show when={props.controls !== false && canScrollPrevious()}>
         <button
           class={`horizontal-scroll-control previous ${props.controlClass ?? ''}`}
           type="button"
@@ -203,7 +203,7 @@ export function HorizontalScroller(props: HorizontalScrollerProps): JSX.Element 
           }}
           options={{
             overflow: { x: 'scroll', y: 'hidden' },
-            scrollbars: { autoHide: props.hideScrollbar ? 'scroll' : 'never' },
+            scrollbars: { visibility: props.hideScrollbar !== false ? 'hidden' : 'visible' },
           }}
           events={{
             initialized: (instance) => {
@@ -222,7 +222,7 @@ export function HorizontalScroller(props: HorizontalScrollerProps): JSX.Element 
           {props.children}
         </OverlayScrollbarsComponent>
       </Show>
-      <Show when={props.controls && canScrollNext()}>
+      <Show when={props.controls !== false && canScrollNext()}>
         <button
           class={`horizontal-scroll-control next ${props.controlClass ?? ''}`}
           type="button"

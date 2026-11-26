@@ -41,6 +41,8 @@ export function ScrollIndicator(props: {
   readonly class?: string;
 }): JSX.Element {
   const [shown, setShown] = createSignal(false);
+  const [overlay, setOverlay] = createSignal(false);
+  const [moreBelow, setMoreBelow] = createSignal(false);
   let track: HTMLDivElement | undefined;
   let thumb: HTMLDivElement | undefined;
   let scrollFrame = 0;
@@ -108,6 +110,7 @@ export function ScrollIndicator(props: {
       geometryDirty = false;
     }
     const next = computeScrollIndicatorThumb(geometry, scrollTop);
+    setMoreBelow(geometry.total - geometry.visible - scrollTop > 2);
 
     // Write phase: mutate only changed properties so steady scrolling touches only `transform`.
     if (next.shown !== lastShown) {
@@ -148,13 +151,14 @@ export function ScrollIndicator(props: {
   };
 
   onMount(() => {
-    if (!hasOverlayScrollbars()) return;
+    const nativeOverlay = hasOverlayScrollbars();
+    setOverlay(nativeOverlay);
     const element = scroller();
     if (!element) return;
     const source: HTMLElement | Window = props.target ? element : window;
     // One scrollbar: the native overlay bar hides while this thumb stands in for it.
     const host = props.target ? element : document.documentElement;
-    host.classList.add('scroll-indicator-host');
+    if (nativeOverlay) host.classList.add('scroll-indicator-host');
     let observedContent: Element | null = props.target ? element.firstElementChild : null;
 
     const flushGeometry = (): void => {
@@ -192,7 +196,7 @@ export function ScrollIndicator(props: {
       source.removeEventListener('scroll', scheduleScroll);
       window.removeEventListener('resize', onWindowResize);
       observer.disconnect();
-      host.classList.remove('scroll-indicator-host');
+      if (nativeOverlay) host.classList.remove('scroll-indicator-host');
       if (scrollFrame) cancelAnimationFrame(scrollFrame);
       if (resizeTimer !== undefined) window.clearTimeout(resizeTimer);
     });
@@ -202,10 +206,18 @@ export function ScrollIndicator(props: {
     <div
       ref={track}
       class={`scroll-indicator ${props.fixed ? 'scroll-indicator--fixed' : props.target ? 'scroll-indicator--inner' : 'scroll-indicator--page'} ${props.class ?? ''}`}
-      classList={{ 'scroll-indicator--shown': shown() }}
+      classList={{ 'scroll-indicator--shown': shown(), 'scroll-indicator--native': !overlay() }}
       aria-hidden="true"
     >
-      <div ref={thumb} class="scroll-indicator__thumb" />
+      <div
+        ref={thumb}
+        class="scroll-indicator__thumb"
+        classList={{ 'scroll-indicator__thumb--native': !overlay() }}
+      />
+      <span
+        class="scroll-indicator__cue"
+        classList={{ 'scroll-indicator__cue--shown': moreBelow() }}
+      />
     </div>
   );
 }
