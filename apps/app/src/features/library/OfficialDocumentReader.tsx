@@ -1513,6 +1513,16 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
           )}
         </Show>
       }
+      bodyPrefix={
+        <Show when={props.document && !props.openError && !graphicsReady()}>
+          <progress
+            class="document-page__enhancements-progress"
+            aria-label="Подготовка таблиц, ссылок и иллюстраций"
+            value={linksReady() ? 3 : tablesReady() ? 2 : 1}
+            max={4}
+          />
+        </Show>
+      }
       showLayout={Boolean(props.document) && !props.openError}
       outlineEnabled={!props.document || orderedSections().length > 1}
       pages={pageModel}

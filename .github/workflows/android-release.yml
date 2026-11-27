@@ -14,7 +14,7 @@ env:
   BUILD_TOOLS_VERSION: 36.0.0
   # Certificate of the persistent prerelease key (secrets MINIMED_ANDROID_*). Every APK must carry
   # it so that a new release installs over the previous one and keeps the user's local data.
-  PRERELEASE_CERT_SHA256: 684fde01054b3860f02f406c4d90a55f0c2bb2370f624770848ebbf4d42fb970
+  PRERELEASE_CERT_SHA256: 7749bab3dbe763d9a3c2092ded6e2700f48c3dd86dc9ba780394c1d3684d0b16
 
 jobs:
   build-and-release:

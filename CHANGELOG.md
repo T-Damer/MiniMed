@@ -4,6 +4,11 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.132] - 2026-11-27
+
+- Show a thin progress line while the reader prepares tables, links, and illustrations. The text remains available while they load.
+- Rotate the Android signing key. Export local data before uninstalling an earlier APK and installing this version.
+
 ## [0.6.131] - 2026-11-27
 
 - **Signum:** Start with the patient's basic profile, then open the clinician chat. Dictate or type prescriptions, review the local draft on its own page, and send the plan after confirmation.

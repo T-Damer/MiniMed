@@ -1,7 +1,7 @@
 # Current state
 
 > Updated: 27 November 2026
-> Released version: `0.6.131` (public prerelease toward `1.0`)
+> Released version: `0.6.132` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -19,6 +19,11 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Reader enhancement progress — 2026-11-27
+
+The reader shows a thin progress line while it prepares tables, links and illustrations. Text
+remains available during preparation, and images outside the viewport load on demand.
 
 ## Signum patient chat and checklist — 2026-11-26
 

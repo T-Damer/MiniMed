@@ -211,8 +211,12 @@ previous one and keeps the user's local data. Releases up to 0.6.42 were signed 
 ephemeral CI debug key each time and cannot be updated in place; moving to the persistent key needs
 one last reinstall (export a notes backup first).
 
+Version 0.6.132 rotates the key. Export local data before uninstalling an older APK. The new
+key and its password are kept in `~/.minimed-signing/v0.6.132/`. The manual GitHub workflow
+requires its repository signing secrets to match that certificate before it can release again.
+
 - Key: PKCS12 `minimed-prerelease.p12`, alias `minimed-prerelease`, certificate SHA-256
-  `684fde01054b3860f02f406c4d90a55f0c2bb2370f624770848ebbf4d42fb970` (pinned as
+  `7749bab3dbe763d9a3c2092ded6e2700f48c3dd86dc9ba780394c1d3684d0b16` (pinned as
   `PRERELEASE_CERT_SHA256` in `android-release.yml`; the release fails on any other
   certificate).
 - CI reads the repository secrets `MINIMED_ANDROID_KEYSTORE_BASE64`,
